@@ -114,7 +114,8 @@ float Window::delayUntilNextFrameInMinutes()
 
 bool Window::render(const std::vector<Geometry2D::HalfPlane2>& half_planes,
 		const std::vector<Geometry2D::Vec2>& points,
-		const std::vector<sdlColor>& points_colors)
+		const std::vector<sdlColor>& points_colors,
+		const std::vector<Geometry2D::Circle2>& circles)
 {
 	if (sdlCheck())
 		return true;
@@ -126,7 +127,7 @@ bool Window::render(const std::vector<Geometry2D::HalfPlane2>& half_planes,
 	// for half planes
 	renderHalfPlanes(half_planes);
 	// for points
-	float radius = 0.01*screenSizeInDistanceUnits;
+	float radius = 0.005*screenSizeInDistanceUnits;
 	for (int i = 0; i < points.size(); i++)
 	{
 		if (i < points_colors.size())
@@ -138,6 +139,11 @@ bool Window::render(const std::vector<Geometry2D::HalfPlane2>& half_planes,
 			SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 		renderCircle(points[i], radius, 0.0);
 	}
+	// for circles
+	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+	float thickness = 0.0025*screenSizeInDistanceUnits;
+	for (int i = 0; i < circles.size(); i++)
+		renderCircle(circles[i].center, circles[i].radius, circles[i].radius-thickness);
 	// bring it to the screen
 	SDL_RenderPresent(renderer);
 	return false;

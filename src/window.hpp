@@ -28,7 +28,8 @@ public:
 	// returns true if the window has been closed, false otherwise
 	bool render(const std::vector<Geometry2D::HalfPlane2>& half_planes,
 		const std::vector<Geometry2D::Vec2>& points,
-		const std::vector<sdlColor>& points_colors);
+		const std::vector<sdlColor>& points_colors,
+		const std::vector<Geometry2D::Circle2>& circles);
 
 	const float screenSizeInDistanceUnits;
 	const int screenSizeInPixels;
