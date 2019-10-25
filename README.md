@@ -22,3 +22,31 @@ cd path/to/rds
 make demo_geo
 ./build/demo_geo
 ```
+
+## Unit Test Setup
+
+The implemented unit tests for individual library functions use the gtest library. The following steps install it on Ubuntu 16.04.
+```
+# Prerequisite: CMake
+dpkg -s libgtest-dev
+# if the result says it is not installed, install with: sudo apt-get install libgtest-dev
+dpkg -L libgtest-dev
+# this list includes for me: /usr/src/gtest 
+# I heard that on newer Ubuntu versions the equivalent is: /usr/src/googletest/googletest
+cd /usr/src/gtest #if this is among the listed directories, otherwise go to equivalent
+sudo mkdir build
+cd build
+sudo cmake ..
+sudo make
+sudo cp libgtest* /usr/lib/
+cd ..
+sudo rm -rf build
+sudo mkdir /usr/local/lib/gtest
+sudo ln -s /usr/lib/libgtest.a /usr/local/lib/gtest/libgtest.a
+sudo ln -s /usr/lib/libgtest_main.a /usr/local/lib/gtest/libgtest_main.a
+```
+To build and execute one of the unit tests, run for example the following commands.
+```
+make test_geometry
+./build/test_geometry
+```

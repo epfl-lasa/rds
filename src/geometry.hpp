@@ -35,6 +35,7 @@ namespace Geometry2D
 	Vec2 operator/ (const Vec2&, float); // vector division by a scalar
 	Vec2 operator+ (const Vec2&, const Vec2&); // vector addition
 	Vec2 operator- (const Vec2&, const Vec2&); // vector subtraction
+	Vec2 operator- (const Vec2&); // vector reversal
 
 	// computes the incircle of the triangle which the three points define
 	// and returns the radius and assigns the incircle center coordinates to
@@ -82,6 +83,8 @@ namespace Geometry2D
 	public:
 		HalfPlane2();
 		HalfPlane2(const Vec2& normal, float offset);
+
+		const HalfPlane2& flip();
 
 		// returns true if the point belongs to the half-plane or false otherwise
 		bool contains(const Vec2& point_position_vector) const;

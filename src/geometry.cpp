@@ -114,6 +114,11 @@ namespace Geometry2D
 		return Vec2(v1.x - v2.x, v1.y - v2.y);
 	}
 
+	Vec2 operator- (const Vec2& v)
+	{
+		return Vec2(-v.x,-v.y);
+	}
+
 	float incircleRadius(const Vec2& corner_a, const Vec2& corner_b, const Vec2& corner_c,
 		Vec2* incircle_center)
 	{
@@ -184,6 +189,13 @@ namespace Geometry2D
 	HalfPlane2::HalfPlane2(const Vec2& normal, float offset) :
 		normal(normal),
 		offset(offset) {}
+
+	const HalfPlane2& HalfPlane2::flip()
+	{
+		normal = -normal;
+		offset = -offset;
+		return *this;
+	}
 
 	bool HalfPlane2::contains(const Vec2& point_position_vector) const
 	{
