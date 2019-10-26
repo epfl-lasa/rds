@@ -115,7 +115,8 @@ float Window::delayUntilNextFrameInMinutes()
 bool Window::render(const std::vector<Geometry2D::HalfPlane2>& half_planes,
 		const std::vector<Geometry2D::Vec2>& points,
 		const std::vector<sdlColor>& points_colors,
-		const std::vector<Geometry2D::Circle2>& circles)
+		const std::vector<Geometry2D::Circle2>& circles,
+		const std::vector<Geometry2D::AxisAlignedBoundingBox2>& aabbs)
 {
 	if (sdlCheck())
 		return true;
@@ -144,6 +145,9 @@ bool Window::render(const std::vector<Geometry2D::HalfPlane2>& half_planes,
 	float thickness = 0.0025*screenSizeInDistanceUnits;
 	for (int i = 0; i < circles.size(); i++)
 		renderCircle(circles[i].center, circles[i].radius, circles[i].radius-thickness);
+	// for aabbs
+	for (int i = 0; i < aabbs.size(); i++)
+		renderAABB(aabbs[i]);
 	// bring it to the screen
 	SDL_RenderPresent(renderer);
 	return false;
@@ -253,4 +257,23 @@ void Window::renderBoundaryLine(const Geometry2D::HalfPlane2& half_plane, int pi
 	Pixel shift_vector = unitVectorToPixelDirection(half_plane.normal);
 	SDL_RenderDrawLine(renderer, p1.i + shift_vector.i*pixel_shift, p1.j + shift_vector.j*pixel_shift,
 		p2.i + shift_vector.i*pixel_shift, p2.j + shift_vector.j*pixel_shift);
+}
+
+void Window::renderAABB(const Geometry2D::AxisAlignedBoundingBox2& aabb)
+{
+	SDL_Renderer* renderer = allSdlPointers[sdlWindowCreationNumber].renderer; //for convenience
+	SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+	Pixel p_x_lower_y_lower(pointToPixel(aabb.c_x_lower_y_lower));
+	Pixel p_x_lower_y_upper(pointToPixel(aabb.c_x_lower_y_upper));
+	Pixel p_x_upper_y_lower(pointToPixel(aabb.c_x_upper_y_lower));
+	Pixel p_x_upper_y_upper(pointToPixel(aabb.c_x_upper_y_upper));
+
+	SDL_RenderDrawLine(renderer, p_x_lower_y_lower.i, p_x_lower_y_lower.j,
+		p_x_lower_y_upper.i, p_x_lower_y_upper.j);
+	SDL_RenderDrawLine(renderer, p_x_lower_y_lower.i, p_x_lower_y_lower.j,
+		p_x_upper_y_lower.i, p_x_upper_y_lower.j);
+	SDL_RenderDrawLine(renderer, p_x_upper_y_upper.i, p_x_upper_y_upper.j,
+		p_x_lower_y_upper.i, p_x_lower_y_upper.j);
+	SDL_RenderDrawLine(renderer, p_x_upper_y_upper.i, p_x_upper_y_upper.j,
+		p_x_upper_y_lower.i, p_x_upper_y_lower.j);
 }

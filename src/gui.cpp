@@ -3,7 +3,8 @@
 GUI::GUI(float minutes_to_run,
 	const std::vector<Geometry2D::HalfPlane2>& half_planes,
 	const std::vector<Geometry2D::Vec2>& points,
-	const std::vector<Geometry2D::Circle2>& circles)
+	const std::vector<Geometry2D::Circle2>& circles,
+	const std::vector<Geometry2D::AxisAlignedBoundingBox2>& aabbs)
 {
 	bool window_is_good;
 	window = new Window("GUI", 4.0, 1000, 10.0, &window_is_good);
@@ -27,7 +28,7 @@ GUI::GUI(float minutes_to_run,
 		// display the points and half-planes for minutes_to_run [minutes]
 		float remaining_minutes = minutes_to_run;
 		while (remaining_minutes > 0.0 &&
-			!window->render(half_planes, points, points_colors, circles))
+			!window->render(half_planes, points, points_colors, circles, aabbs))
 		{
 			remaining_minutes -= window->delayUntilNextFrameInMinutes();
 		}
@@ -35,7 +36,7 @@ GUI::GUI(float minutes_to_run,
 	else
 	{
 		// display the points and half-planes until the window is closed
-		while (!window->render(half_planes, points, points_colors, circles))
+		while (!window->render(half_planes, points, points_colors, circles, aabbs))
 		{
 			window->delayUntilNextFrameInMinutes();
 		}

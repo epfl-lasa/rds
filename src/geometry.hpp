@@ -15,27 +15,29 @@ namespace Geometry2D
 	// returns false otherwise.
 	bool divisionIsOutsideRange(float numerator, float denominator);
 
+	bool divisionIsInRange(float numerator, float denominator, float range_a, float range_b);
+
 	class Vec2
 	{
 	public:
-		Vec2();
-		Vec2(float x, float y);
-
+		Vec2() : x(0.0), y(0.0) { }
+		Vec2(float x, float y) : x(x), y(y) { }
 		// computes the scalar product with another vector
-		float dot(const Vec2& vector) const;
-
+		float dot(const Vec2& v) const { return x*v.x + y*v.y; }
 		// computes the euclidean norm
 		float norm() const;
+		// returns a copy rotated by 90 degrees in the counter-clockwise sense
+		Vec2 orth() const { return Vec2(-y, x); }
 
 		float x, y;
 	};
 
-	Vec2 operator* (float, const Vec2&); // vector multiplication by a scalar
-	Vec2 operator* (const Vec2&, float); // vector multiplication by a scalar
-	Vec2 operator/ (const Vec2&, float); // vector division by a scalar
-	Vec2 operator+ (const Vec2&, const Vec2&); // vector addition
-	Vec2 operator- (const Vec2&, const Vec2&); // vector subtraction
-	Vec2 operator- (const Vec2&); // vector reversal
+	inline Vec2 operator* (float s, const Vec2& v) { return Vec2(v.x*s, v.y*s); } // vector multiplication by a scalar
+	inline Vec2 operator* (const Vec2& v, float s) { return Vec2(v.x*s, v.y*s); }; // vector multiplication by a scalar
+	inline Vec2 operator/ (const Vec2& v, float s) { return Vec2(v.x/s, v.y/s); }; // vector division by a scalar
+	inline Vec2 operator+ (const Vec2& v1, const Vec2& v2) { return Vec2(v1.x + v2.x, v1.y + v2.y); }; // vector addition
+	inline Vec2 operator- (const Vec2& v1, const Vec2& v2) { return Vec2(v1.x - v2.x, v1.y - v2.y); }; // vector subtraction
+	inline Vec2 operator- (const Vec2& v) { return Vec2(-v.x,-v.y); }; // vector reversal
 
 	// computes the incircle of the triangle which the three points define
 	// and returns the radius and assigns the incircle center coordinates to
@@ -46,8 +48,8 @@ namespace Geometry2D
 	class Circle2
 	{
 	public:
-		Circle2();
-		Circle2(Vec2 c, float r);
+		Circle2() : center(Vec2()), radius(0.0) { }
+		Circle2(Vec2 c, float r) : center(c), radius(r) { }
 		Vec2 center;
 		float radius;
 	};
@@ -81,16 +83,16 @@ namespace Geometry2D
 	class HalfPlane2
 	{
 	public:
-		HalfPlane2();
-		HalfPlane2(const Vec2& normal, float offset);
+		HalfPlane2() : normal(), offset(0.0) { }
+		HalfPlane2(const Vec2& normal, float offset) : normal(normal), offset(offset) { }
 
 		const HalfPlane2& flip();
 
-		// returns true if the point belongs to the half-plane or false otherwise
-		bool contains(const Vec2& point_position_vector) const;
+		// returns true if the point p belongs to the half-plane or false otherwise
+		bool contains(const Vec2& p) const { return (p.dot(normal) <= offset); }
 
-		// returns the point's orthogonal projection on the half-plane's boundary
-		Vec2 boundaryProjection(const Vec2& point_position_vector) const;
+		// returns the point p's orthogonal projection on the half-plane's boundary
+		Vec2 boundaryProjection(const Vec2& p) const { return p + (offset - p.dot(normal))*normal; }
 
 		// returns the point where the two half-planes' boundaries intersect.
 		// sets outside_range to true if any of the point's absolute coordinates
@@ -100,28 +102,32 @@ namespace Geometry2D
 		// returns the point where the two half-planes' boundaries intersect.
 		// Caution: it does not check if the problem is well-posed (so it might create
 		// INF or NAN or crash for boundaries that are close to parallel).
-		Vec2 boundaryIntersection(const HalfPlane2& h) const;
-
+		Vec2 boundaryIntersection(const HalfPlane2& h) const { return offset*normal +
+			(h.offset - offset*normal.dot(h.normal))/normal.orth().dot(h.normal)*normal.orth();
+		}
 		// intersects the two half-planes' boundaries.
 		// returns the intersection's line coordinate along this line, starting from
 		// the specified base point with the positive direction obtained by rotating
 		// this half-plane's normal by 90 degrees counter-clockwise.
 		// Caution: it does not check if the problem is well-posed (so it might create
 		// INF or NAN or crash for boundaries that are close to parallel).
-		float boundaryIntersection(const HalfPlane2& h, const Vec2& base_point) const;
-
+		float boundaryIntersection(const HalfPlane2& h, const Vec2& base_point) const {
+			return (h.offset - base_point.dot(h.normal))/normal.orth().dot(h.normal);
+		}
 		// checks the intersection of this boundary with the other half-plane's boundary.
 		// Returns true if the intersection's line coordinate along this boundary (for the specified base
 		// point and the usual directional convention) is within the specified range,
 		// and false otherwise.
 		bool rangeCheckBoundaryIntersection(const HalfPlane2& h, const Vec2& base_point,
-			float range_a, float range_b) const;
-
+			float range_a, float range_b) const { 
+				return divisionIsInRange(h.offset - base_point.dot(h.normal),
+					normal.orth().dot(h.normal), range_a, range_b);
+		}
 		// Checks if the intersection between this half-plane's boundary and the given other 
 		// half-plane's boundary lies within the specified axis-aligned bounding box.
 		bool checkIfBoundaryIntersectionIsInBoundingBox(const HalfPlane2& other_half_plane,
 			const AxisAlignedBoundingBox2& aabb) const;
-
+/*
 		// Shifts the point on this boundary to where both half-plane boundaries intersect.
 		// Caution: it does not check if the problem is well-posed (so it might create
 		// INF or NAN or crash for boundaries that are close to parallel). It returns the sign of
@@ -129,6 +135,9 @@ namespace Geometry2D
 		// by 90 degrees counter-clockwise.
 		int shiftPointOnThisBoundaryToIntersection(const HalfPlane2& other_half_plane,
 			Vec2* point_on_this_half_plane_boundary) const;
+*/
+		// Shifts the point along this boundary in the direction given by the counter-clockwise rotated normal
+		void shiftPointAlongBoundary(float shift, Vec2* p) const { *p = *p + shift*normal.orth(); }
 
 /*
 		// Checks if the intersection between this half-plane's boundary and the given other 
@@ -149,6 +158,13 @@ namespace Geometry2D
 		Vec2 normal;
 		float offset;
 	};
+
+	//struct LineSegment2
+	//{
+	//	Vec2 base_point;
+	//	Vec2 direction;
+	//	float 
+	//}
 
 	class AxisAlignedBoundingBox2
 	{

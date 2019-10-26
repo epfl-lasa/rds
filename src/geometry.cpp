@@ -56,25 +56,8 @@ namespace Geometry2D
 			return false;
 	}
 
-/*	bool divisionIsOutsideRange(float numerator, float denominator)
-	{
-		if (((numerator > 0) && (denominator > 0)) ||
-			((numerator < 0) && (denominator < 0)))
-		{
-			if (range*denominator < numerator)
-				return true;
-			else
-				return false;
-		}
-		else
-		{
-			if (-range*denominator > numerator)
-				return true;
-			else
-				return false;
-		}
-	}*/
 
+/*	// definitions in header
 	Vec2::Vec2() : x(0.0), y(0.0) {}
 
 	Vec2::Vec2(float x, float y) : x(x), y(y) {}
@@ -83,12 +66,12 @@ namespace Geometry2D
 	{
 		return x*v.x + y*v.y;
 	}
-
+*/
 	float Vec2::norm() const
 	{
 		return std::sqrt(x*x + y*y);
 	}
-
+/*	// definitions in header
 	Vec2 operator* (float s, const Vec2& v)
 	{
 		return Vec2(v.x*s, v.y*s);
@@ -118,7 +101,7 @@ namespace Geometry2D
 	{
 		return Vec2(-v.x,-v.y);
 	}
-
+*/
 	float incircleRadius(const Vec2& corner_a, const Vec2& corner_b, const Vec2& corner_c,
 		Vec2* incircle_center)
 	{
@@ -174,7 +157,7 @@ namespace Geometry2D
 			return Circle2(center, radius);
 		}
 	}
-
+/*	// definitions in header
 	Circle2::Circle2() : center(Vec2()), radius(0.0) {}
 
 	Circle2::Circle2(Vec2 c, float r) : center(c), radius(r) {}
@@ -189,14 +172,14 @@ namespace Geometry2D
 	HalfPlane2::HalfPlane2(const Vec2& normal, float offset) :
 		normal(normal),
 		offset(offset) {}
-
+*/
 	const HalfPlane2& HalfPlane2::flip()
 	{
 		normal = -normal;
 		offset = -offset;
 		return *this;
 	}
-
+/*	// definitions in header
 	bool HalfPlane2::contains(const Vec2& point_position_vector) const
 	{
 		if (point_position_vector.dot(normal) <= offset)
@@ -210,7 +193,7 @@ namespace Geometry2D
 		return point_position_vector + (offset -
 			point_position_vector.dot(normal))*normal;
 	}
-
+*/
 	Vec2 HalfPlane2::boundaryIntersection(const HalfPlane2& h, bool* outside_range) const
 	{
 		Vec2 anchor = offset*normal; // point on this half-plane's boundary
@@ -414,6 +397,7 @@ namespace Geometry2D
 
 		}*/
 
+/*	// definitions in header
 	Vec2 HalfPlane2::boundaryIntersection(const HalfPlane2& h) const
 	{
 		Vec2 anchor = offset*normal; // point on this half-plane's boundary
@@ -441,7 +425,9 @@ namespace Geometry2D
 		float denominator = e_line.dot(h.normal);
 		return divisionIsInRange(numerator, denominator, range_a, range_b);
 	}
+*/
 
+/*	NOT USED ANYMORE
 	// Shifts the point on this boundary to where both half-plane boundaries intersect.
 	// Caution: it does not check if the problem is well-posed (so it might create
 	// INF or NAN or crash for boundaries that are close to parallel). It returns the sign of
@@ -464,4 +450,6 @@ namespace Geometry2D
 		else
 			return -1;
 	}
+*/
+
 }

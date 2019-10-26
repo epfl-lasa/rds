@@ -20,11 +20,26 @@ namespace Geometry2D
 				for (std::vector<HalfPlane2>::size_type j = 0; j < i; j++)
 				{
 					int sign = 0;
+					float shift = 0.f;
 					if (!constraints[j].contains(p))
 					{
 						if (constraints[i].checkIfBoundaryIntersectionIsInBoundingBox(constraints[j],
 							aabb))
 						{
+							float new_shift = constraints[i].boundaryIntersection(constraints[j], p);
+							if (((new_shift > 0.f) && (shift < 0.f)) || ((new_shift < 0.f) && (shift > 0.f)))
+							{
+								*feasible = false;
+								return;	
+							}
+							else
+							{
+								constraints[i].shiftPointAlongBoundary(new_shift, &p);
+								if (new_shift != 0.f)
+									shift = new_shift;
+							}
+
+							/*
 							int new_sign = constraints[i].shiftPointOnThisBoundaryToIntersection(
 								constraints[j], &p);
 							if (((new_sign > 0) && (sign < 0)) || ((new_sign < 0) && (sign > 0)))
@@ -33,7 +48,7 @@ namespace Geometry2D
 								return;	
 							}
 							else if (new_sign != 0)
-								sign = new_sign;
+								sign = new_sign;*/
 						}
 						else
 						{

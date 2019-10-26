@@ -20,7 +20,7 @@ int main()
 
 	// define a bounding box such that the feasible must be contained in the interior with no
 	// common point with the border of the bounding box.
-	Geometry2D::AxisAlignedBoundingBox2 aabb(-3.0, 3.0, -3.0, 3.0);
+	Geometry2D::AxisAlignedBoundingBox2 aabb(-1.95, 1.6, -1.2, 1.0);
 
 	Geometry2D::Vec2 nominal_point(-1.0, -1.0);
 	
@@ -38,7 +38,8 @@ int main()
 	std::vector<Geometry2D::Vec2> points;
 	points.push_back(solution_point);
 	points.push_back(nominal_point);
-	GUI gui(0.0, constraints, points, std::vector<Geometry2D::Circle2>(0));
+	GUI gui(0.0, constraints, points, std::vector<Geometry2D::Circle2>(0),
+		std::vector<Geometry2D::AxisAlignedBoundingBox2>(1, aabb));
 
 	return 0;
 }

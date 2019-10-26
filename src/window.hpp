@@ -29,7 +29,8 @@ public:
 	bool render(const std::vector<Geometry2D::HalfPlane2>& half_planes,
 		const std::vector<Geometry2D::Vec2>& points,
 		const std::vector<sdlColor>& points_colors,
-		const std::vector<Geometry2D::Circle2>& circles);
+		const std::vector<Geometry2D::Circle2>& circles,
+		const std::vector<Geometry2D::AxisAlignedBoundingBox2>& aabbs);
 
 	const float screenSizeInDistanceUnits;
 	const int screenSizeInPixels;
@@ -61,6 +62,7 @@ private:
 	void renderCircle(const Geometry2D::Vec2& center, float r_outer, float r_inner);
 	void renderHalfPlanes(const std::vector<Geometry2D::HalfPlane2>& half_planes);
 	void renderBoundaryLine(const Geometry2D::HalfPlane2& half_plane, int pixel_shift = 0);
+	void renderAABB(const Geometry2D::AxisAlignedBoundingBox2& aabb);
 
 	static void killSdlWindow(int window_creation_number);
 	struct SDLPointers
