@@ -10,14 +10,38 @@ namespace Geometry2D
 	class DistanceMinimizer
 	{
 	public:
-		// Finds the feasible point with minimum distance to the nominal point 
-		// or if there is no feasible point, reports infeasibility.
-		// It requires to specify an axis-aligned bounding box which contains
-		// the feasible region if it exists.
-		static void findPointClosestToNominal(const Vec2& nominal_point,
-			const AxisAlignedBoundingBox2& aabb,
-			const std::vector<HalfPlane2>& constraints,
-			Vec2* solution_point, bool* feasible);
+
+	//private:
+
+		// Function minimizeDistanceToGoalOverConvexPolygon
+
+		// Arguments:
+		// constraints					...
+		// goal							...
+		// max_feasible_region_size		... upper bound for the diagonal of the bounding box containing the
+		//									convex polygon and the nominal point
+		// min_feasible_region_size		... lower bound for the diameter of the convex polygon's incircle
+		// solution						...
+
+		// Returns an error code with the following meaning:
+		// 0	no error
+		// 1	the specified value for min_feasible_region_size is too small
+		//(2)	[not used anymore] the solver stumbled over a proof that the given value for min_feasible_region_size is incorrect
+		// 3	there is no feasible region
+
+		// it is still the caller's responsibility to put as the first four constraints
+		// the box constraints having the given diagonal, otherwise the solution may be incorrect...
+		// I am not sure about that, though (if later iterations will correct for skipped intersections...)
+
+		static int minimizeDistanceToGoalOverConvexPolygon(const std::vector<HalfPlane2>& constraints,
+			const Vec2& goal, float max_feasible_region_size, float min_feasible_region_size, Vec2* solution,
+			float* bound_inaccuracy_due_to_skipping);
+
+		static int incrementalMinimization(std::vector<HalfPlane2>::size_type iteration,
+			const std::vector<HalfPlane2>& constraints, const Vec2& goal, float skipping_threshold_inner_product,
+			Vec2* solution);
+
+		static const float skipping_threshold_angle;
 	};
 }
 #endif

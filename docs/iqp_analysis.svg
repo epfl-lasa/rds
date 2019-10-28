@@ -416,17 +416,17 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.24748737"
-     inkscape:cx="-14.910932"
-     inkscape:cy="-2105.6349"
+     inkscape:zoom="0.49497474"
+     inkscape:cx="-1100.3204"
+     inkscape:cy="-3885.8559"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
-     inkscape:window-width="2449"
-     inkscape:window-height="1388"
-     inkscape:window-x="111"
+     inkscape:window-width="2495"
+     inkscape:window-height="1416"
+     inkscape:window-x="65"
      inkscape:window-y="24"
-     inkscape:window-maximized="0" />
+     inkscape:window-maximized="1" />
   <metadata
      id="metadata5">
     <rdf:RDF>
@@ -435,7 +435,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -484,7 +484,7 @@
        xml:space="preserve"
        id="flowRoot4578"
        style="font-style:normal;font-weight:normal;font-size:40px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
-       transform="matrix(0.26458333,0,0,0.26458333,-8.0180858,-37.063174)"><flowRegion
+       transform="matrix(0.26458333,0,0,0.26458333,-8.0180858,-71.459029)"><flowRegion
          id="flowRegion4580"><rect
            id="rect4582"
            width="796.36786"
@@ -502,11 +502,11 @@
        xml:space="preserve"
        id="flowRoot4602"
        style="font-style:normal;font-weight:normal;font-size:40px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
-       transform="matrix(0.26458333,0,0,0.26458333,-11.219948,-106.3626)"><flowRegion
+       transform="matrix(0.26458333,0,0,0.26458333,-11.219948,-140.75865)"><flowRegion
          id="flowRegion4604"><rect
            id="rect4606"
-           width="793.97998"
-           height="649.52808"
+           width="795.70447"
+           height="1067.8611"
            x="43.436558"
            y="701.28607" /></flowRegion><flowPara
          id="flowPara4608"
@@ -520,11 +520,9 @@
          style="font-size:26.66666794px;text-align:center;text-anchor:middle"
          id="flowPara4614">d &lt; sqrt(a^2+b^2).</flowPara><flowPara
          style="font-size:26.66666794px;text-align:justify;text-anchor:start"
-         id="flowPara5450">C) Whenever the IQP shifts the candidate point along a constraint's boundary from the nominal point's projection to the intersection with another constraint's boundary, it holds for the shift s, the original projection distance d, and the angle alpha between the boundaries</flowPara><flowPara
+         id="flowPara5456">C) Consider an incremental solution point which the IQP finds in one incremental solution procedure at the intersection of two constraint boundaries that delineate a feasible sector spanning an angle greater than 90 degree. Let alpha denote the smaller angle between the two boundaries. Further, consider the orthogonal projection of the nominal point on that constraint boundary (of the two) which has been introduced in a more recent incremental solution procedure. Let d denote the denote the distance between the nominal and the projected point, and let s denote the distance between the projected and the incremental solution point. Then, it holds</flowPara><flowPara
          style="font-size:26.66666794px;text-align:center;text-anchor:middle"
-         id="flowPara5454">sqrt(a^2+b^2) &gt; d &gt; s/tan(alpha).</flowPara><flowPara
-         style="font-size:26.66666794px"
-         id="flowPara5456">D) asdf</flowPara></flowRoot>    <rect
+         id="flowPara1189">d &gt;= s/tan(alpha).</flowPara></flowRoot>    <rect
        style="opacity:1;fill:none;fill-opacity:1;stroke:#ff0000;stroke-width:0.50400001;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:1.51200005, 1.51200005;stroke-dashoffset:0;stroke-opacity:1"
        id="rect815-9"
        width="148.54465"
@@ -734,7 +732,7 @@
            height="71.720833"
            x="-658.61945"
            y="1000.2912" /></flowRegion><flowPara
-         id="flowPara13291"></flowPara></flowRoot>    <flowRoot
+         id="flowPara13291" /></flowRoot>    <flowRoot
        xml:space="preserve"
        id="flowRoot13293"
        style="font-style:normal;font-weight:normal;font-size:40px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
@@ -953,7 +951,7 @@
        xml:space="preserve"
        id="flowRoot14077"
        style="font-style:normal;font-weight:normal;font-size:40px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
-       transform="scale(0.26458333)"><flowRegion
+       transform="matrix(0.26458333,0,0,0.26458333,0,44.979189)"><flowRegion
          id="flowRegion14079"><rect
            id="rect14081"
            width="795.71429"
@@ -1236,7 +1234,7 @@
            height="180"
            x="-2725.7144"
            y="1719.6626" /></flowRegion><flowPara
-         id="flowPara15113"></flowPara></flowRoot>    <flowRoot
+         id="flowPara15113" /></flowRoot>    <flowRoot
        xml:space="preserve"
        id="flowRoot15115"
        style="font-style:normal;font-weight:normal;font-size:40px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
@@ -1448,5 +1446,105 @@
            height="66.670189"
            x="1177.8379"
            y="4601.4849" /></flowRegion><flowPara
-         id="flowPara15251">e</flowPara></flowRoot>  </g>
+         id="flowPara15251">e</flowPara></flowRoot>    <path
+       style="opacity:1;fill:none;fill-opacity:1;stroke:#ff00ff;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="m -442.59833,1500.7819 h 219.69554"
+       id="path1145"
+       inkscape:connector-curvature="0" />
+    <circle
+       style="opacity:1;fill:none;fill-opacity:1;stroke:#ff00ff;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="path1147"
+       cx="-442.59833"
+       cy="1500.7819"
+       r="219.69548" />
+    <path
+       inkscape:connector-curvature="0"
+       id="path1149"
+       d="m -442.59833,1500.7819 155.3482,-155.3482"
+       style="opacity:1;fill:none;fill-opacity:1;stroke:#ff00ff;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+    <path
+       style="opacity:1;fill:none;fill-opacity:1;stroke:#ff00ff;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="m -287.25013,1345.4337 v 155.365"
+       id="path1151"
+       inkscape:connector-curvature="0" />
+    <path
+       style="opacity:1;fill:none;fill-opacity:1;stroke:#ff00ff;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="m -287.25013,1345.4337 h -155.61548 v 155.3482"
+       id="path1153"
+       inkscape:connector-curvature="0" />
+    <rect
+       style="opacity:1;fill:none;fill-opacity:1;stroke:#ff00ff;stroke-width:0.40796351;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect1155"
+       width="29.592037"
+       height="29.592037"
+       x="-254.61147"
+       y="1471.1898" />
+    <path
+       style="opacity:1;fill:none;fill-opacity:1;stroke:#ff00ff;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="m -254.61151,1471.1898 29.59203,29.592"
+       id="path1157"
+       inkscape:connector-curvature="0" />
+    <path
+       style="opacity:1;fill:none;fill-opacity:1;stroke:#ff00ff;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="M -254.61146,1471.1898 H -442.8936"
+       id="path1161"
+       inkscape:connector-curvature="0" />
+    <path
+       style="opacity:1;fill:none;fill-opacity:1;stroke:#ff00ff;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="m -442.59833,1500.7819 217.57891,-29.5921"
+       id="path1163"
+       inkscape:connector-curvature="0" />
+    <path
+       style="opacity:1;fill:none;fill-opacity:1;stroke:#ff00ff;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="m -254.61146,1500.7818 29.59204,-29.592"
+       id="path1165"
+       inkscape:connector-curvature="0" />
+    <path
+       style="opacity:1;fill:none;fill-opacity:1;stroke:#00ffff;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="m -442.59833,1500.7819 202.81968,-14.7869"
+       id="path1167"
+       inkscape:connector-curvature="0" />
+    <rect
+       style="opacity:1;fill:none;fill-opacity:1;stroke:#ff00ff;stroke-width:0.40796351;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect1155-3"
+       width="29.592037"
+       height="29.592037"
+       x="-316.84216"
+       y="1345.4337" />
+    <path
+       style="opacity:1;fill:none;fill-opacity:1;stroke:#ff00ff;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="m -316.84223,1345.4337 29.59203,29.592"
+       id="path1157-6"
+       inkscape:connector-curvature="0" />
+    <path
+       style="opacity:1;fill:none;fill-opacity:1;stroke:#00ffff;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="m -442.59833,1500.7819 140.57172,-140.5585"
+       id="path1187"
+       inkscape:connector-curvature="0" />
+    <ellipse
+       style="opacity:1;fill:none;fill-opacity:1;stroke:#00ffff;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="path1189"
+       cx="-302.02661"
+       cy="1360.2234"
+       rx="14.776488"
+       ry="14.789683" />
+    <ellipse
+       style="opacity:1;fill:none;fill-opacity:1;stroke:#00ffff;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="path1191"
+       cx="-239.77864"
+       cy="1485.995"
+       rx="14.832815"
+       ry="14.78686" />
+    <flowRoot
+       xml:space="preserve"
+       id="flowRoot1193"
+       style="font-style:normal;font-weight:normal;font-size:40px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
+       transform="matrix(0.26458333,0,0,0.26458333,9.0871641,-43.832203)"><flowRegion
+         id="flowRegion1195"><rect
+           id="rect1197"
+           width="816.20325"
+           height="553.5636"
+           x="-765.69562"
+           y="5302.5308" /></flowRegion><flowPara
+         id="flowPara1199">sqrt((a-r)^2+(b-r)^2) becomes longer when the absolute difference between a and b increases while keeping d=sqrt(a^2+b^2) constant. The largest value it can attain is for b = 2r, a = sqrt(d^2-(2r)^2).</flowPara></flowRoot>  </g>
 </svg>
