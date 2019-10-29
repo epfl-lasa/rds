@@ -23,6 +23,8 @@ namespace Geometry2D
 			return std::sqrt(x*x + y*y);
 		}
 
+		Vec2 normalized() const;
+
 		float x, y;
 	};
 
@@ -51,22 +53,22 @@ namespace Geometry2D
 		return v1.x*v2.x + v1.y*v2.y;
 	}
 
+	class NormalizationError
+	{};
+
+	inline Vec2 Vec2::normalized() const
+	{
+		return (norm() > 0.0000001f) ? *this/norm() : throw NormalizationError();
+	}
+
 	class HalfPlane2 // closed half-plane (the boundary line belongs to the half-plane)
 	{
 	public:
-		HalfPlane2(const Vec2& normal_, float offset_)
-			: normal(normal_)
-			, offset(offset_)
-			, parallel(-normal_.y, normal_.x)
-		{
-			if (normal_.norm() > 0.00000001f)
-			{
-				normal = normal/normal_.norm();
-				parallel = parallel/normal_.norm();
-			}
-			else
-				throw "Cannot normalize too small normal vector.";
-		}
+		HalfPlane2(const Vec2& normal_unnormalized, float offset)
+			: normal(normal_unnormalized.normalized())
+			, offset(offset)
+			, parallel(-normal.y, normal.x)
+		{ }
 
 		const Vec2& getNormal() const
 		{

@@ -1,0 +1,51 @@
+\documentclass{article}
+
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amsfonts}       % blackboard math symbols
+
+%\usepackage{booktabs}       % professional-quality tables
+
+\usepackage{algorithmic}
+\usepackage{algorithm}
+
+\begin{document}
+
+
+{\centering \Large Which point in that convex polygon is closest to me?\\}
+~\\
+The following Algorithm \ref{alg:incremental} finds among the points that belong to a given convex polygon the one point with minimum distance to a given goal point. Being very similar to previous work \cite{van2011reciprocal}, the method sligthly varies incremental linear programming \cite{seidel1991small}, \cite{van2008computational}.
+It receives the convex polygon as a set of halfplanes whose intersection defines the polygon. It requires to know the solution of the same problem with one halfplane less and which is the respective halfplane. The algorithm allows to incrementally build the final solution for any polygon, by solving first the problem without any halfplanes, then adding one more halfplane and solving again, and so on, until it has processed all the halfplanes.
+%\floatname{algorithm}{Procedure}
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+\begin{algorithm}
+\caption{Incremental Distance Minimization}
+\label{alg:incremental}
+\begin{algorithmic}
+\REQUIRE 	halfplane $ h $, goal point $ g $, prior solution $\tilde s $, prior halfplanes $ \left\{\tilde h_j\right\}_{j=1}^{n}$.
+\ENSURE 	solution $ s $ being closest to $ g $ while belonging to $ \bigcap\limits_{j=1}^{n} \tilde h_j \cap h  $.
+\newline
+$ s \leftarrow \tilde s $
+\IF	{$ s \notin h $}
+	\STATE $ s \leftarrow \text{projectPointOrthogonallyOnHalfplaneBoundary}(g, h) $
+	\STATE $ \hat h \leftarrow \mathbb{R}^2 $ //\textit{will be a halfplane later}
+	\FOR { $ j \leftarrow  1, ..., n $ }
+		\IF	{$ s \notin \tilde h_j $}
+			\STATE $ s \leftarrow \text{intersectHalfplaneBoundaries}(\tilde h_j, h) $
+			\IF	{$ s \notin \hat h $}
+				\RETURN ``infeasible''
+			\ENDIF
+			\STATE $ \hat h \leftarrow \tilde h_j $
+		\ENDIF
+	\ENDFOR
+\ENDIF
+\RETURN $ s $
+
+\end{algorithmic}
+\end{algorithm}
+
+\bibliographystyle{ieeetr}
+\bibliography{references}
+
+\end{document}

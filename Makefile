@@ -50,10 +50,9 @@ build/libgui.a: build/.hi src/geometry.hpp src/gui.cpp src/gui.hpp src/window.cp
 
 geometry: build/libgeometry.a # target just for convenience
 
-build/libgeometry.a: build/.hi src/geometry.cpp src/geometry.hpp src/distance_minimizer.cpp src/distance_minimizer.hpp
-	g++ $(FLAGS) -c src/geometry.cpp -o build/geometry.o
+build/libgeometry.a: build/.hi src/geometry.hpp src/distance_minimizer.cpp src/distance_minimizer.hpp
 	g++ $(FLAGS) -c src/distance_minimizer.cpp -o build/distance_minimizer.o
-	ar rvs build/libgeometry.a build/geometry.o build/distance_minimizer.o
+	ar rvs build/libgeometry.a build/distance_minimizer.o
 
 # HOUSE KEEPING
 
