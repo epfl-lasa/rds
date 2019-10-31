@@ -31,7 +31,7 @@ namespace Geometry2D
 		const HalfPlane2& H_new = feasible_halfplanes[this_index]; // just for convenience
 		if (H_new.signedDistance(p_s) <= distanceTolerance) // change nothing in that case
 			return p_s;
-		else if (H_new.getOffset() > boundingCircleRadius) // H_new and the central unit square are disjoint
+		else if (H_new.getOffset() < -boundingCircleRadius) // H_new and the central unit square are disjoint
 			throw InfeasibilityException(1);
 		else // search on H_new's boundary for the solution
 		{
