@@ -2,9 +2,7 @@
 #define  WINDOW_HPP
 
 #include "geometry.hpp"
-
 #include <SDL2/SDL.h>
-
 #include <vector>
 
 // this class allows multiple windows,
@@ -28,7 +26,8 @@ public:
 	// returns true if the window has been closed, false otherwise
 	bool render(const std::vector<Geometry2D::HalfPlane2>& half_planes,
 		const std::vector<Geometry2D::Vec2>& points,
-		const std::vector<sdlColor>& points_colors);
+		const std::vector<sdlColor>& points_colors,
+		const std::vector<AdditionalPrimitives2D::Circle>& circles);
 
 	const float screenSizeInDistanceUnits;
 	const int screenSizeInPixels;

@@ -3,7 +3,9 @@
 
 #include "geometry.hpp"
 #include "window.hpp"
+#include <vector>
 
+/*
 class GUI
 {
 public:
@@ -14,6 +16,29 @@ public:
 		const std::vector<Geometry2D::HalfPlane2>& half_planes,
 		const std::vector<Geometry2D::Vec2>& points);
 	~GUI();
+
+private:
+	Window* window;
+};*/
+
+
+
+class GUI
+{
+public: 
+	GUI(const char* title, float window_size_in_distance_units);
+
+	~GUI();
+
+	void blockingShowUntilClosed();
+
+	void update();
+
+	const std::vector<Geometry2D::HalfPlane2>* halfplanes;
+	const std::vector<Geometry2D::Vec2>* points;
+	const std::vector<AdditionalPrimitives2D::Circle>* circles;
+	std::vector<Window::sdlColor> points_colors;
+	//std::vector<Window::sdlColor> circles_colors;
 
 private:
 	Window* window;

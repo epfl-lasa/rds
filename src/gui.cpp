@@ -1,17 +1,62 @@
 #include "gui.hpp"
 
-GUI::GUI(float minutes_to_run,
-	const std::vector<Geometry2D::HalfPlane2>& half_planes,
-	const std::vector<Geometry2D::Vec2>& points)
+using namespace AdditionalPrimitives2D;
+
+GUI::GUI(const char* title, float window_size_in_distance_units)
 {
+	halfplanes = 0;
+	points = 0;
+	circles = 0;
+
 	bool window_is_good;
-	window = new Window("GUI", 4.0, 1000, 10.0, &window_is_good);
+	window = new Window(title, window_size_in_distance_units, 1000, 10.0, &window_is_good);
 	if (!window_is_good)
 	{
 		delete window;
 		window = 0;
+	}
+}
+
+
+void GUI::update()
+{
+	if (window && halfplanes && points && circles)
+		window->render(*halfplanes, *points, points_colors, *circles);
+	else if (window && halfplanes && points)
+		window->render(*halfplanes, *points, points_colors, std::vector<AdditionalPrimitives2D::Circle>(0));
+}
+
+void GUI::blockingShowUntilClosed()
+{
+	if (window)
+	{
+		std::vector<AdditionalPrimitives2D::Circle> dummy(0);
+		if (!circles)
+			circles = &dummy;
+		while (!window->render(*halfplanes, *points, points_colors, *circles))
+		{
+			window->delayUntilNextFrameInMinutes();
+		}
+		// delete the window
+		delete window;
+		window = 0;
+	}
+
+}
+
+
+/*
+	bool window_is_good;
+	window = new Window("GUI", 1.0, 1000, 10.0, &window_is_good);
+	if (!window_is_good)
+	{
+
+		delete window;
+		window = 0;
 		return;
 	}
+
+	std::vector<Circle> circles(0); //{Circle(Geometry2D::Vec2(0,0), 0.5)};
 
 	// give a green color to all the points
 	std::vector<Window::sdlColor> points_colors;
@@ -26,7 +71,7 @@ GUI::GUI(float minutes_to_run,
 		// display the points and half-planes for minutes_to_run [minutes]
 		float remaining_minutes = minutes_to_run;
 		while (remaining_minutes > 0.0 &&
-			!window->render(half_planes, points, points_colors))
+			!window->render(half_planes, points, points_colors, circles))
 		{
 			remaining_minutes -= window->delayUntilNextFrameInMinutes();
 		}
@@ -34,7 +79,7 @@ GUI::GUI(float minutes_to_run,
 	else
 	{
 		// display the points and half-planes until the window is closed
-		while (!window->render(half_planes, points, points_colors))
+		while (!window->render(half_planes, points, points_colors, circles))
 		{
 			window->delayUntilNextFrameInMinutes();
 		}
@@ -43,7 +88,7 @@ GUI::GUI(float minutes_to_run,
 	// delete the window
 	delete window;
 	window = 0;
-}
+}*/
 
 GUI::~GUI()
 {

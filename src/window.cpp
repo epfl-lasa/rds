@@ -115,7 +115,8 @@ float Window::delayUntilNextFrameInMinutes()
 
 bool Window::render(const std::vector<Geometry2D::HalfPlane2>& half_planes,
 		const std::vector<Geometry2D::Vec2>& points,
-		const std::vector<sdlColor>& points_colors)
+		const std::vector<sdlColor>& points_colors,
+		const std::vector<AdditionalPrimitives2D::Circle>& circles)
 {
 	if (sdlCheck())
 		return true;
@@ -139,6 +140,11 @@ bool Window::render(const std::vector<Geometry2D::HalfPlane2>& half_planes,
 			SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 		renderCircle(points[i], radius, 0.0);
 	}
+	// for circles
+	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+	float thickness = 0.0025*screenSizeInDistanceUnits;
+	for (int i = 0; i < circles.size(); i++)
+		renderCircle(circles[i].center, circles[i].radius, circles[i].radius - thickness);
 	// bring it to the screen
 	SDL_RenderPresent(renderer);
 	return false;
@@ -220,7 +226,7 @@ void Window::renderHalfPlanes(const std::vector<Geometry2D::HalfPlane2>& half_pl
 			point = pixelToPoint(Pixel(i, j));
 			for (int k = 0; k < half_planes.size(); k++)
 			{
-				if (!half_planes[k].contains(point))
+				if (half_planes[k].signedDistance(point) > 0.0)
 				{
 					SDL_RenderDrawPoint(renderer, i, j);
 					break;
