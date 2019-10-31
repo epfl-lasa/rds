@@ -3,47 +3,60 @@
 \usepackage{graphicx}
 \usepackage{amsmath}
 \usepackage{amsfonts}       % blackboard math symbols
-
 %\usepackage{booktabs}       % professional-quality tables
-
 \usepackage{algorithmic}
 \usepackage{algorithm}
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
 
 \begin{document}
 
-
-{\centering \Large Which point in that convex polygon is closest to me?\\}
+{\centering \large Which point in the convex polygon is closest to the goal?\\}
 ~\\
-The following Algorithm \ref{alg:incremental} finds among the points that belong to a given convex polygon the one point with minimum distance to a given goal point. Being very similar to previous work \cite{van2011reciprocal}, the method sligthly varies incremental linear programming \cite{seidel1991small}, \cite{van2008computational}.
-It receives the convex polygon as a set of halfplanes whose intersection defines the polygon. It requires to know the solution of the same problem with one halfplane less and which is the respective halfplane. The algorithm allows to incrementally build the final solution for any polygon, by solving first the problem without any halfplanes, then adding one more halfplane and solving again, and so on, until it has processed all the halfplanes.
-%\floatname{algorithm}{Procedure}
-\renewcommand{\algorithmicrequire}{\textbf{Input:}}
-\renewcommand{\algorithmicensure}{\textbf{Output:}}
+The presented method finds among the points that belong to a convex polygon in the Euclidean plane the one point with minimum distance to a goal point.
 \begin{algorithm}
-\caption{Incremental Distance Minimization}
-\label{alg:incremental}
+\caption{Distance Minimization Incrementation}
+\label{alg:incrementation}
 \begin{algorithmic}
-\REQUIRE 	halfplane $ h $, goal point $ g $, prior solution $\tilde s $, prior halfplanes $ \left\{\tilde h_j\right\}_{j=1}^{n}$.
-\ENSURE 	solution $ s $ being closest to $ g $ while belonging to $ \bigcap\limits_{j=1}^{n} \tilde h_j \cap h  $.
-\newline
-$ s \leftarrow \tilde s $
-\IF	{$ s \notin h $}
-	\STATE $ s \leftarrow \text{projectPointOrthogonallyOnHalfplaneBoundary}(g, h) $
-	\STATE $ \hat h \leftarrow \mathbb{R}^2 $ //\textit{will be a halfplane later}
-	\FOR { $ j \leftarrow  1, ..., n $ }
-		\IF	{$ s \notin \tilde h_j $}
-			\STATE $ s \leftarrow \text{intersectHalfplaneBoundaries}(\tilde h_j, h) $
-			\IF	{$ s \notin \hat h $}
-				\RETURN ``infeasible''
-			\ENDIF
-			\STATE $ \hat h \leftarrow \tilde h_j $
+\REQUIRE 	halfplane $ H $, goal point $ p^\circ $, prior solution $\tilde p^* $, prior halfplanes $ \left\{\tilde H_j\right\}_{j=1}^{m}$
+\ENSURE 	solution point $ p^* $ being closest to $ p^\circ $ while belonging to $ \bigcap\limits_{j=1}^{m} \tilde H_j \cap H  $
+\STATE $ p^* \leftarrow \tilde p^* $ //\textit{initialize the solution as the prior solution}
+\IF	{$ p^* \notin H $}
+	\STATE $ p^* \leftarrow \text{projectPointOrthogonallyOnHalfplaneBoundary}(p^\circ, H) $
+	\STATE $ p_1 \leftarrow p_1^{H, \infty} $ //\textit{point at infinity at one end of H's boundary}
+	\STATE $ p_2 \leftarrow p_2^{H, \infty} $ //\textit{point at infinity at the other end of H's boundary}
+	\FOR { $ j \leftarrow  1, ..., m $ }
+		\IF		{$ (p_1 \notin \tilde H_j) \,\&\, (p_2 \in \tilde H_j) $}
+			\STATE $  p_1 \leftarrow \text{intersectHalfplaneBoundaries}(\tilde H_j, H) $ //\textit{update segment $ [p_1, p_2] $}
+		\ELSIF		{$ (p_1 \in \tilde H_j) \,\&\, (p_2 \notin \tilde H_j) $}
+			\STATE $ p_2 \leftarrow \text{intersectHalfplaneBoundaries}(\tilde H_j, H) $ //\textit{update segment $ [p_1, p_2] $}
+		\ELSIF		{$ (p_1 \notin \tilde H_j) \,\&\, (p_2 \notin \tilde H_j) $}
+			\STATE \textbf{except} ``infeasible'' //\textit{terminate; $ p_1 $, $ p_2 $ serve only to determine this}
+			%\RETURN ``infeasible'' //\textit{$ p_1 $ and $ p_2 $ serve only to determine this}
+		\ENDIF ~~//\textit{The above conditionals maintain the feasible boundary segment}
+		\IF	{$ p^* \notin \tilde H_j $}
+			\STATE $ p^* \leftarrow \text{intersectHalfplaneBoundaries}(\tilde H_j, H) $ //\textit{update the solution}
 		\ENDIF
 	\ENDFOR
 \ENDIF
-\RETURN $ s $
-
+\RETURN $ p^* $
 \end{algorithmic}
 \end{algorithm}
+\begin{algorithm}[h!]
+	\caption{Incremental Distance Minimization}
+	\label{alg:incrementalMin}
+	\begin{algorithmic}
+		\REQUIRE 	goal point $ p^\circ $, halfplanes $ \left\{ H_i\right\}_{i=1}^{n}$
+		\ENSURE 	solution point $ p^* $ being closest to $ p^\circ $ while belonging to $ \bigcap\limits_{i=1}^{n}  H_i  $
+		\STATE $ p^* \leftarrow p^\circ $
+		\FOR { $ i \leftarrow  1, ..., n $ }
+			\STATE $ p^* \leftarrow \text{distanceMinimizationIncrementation}\left(H_i, p^\circ, p^*, \left\{ H_j\right\}_{j=1}^{i-1}\right) $
+		\ENDFOR
+		\RETURN $ p^* $
+	\end{algorithmic}
+\end{algorithm}
+Being very similar to previous work \cite{van2011reciprocal}, the method sligthly varies the approach of incremental linear programming \cite{seidel1991small}, \cite{van2008computational}.
+Algorithm \ref{alg:incrementation} receives the convex polygon as a set of halfplanes whose intersection defines the polygon. It requires to know the solution of the same problem with one halfplane less and which is the respective halfplane. The algorithm allows to incrementally build the final solution for any convex polygon, by solving first the problem without any halfplanes, then adding one more halfplane and solving again, and so on, until it has processed all the halfplanes. Algorithm \ref{alg:incrementalMin} implements this approach.
 
 \bibliographystyle{ieeetr}
 \bibliography{references}

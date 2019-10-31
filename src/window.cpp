@@ -197,7 +197,7 @@ void Window::renderCircle(const Geometry2D::Vec2& center, float r_outer, float r
 		for (int j = bb.lower_bounds.j; j <= bb.upper_bounds.j; j++)
 		{
 			point = pixelToPoint(Pixel(i, j));
-			distance = std::sqrt((point - center)*(point - center));
+			distance = std::sqrt((point - center).dot(point - center));
 			if (distance <= r_outer && distance >= r_inner)
 				SDL_RenderDrawPoint(renderer, i, j);
 			//else

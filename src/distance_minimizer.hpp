@@ -42,6 +42,30 @@ namespace Geometry2D
 			Vec2* solution);
 
 		static const float skipping_threshold_angle;
+
+		static Vec2 IncrementalDistanceMinimization(const std::vector<HalfPlane2>& feasible_halfplanes);
+
+	private:
+		typedef std::vector<HalfPlane2>::size_type HalfplaneIndex;
+
+		static Vec2 DistanceMinimizationIncrementation(HalfplaneIndex this_index,
+			const std::vector<HalfPlane2>& feasible_halfplanes, const Vec2& prior_solution);
+
+		static void processPriorHalfplane(const HalfPlane2& H_new, const HalfPlane2& H_prior, Vec2* p_s,
+			Vec2* p_1, Vec2* p_2);
+
+	public:
+		class InfeasibilityException
+		{
+		public:
+			InfeasibilityException(int code) : code(code) { }
+			int code;
+		};
+
+		static const std::vector<HalfPlane2> unitSquareConstraints;
+		static const float boundingCircleRadius;
+		static const float distanceTolerance;
+		static const float cuttingAngleCosineThreshold;
 	};
 }
 #endif
