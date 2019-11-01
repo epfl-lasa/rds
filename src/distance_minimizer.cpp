@@ -32,7 +32,7 @@ namespace Geometry2D
 		if (H_new.signedDistance(p_s) <= distanceTolerance) // change nothing in that case
 			return p_s;
 		else if (H_new.getOffset() < -boundingCircleRadius) // H_new and the central unit square are disjoint
-			throw InfeasibilityException(1);
+			throw InfeasibilityException(1); // actually the subsequent checks would also find this
 		else // search on H_new's boundary for the solution
 		{
 			p_s = H_new.getOrigo(); // orthogonal projection of the goal (0,0) on H's boundary
