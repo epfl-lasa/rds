@@ -12,7 +12,7 @@ cd build
 ../configure
 make -j10
 sudo make install
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib" >> ~/.bashrc
 ``` 
 
 ## Demo
