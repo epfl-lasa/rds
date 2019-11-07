@@ -5,11 +5,6 @@ FLAGS = -std=c++11 -g -Wall
 
 # DEMOS
 
-demo: build/demo # target just for convenience
-
-build/demo: src/demo.cpp build/libgeometry.a build/libgui.a
-	g++ $(FLAGS) src/demo.cpp -Lbuild -lgeometry -lgui -lSDL2 -o build/demo
-
 demo_geo: build/demo_geo # target just for convenience
 
 build/demo_geo: src/demo_geo.cpp build/libgeometry.a build/libgui.a
@@ -28,6 +23,27 @@ build/test_geometry: test/geometry_test.cpp build/libgeometry.a
 
 # ROS NODES
 
+ROS_LIB = -Wl,-rpath,/opt/ros/kinetic/lib -L/opt/ros/kinetic/lib \
+-lroscpp -lrosconsole -lroscpp_serialization -lrostime \
+-I/opt/ros/kinetic/include
+
+gui_node: build/gui_node # target just for convenience
+
+build/gui_node: src/gui_node.cpp build/libgui.a
+	g++ $(FLAGS) src/gui_node.cpp -Lbuild -lgui -lSDL2 $(ROS_LIB) -o build/gui_node
+
+rds_node: build/rds_node # target just for convenience
+
+build/rds_node: src/rds_node.cpp build/librds.a
+	g++ $(FLAGS) src/rds_node.cpp -Lbuild -lrds $(ROS_LIB) -o build/rds_node
+
+nominal_command_node: build/nominal_command_node # target just for convenience
+
+build/nominal_command_node: src/nominal_command_node.cpp
+	g++ $(FLAGS) src/nominal_command_node.cpp $(ROS_LIB) -o build/nominal_command_node
+
+# not ready:
+
 gui_client_node: build/gui_client_node # target just for convenience
 
 build/gui_client_node: src/gui_client.cpp build/libgeometry.a build/libgui.a
@@ -40,6 +56,13 @@ build/gui_server_node: build/.hi src/gui_server.cpp src/geometry.hpp
 
 
 # LIBRARIES
+
+rds: build/librds.a # target just for convenience
+
+build/librds.a: src/rds.cpp src/rds.hpp build/libgeometry.a
+	g++ $(FLAGS) -c src/rds.cpp -o build/rds.o
+	g++ $(FLAGS) -c src/distance_minimizer.cpp -o build/distance_minimizer.o
+	ar rvs build/librds.a build/rds.o build/distance_minimizer.o
 
 gui: build/libgui.a # target just for convenience
 

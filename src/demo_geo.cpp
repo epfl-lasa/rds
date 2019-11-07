@@ -8,8 +8,12 @@
 
 #include <chrono>
 
-/*#include <random>
+#include <algorithm>
+#include <random>
 
+//#include <random>
+//#include <limits>
+/*
 void generateNRandomConstraints(int n, std::vector<Geometry2D::HalfPlane2>* constraints)
 {
 	//std::random_device rd;  //Will be used to obtain a seed for the random number engine
@@ -25,6 +29,41 @@ void generateNRandomConstraints(int n, std::vector<Geometry2D::HalfPlane2>* cons
 
 using Geometry2D::HalfPlane2;
 using Geometry2D::Vec2;
+/*
+std::uint_fast64_t factorial(std::vector<HalfPlane2>::size_type n)
+{
+	std::uint_fast64_t f = 1; // result type of std::mt19937_64
+	std::uint_fast64_t max_value = std::numeric_limits<std::uint_fast64_t>::max();
+	for (std::vector<HalfPlane2>::size_type i = n; i > 0; --i)
+	{
+		if (f < max_value/i)
+			f *= i;
+		else
+			throw "Overflow"
+	}
+	return f;
+}
+
+void permuteConstraintsRandomly(const std::vector<HalfPlane2>& old_constraints,
+	std::vector<HalfPlane2>* new_constraints)
+{
+	// N slots for N elements --> there are N! different ways to match slots with elements
+	std::vector<HalfPlane2>::size_type n = constraints.size();
+	std::uint_fast64_t fn = factorial(n); // result type of std::mt19937_64
+
+	std::mt19937_64 gen(0);
+	if (gen.max() < fn)
+		throw "Overflow"
+	std::uint_fast64_t draw = gen();
+
+	for (std::vector<HalfPlane2>::size_type i = 0; i != n; ++i)
+	{
+		std::uint_fast64_t branch_size = factorial(n-i-1);
+		for (std::vector<HalfPlane2>::size_type j = 0; j < n-i)
+
+	}
+
+}*/
 
 void generate20NConstraints(int n, std::vector<HalfPlane2>* constraints)
 {
@@ -63,6 +102,10 @@ int main()
 	std::vector<Geometry2D::HalfPlane2> new_constraints;
 	generate20NConstraints(50, &new_constraints);
 
+	//auto rng = std::default_random_engine {};
+	//for (int i = 0; i < 680; i++)
+	//	std::shuffle(std::begin(new_constraints), std::end(new_constraints), rng);
+
 	std::chrono::high_resolution_clock::time_point t1, t2;
 	try
 	{
@@ -81,8 +124,9 @@ int main()
 		std::vector<Geometry2D::Vec2> points;
 		points.push_back(p_s);
 		points.push_back(nominal_point);
+		//points.push_back(Vec2(0.3,0.3));
 
-		GUI gui("Minimum Norm Point", 0.5);
+		GUI gui("Minimum Norm Point", 0.6);
 		gui.halfplanes = &new_constraints;
 		gui.points = &points;
 		Window::sdlColor green;

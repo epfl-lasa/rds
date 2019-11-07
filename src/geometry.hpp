@@ -66,6 +66,13 @@ namespace Geometry2D
 	class HalfPlane2 // closed half-plane (the boundary line belongs to the half-plane)
 	{
 	public:
+		HalfPlane2()
+			: normal(Vec2(1.f, 0.f))
+			, offset(0.f)
+			, parallel(-normal.y, normal.x)
+			, origo(offset*normal)
+		{ }
+
 		HalfPlane2(const Vec2& normal_unnormalized, float offset)
 			: normal(normal_unnormalized.normalized())
 			, offset(offset)
