@@ -5,12 +5,16 @@
 #include <velodyne_pointcloud/rawdata.h>
 #include <sensor_msgs/LaserScan.h>
 
-#include <velodyne_pointcloud/calibration.h>
-#include <velodyne_msgs/VelodynePacket.h>
-#include <velodyne_pointcloud/point_types.h>
+#include <ros/package.h> // to find the path to the calibration file in the velodyne package
+
+//#include <velodyne_pointcloud/calibration.h>
+//#include <velodyne_msgs/VelodynePacket.h>
+//#include <velodyne_pointcloud/point_types.h>
 //#include <pcl_conversions/pcl_conversions.h>
 
 #include <vector>
+#include <string>
+#include <cmath>
 
 struct MyPoint
 {
@@ -29,10 +33,14 @@ public:
 		const uint16_t& ring, const uint16_t& azimuth, const float& distance,
 		const float& intensity)
 	{
-		return;
+		MyPoint p;
+		p.x = x;
+		p.y = y;
+		p.z = z;
+		p.i = intensity;
+		points.push_back(p);
 	}
 };
-
 
 
 /*    #include "velodyne_pointcloud/calibration.h"
@@ -47,35 +55,57 @@ public:
 
 ros::Publisher* lrf_msg_publisher = 0;
 
+float positive_angle(float angle)
+{
+	while (angle < 0.f)
+		angle += 2.f*2*std::asin(1.0);
+	return angle;
+}
+
+
 void convert_velodyne_scan_to_lrf_laserscan_and_publish(velodyne_msgs::VelodyneScan::ConstPtr v_scan)
 {
 
-	//pcl::PointCloud<pcl::PointXYZI> cloud_3d;
-	//pcl::PointXYZI point;
+	std::string velodyne_pointcloud_package_path = ros::package::getPath("velodyne_pointcloud");
+	std::string calibration_file_path = velodyne_pointcloud_package_path + "params/VLP16db.yaml";
+
+	float min_range = 0.4f; // velodyne scanner's minimum range in [m]
+	float max_range = 50.f; // velodyne scanner's maximum range in [m]
+	float view_angle_start = 0.f;
+	float view_angle_width = 2.f*2*std::asin(1.0); // 2*pi
+	float z_lower_bound = -0.2f;
+	int n_angular_bins = 900;
+	float angular_bin_width = 2.f*2*std::asin(1.0)/n_angular_bins;
+
 	velodyne_rawdata::RawData data;
-	MyPoint point;
 
-	//cloud_3d.clear();
+	sensor_msgs::LaserScan lrf_scan;
+	for (int i = 0; i < n_angular_bins; i++)
+		lrf_scan.ranges.push_back(max_range);
 
-	for(int i=0;i<v_scan->packets.size();i++)
+	for (int i = 0; i < v_scan->packets.size(); i++)
 	{
 		MyPointCloud v_point_cloud;
 
-		data.setParameters(0.9,130.0,0.0,6.28);
-		data.setupOffline("file adresss",130.0,0.9);
-		data.unpack(v_scan->packets[i],v_point_cloud);
+		data.setParameters(min_range, max_range, view_angle_start, view_angle_width);
+		data.setupOffline(calibration_file_path, max_range, min_range); // setup(nodehandle) maybe better
+		data.unpack(v_scan->packets[i], v_point_cloud);
 
 		for(int j=0;j<v_point_cloud.size();j++)
 		{
-			point.x=v_point_cloud.points[j].x;
-			point.y=v_point_cloud.points[j].y;
-			point.z=v_point_cloud.points[j].z;
-			point.i=v_point_cloud.points[j].i;
-			//cloud_3d.push_back(point);
+			if (z_lower_bound < v_point_cloud.points[j].z)
+			{
+				float phi = std::atan2(v_point_cloud.points[j].y, v_point_cloud.points[j].x);
+				float r = std::sqrt(v_point_cloud.points[j].x*v_point_cloud.points[j].x +
+					v_point_cloud.points[j].y*v_point_cloud.points[j].y);
+				int lrf_bin_index = positive_angle(phi)/angular_bin_width;
+				if ((lrf_bin_index < n_angular_bins) && (lrf_scan.ranges[lrf_bin_index] > r))
+					lrf_scan.ranges[lrf_bin_index] = r;
+			}
+			//v_point_cloud.points[j].z;
+			//v_point_cloud.points[j].i;
 		}
 	}
-
-	sensor_msgs::LaserScan lrf_scan;
 	lrf_msg_publisher->publish(lrf_scan);
 }
 

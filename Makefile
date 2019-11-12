@@ -27,6 +27,15 @@ ROS_LIB = -Wl,-rpath,/opt/ros/kinetic/lib -L/opt/ros/kinetic/lib \
 -lroscpp -lrosconsole -lroscpp_serialization -lrostime \
 -I/opt/ros/kinetic/include
 
+ROS_LIB_2 = -Wl,-rpath,/opt/ros/kinetic/lib -L/opt/ros/kinetic/lib \
+-lroscpp -lrosconsole -lroscpp_serialization -lrostime -lvelodyne_rawdata -lroslib \
+-I/opt/ros/kinetic/include -I/usr/include/pcl-1.7 -I/usr/include/eigen3/
+
+lidar_to_lrf_node: build/lidar_to_lrf_node
+
+build/lidar_to_lrf_node: src/lidar_to_lrf_node.cpp
+	g++ $(FLAGS) src/lidar_to_lrf_node.cpp $(ROS_LIB_2) -o build/lidar_to_lrf_node
+
 gui_node: build/gui_node # target just for convenience
 
 build/gui_node: src/gui_node.cpp build/libgui.a

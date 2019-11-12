@@ -53,6 +53,9 @@ namespace RDS
 		{
 			return collision_points;
 		}
+
+		const Geometry2D::Vec2 lrf_location;
+		const float lrf_orientation;
 	
 	private:
 		std::vector<CollisionPoint> collision_points;

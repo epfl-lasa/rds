@@ -81,8 +81,41 @@ namespace RDS
 
 	LRFCollisionPointGenerator::LRFCollisionPointGenerator(const std::vector<float>& range_scan,
 		float angular_step_in_rad, float scan_start_angle_in_rad, float min_range, float max_range)
+		: lrf_location(0.f, 0.f)
+		, lrf_orientation(0.f)
 	{
-		return;
+		min_range = 2.f;
+
+		std::vector<Geometry2D::Vec2> scan_points;//(range_scan.size());
+		for (std::vector<float>::size_type i = 0; i != range_scan.size(); i++)
+		{
+			float phi = lrf_orientation + scan_start_angle_in_rad + i*angular_step_in_rad;
+			if ((range_scan[i] > min_range) && (range_scan[i] < max_range))
+				scan_points.push_back(lrf_location + 
+					range_scan[i]*Geometry2D::Vec2(std::cos(phi), std::sin(phi)));
+		}
+
+		std::vector<AdditionalPrimitives2D::Circle> robot_shape;
+		this->CollisionPointGenerator::defineRobotShape(&robot_shape);
+
+		collision_points.resize(robot_shape.size()*scan_points.size());
+
+		CollisionPoint cp;
+		cp.v_q = Geometry2D::Vec2(0.f, 0.f);
+		for (std::vector<AdditionalPrimitives2D::Circle>::size_type i = 0; i != robot_shape.size(); i++)
+		{
+			for (std::vector<float>::size_type j = 0; j != scan_points.size(); j++)
+			{
+				Geometry2D::Vec2 n_p_to_q((scan_points[j] - robot_shape[i].center).normalized());
+				cp.p = robot_shape[i].center + n_p_to_q*robot_shape[i].radius;
+				float d = (scan_points[j] - robot_shape[i].center).norm() - robot_shape[i].radius;
+				if (d < 0.f)
+					throw CollisionException();
+				else
+					cp.p_to_q =  n_p_to_q*d;
+				collision_points[i*scan_points.size() + j] = cp;
+			}
+		}
 	}
 
 	const float ConstraintGenerator::control_cycle_duration = 0.005f;
