@@ -118,7 +118,7 @@ namespace RDS
 		}
 	}
 
-	const float ConstraintGenerator::control_cycle_duration = 0.005f;
+	const float ConstraintGenerator::control_cycle_duration = 0.05f;//0.005f;
 
 	const float ConstraintGenerator::linear_acceleration_limit = 3.f;
 	const float ConstraintGenerator::angular_acceleration_limit = 6.282f/12.f;

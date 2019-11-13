@@ -8,6 +8,8 @@
 #include <vector>
 #include <cstring>
 
+#include <chrono>
+
 class LRFMeasurement
 {
 public:
@@ -42,7 +44,15 @@ void transform_command_using_circles(const std_msgs::Float32MultiArray::ConstPtr
 		circle_measurement.obstacle_velocities);
 
 	RDS::VelocityCommand nominal_command(nominal_command_msg->data[0], nominal_command_msg->data[1]);
+
+	std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 	RDS::CommandGenerator cg(nominal_command, previous_command, &ccpg);
+	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
+
+	ROS_INFO("The minimization took %i microseconds with %i constraints).",
+		int(duration), int(cg.constraint_generator.getConstraints().size()));
+
 	RDS::VelocityCommand transformed_command(cg.command);
 	previous_command = transformed_command;
 
@@ -70,7 +80,15 @@ void transform_command_using_lrf(const std_msgs::Float32MultiArray::ConstPtr& no
 		lrf_measurement.scan_start_angle_in_rad, lrf_measurement.min_range, lrf_measurement.max_range);
 
 	RDS::VelocityCommand nominal_command(nominal_command_msg->data[0], nominal_command_msg->data[1]);
+	
+	std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 	RDS::CommandGenerator cg(nominal_command, previous_command, &ccpg);
+	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
+
+	ROS_INFO("The minimization took %i microseconds with %i constraints).",
+		int(duration), int(cg.constraint_generator.getConstraints().size()));
+
 	RDS::VelocityCommand transformed_command(cg.command);
 	previous_command = transformed_command;
 
