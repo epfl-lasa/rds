@@ -80,6 +80,18 @@ namespace Geometry2D
 			, origo(offset*normal)
 		{ }
 
+		HalfPlane2(const Vec2& p_interior, const Vec2& p1_boundary, const Vec2& p2_boundary)
+		{
+			parallel = (p1_boundary - p2_boundary).normalized();
+			normal = Vec2(parallel.y, -parallel.x);
+			offset = normal.dot(p1_boundary);
+			origo = offset*normal;
+			if (signedDistance(p_interior) > 0.f)
+				this->flip();
+			else if (signedDistance(p_interior) == 0.f)
+				throw CollinearityException();
+		}
+
 		const Vec2& getNormal() const
 		{
 			return normal;
@@ -99,6 +111,29 @@ namespace Geometry2D
 		{
 			return origo;
 		}
+
+		HalfPlane2& rescale(float scale)
+		{
+			offset *= scale;
+			origo = origo*scale;
+			return *this;
+		}
+
+		HalfPlane2& shift(const Vec2& shift_vector)
+		{
+			offset = offset + shift_vector.dot(normal);
+			origo = offset*normal;
+			return *this;
+		}
+
+		HalfPlane2& flip()
+		{
+			normal = -1.f*normal;
+			parallel = -1.f*parallel;
+			offset *= -1.f;
+			return *this;
+		}
+
 		// returns p's distance from the boundary (the sign is positive for points outside)
 		float signedDistance(const Vec2& p) const
 		{
@@ -109,6 +144,8 @@ namespace Geometry2D
 		{
 			return origo + (h.offset - origo.dot(h.normal))/(parallel.dot(h.normal))*parallel;
 		}
+
+		class CollinearityException { };
 
 	private:
 		Vec2 normal; // the unit vector normal to the halfplane's boundary
