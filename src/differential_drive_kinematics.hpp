@@ -44,7 +44,7 @@ namespace RDS
 			angular = -point_velocity.x/point.y;
 		}
 
-		Geometry2D::Vec2 pointVelocity(const Geometry2D::Vec2& point)
+		Geometry2D::Vec2 pointVelocity(const Geometry2D::Vec2& point) const
 		{
 			return Geometry2D::Vec2(-angular*point.y, linear + angular*point.x);
 		}
@@ -66,7 +66,7 @@ namespace RDS
 		Geometry2D::HalfPlane2 h;
 	};
 
-	Geometry2D::HalfPlane2 transformPointAVelocityConstraintToPointB(const PointVelocityConstraint& a,
+	inline Geometry2D::HalfPlane2 transformPointAVelocityConstraintToPointB(const PointVelocityConstraint& a,
 		const Geometry2D::Vec2& p_b)
 	{
 		Geometry2D::Vec2 n_b(a.h.getNormal().x*a.p.y/p_b.y + a.h.getNormal().y*(p_b.x-a.p.x)/p_b.y, a.h.getNormal().y);

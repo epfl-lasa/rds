@@ -18,9 +18,14 @@ namespace RDS
 			float tau,
 			float delta);
 
-		const std::vector<PointVelocityConstraint>& getLimitConstraints() const
+		const std::vector<PointVelocityConstraint>& getBoxLimitConstraints() const
 		{
-			return limit_constraints;
+			return box_limit_constraints;
+		}
+
+		const std::vector<PointVelocityConstraint>& getHexagonLimitConstraints() const
+		{
+			return hexagon_limit_constraints;
 		}
 
 		const std::vector<PointVelocityConstraint>& getCollisionConstraints() const
@@ -29,7 +34,8 @@ namespace RDS
 		}
 
 	private:
-		std::vector<PointVelocityConstraint> limit_constraints;
+		std::vector<PointVelocityConstraint> box_limit_constraints;
+		std::vector<PointVelocityConstraint> hexagon_limit_constraints;
 		std::vector<PointVelocityConstraint> collision_constraints;
 	};
 
@@ -61,6 +67,49 @@ namespace RDS
 
 	private:
 		std::vector<Geometry2D::HalfPlane2> constraints;
+	};
+
+	struct ReferencePointVelocityOptimization
+	{
+		ReferencePointVelocityOptimization(const VelocityCommand& nominal_command,
+			const VelocityCommandHexagonLimits& hexagon_limits,
+			const ReferencePointVelocityConstraintCompiler& rpvcc,
+			const ReferencePointGenerator& rpg);
+
+		const VelocityCommand& getCommandSolution() const
+		{
+			return command_solution;
+		}
+
+		const Geometry2D::Vec2& getReferencePointVelocitySolution() const
+		{
+			return reference_point_velocity_solution;
+		}
+
+		const Geometry2D::Vec2& getScaledShiftedSolution() const
+		{
+			return scaled_shifted_solution;
+		}
+
+		const std::vector<Geometry2D::HalfPlane2>& getScaledShiftedConstraints() const
+		{
+			return scaled_shifted_constraints;
+		}
+
+		class HexagonLimitsException { };
+
+	private:
+		void computeAndSetShiftAndScaling(const VelocityCommand& nominal_command,
+			const VelocityCommandHexagonLimits& hexagon_limits,
+			const ReferencePointGenerator& rpg);
+		
+		Geometry2D::Vec2 shift;
+		float scaling;
+
+		VelocityCommand command_solution;
+		Geometry2D::Vec2 reference_point_velocity_solution;
+		Geometry2D::Vec2 scaled_shifted_solution;
+		std::vector<Geometry2D::HalfPlane2> scaled_shifted_constraints;
 	};
 }
 

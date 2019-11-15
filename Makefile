@@ -5,11 +5,15 @@ FLAGS = -std=c++11 -g -Wall
 
 # DEMOS
 
+demo_rds: build/demo_rds  # target just for convenience
+
+build/demo_rds: src/demo_rds.cpp build/librds_wrap.a build/libgui.a
+	g++ $(FLAGS) src/demo_rds.cpp -Lbuild -lrds_wrap -lgui -lSDL2 -o build/demo_rds
+
 demo_geo: build/demo_geo # target just for convenience
 
 build/demo_geo: src/demo_geo.cpp build/libgeometry.a build/libgui.a
 	g++ $(FLAGS) src/demo_geo.cpp -Lbuild -lgeometry -lgui -lSDL2 -o build/demo_geo
-
 
 # TESTS
 
@@ -65,6 +69,21 @@ build/gui_server_node: build/.hi src/gui_server.cpp src/geometry.hpp
 
 
 # LIBRARIES
+
+rds_wrap: build/librds_wrap.a # target just for convenience
+
+build/librds_wrap.a: src/rds_wrap.cpp src/rds_wrap.hpp build/librds_core.a
+	g++ $(FLAGS) -c src/rds_wrap.cpp -o build/rds_wrap.o
+	g++ $(FLAGS) -c src/rds_core.cpp -o build/rds_core.o
+	g++ $(FLAGS) -c src/distance_minimizer.cpp -o build/distance_minimizer.o
+	ar rvs build/librds_wrap.a build/rds_wrap.o build/rds_core.o build/distance_minimizer.o
+
+rds_core: build/librds_core.a # target just for convenience
+
+build/librds_core.a: src/rds_core.cpp src/rds_core.hpp src/differential_drive_kinematics.hpp src/collision_point.hpp build/libgeometry.a
+	g++ $(FLAGS) -c src/rds_core.cpp -o build/rds_core.o
+	g++ $(FLAGS) -c src/distance_minimizer.cpp -o build/distance_minimizer.o
+	ar rvs build/librds_core.a build/rds_core.o build/distance_minimizer.o
 
 rds: build/librds.a # target just for convenience
 
