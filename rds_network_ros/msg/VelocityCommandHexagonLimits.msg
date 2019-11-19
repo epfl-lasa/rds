@@ -1,0 +1,5 @@
+float32 min_linear
+float32 max_linear
+float32 abs_angular_at_min_linear
+float32 abs_angular_at_zero_linear
+float32 abs_angular_at_max_linear

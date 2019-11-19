@@ -6,19 +6,32 @@
 #include "collision_point.hpp"
 #include "geometry.hpp"
 
-#include <sensor_msgs/LaserScan.h>
-
 #include <vector>
 
+// making this a template just for fun
+template <typename T>
 struct CollisionPointGenerator
 {
-	// provide a constructor in the child class which defines robot_shape_circles
+	// provide a constructor in the child class to define robot_shape_circles
 
 	virtual ~CollisionPointGenerator() { };
 
-	void LRFCallbackToUpdateObstacleCirclesAndVelocities(const sensor_msgs::LaserScan::ConstPtr& laserscan_msg);
+	// define it to update the obstacle_circles and obstacle_velocities from messages of type T
+	void obstacleMessageCallback(const T& obstacle_sensor_msg) = 0;
 
-	const CollisionPointGenerator& generateCollisionPoints();
+	const CollisionPointGenerator& generateCollisionPoints()
+	{
+		collision_points.resize(obstacle_circles.size()*robot_shape_circles.size());
+		for (std::vector<AdditionalPrimitives2D::Circle>::size_type j = 0; j != robot_shape_circles.size(); j++)
+		{
+			for (std::vector<AdditionalPrimitives2D::Circle>::size_type i = 0; i != obstacle_circles.size(); i++)
+			{
+				collision_points[j*obstacle_circles.size() + i] = RDS::CollisionPoint(robot_shape_circles[j],
+					obstacle_circles[i], obstacle_velocities[i]);
+			}
+		}
+		return *this;
+	}
 
 	std::vector<AdditionalPrimitives2D::Circle> robot_shape_circles;
 	std::vector<AdditionalPrimitives2D::Circle> obstacle_circles;
@@ -32,16 +45,6 @@ struct RDSWrap
 		const RDS::VelocityCommandBoxLimits& box_limits,
 		const RDS::VelocityCommandHexagonLimits& hexagon_limits,
 		const std::vector<RDS::CollisionPoint>& collision_points,
-		float y_coordinate_of_reference_point_for_command_limits = 0.5f,
-		float weight_scaling_of_reference_point_for_command_limits = 1.f,
-		float tau = 2.f,
-		float delta = 0.1f,
-		float clearance_from_axle_of_final_reference_point = 0.15f);
-
-	RDSWrap(const RDS::VelocityCommand& nominal_command,
-		const RDS::VelocityCommandBoxLimits& box_limits,
-		const RDS::VelocityCommandHexagonLimits& hexagon_limits,
-		CollisionPointGenerator* collision_point_generator,
 		float y_coordinate_of_reference_point_for_command_limits = 0.5f,
 		float weight_scaling_of_reference_point_for_command_limits = 1.f,
 		float tau = 2.f,

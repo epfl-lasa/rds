@@ -1,0 +1,8 @@
+VelocityCommand nominal_command
+VelocityCommandHexagonLimits velocity_limits
+VelocityCommand last_actual_command
+float32 command_cycle_time
+float32 abs_linear_acceleration_limit
+float32 abs_angular_acceleration_limit
+---
+VelocityCommand corrected_command
