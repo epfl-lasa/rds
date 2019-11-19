@@ -72,6 +72,14 @@ namespace RDS
 		Geometry2D::Vec2 n_b(a.h.getNormal().x*a.p.y/p_b.y + a.h.getNormal().y*(p_b.x-a.p.x)/p_b.y, a.h.getNormal().y);
 		return Geometry2D::HalfPlane2(n_b, 1.f).rescale(a.h.getOffset()/n_b.norm());
 	}
+
+	inline Geometry2D::HalfPlane2 transformPointVelocityConstraintToCommandConstraint(const PointVelocityConstraint& pvc,
+		float linear_normalization, float angular_normalization)
+	{
+		Geometry2D::Vec2 n_unnormalized(pvc.h.getNormal().y*linear_normalization,
+			(-pvc.p.y*pvc.h.getNormal().x + pvc.p.x*pvc.h.getNormal().y)*angular_normalization);
+		return Geometry2D::HalfPlane2(n_unnormalized, 1.f).rescale(pvc.h.getOffset()/n_unnormalized.norm());
+	}
 }
 
 #endif

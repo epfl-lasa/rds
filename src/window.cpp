@@ -87,12 +87,14 @@ bool Window::sdlCheck()
 	{
 		if (e.type == SDL_QUIT) // kill all windows
 		{
+			//std::cout << "SDL-quit event" << std::endl;
 			for (int i = 0; i < allSdlPointers.size(); i++)
 				killSdlWindow(i);
 		}
 		else if (e.type == SDL_WINDOWEVENT &&
 			e.window.event == SDL_WINDOWEVENT_CLOSE) // kill the respective window
 		{
+			//std::cout << "Window-close event" << std::endl;
 			for (int i = 0; i < allSdlPointers.size(); i++)
 			{
 				if (SDL_GetWindowID(allSdlPointers[i].window) == e.window.windowID)
@@ -102,7 +104,10 @@ bool Window::sdlCheck()
 	}
 	// check if some object has killed this object's sdl window and return true/false
 	if (allSdlPointers[sdlWindowCreationNumber].window == 0)
+	{
+		//std::cout << "Window has been killed" << std::endl;
 		return true;
+	}
 	else
 		return false;
 }
@@ -113,10 +118,12 @@ float Window::delayUntilNextFrameInMinutes()
 	return 1.0/frameRateInHz/60.0;
 }
 
-bool Window::render(const std::vector<Geometry2D::HalfPlane2>& half_planes,
-		const std::vector<Geometry2D::Vec2>& points,
+bool Window::render(const std::vector<Geometry2D::HalfPlane2>* half_planes_ptr,
+		const std::vector<Geometry2D::Vec2>* points_ptr,
 		const std::vector<sdlColor>& points_colors,
-		const std::vector<AdditionalPrimitives2D::Circle>& circles)
+		const std::vector<AdditionalPrimitives2D::Circle>* circles_ptr,
+		const std::vector<AdditionalPrimitives2D::Arrow>* arrows_ptr,
+		const std::vector<Window::sdlColor>& arrows_colors)
 {
 	if (sdlCheck())
 		return true;
@@ -126,25 +133,37 @@ bool Window::render(const std::vector<Geometry2D::HalfPlane2>& half_planes,
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
 	SDL_RenderClear(renderer);
 	// for half planes
-	renderHalfPlanes(half_planes);
+	if (half_planes_ptr)
+		renderHalfPlanes(*half_planes_ptr);
 	// for points
 	float radius = 0.005*screenSizeInDistanceUnits;
-	for (int i = 0; i < points.size(); i++)
+	if (points_ptr)
 	{
-		if (i < points_colors.size())
+		const std::vector<Geometry2D::Vec2>& points = *points_ptr;
+		for (int i = 0; i < points.size(); i++)
 		{
-			SDL_SetRenderDrawColor(renderer, points_colors[i].r, points_colors[i].g,
-				points_colors[i].b, 255);
+			if (i < points_colors.size())
+			{
+				SDL_SetRenderDrawColor(renderer, points_colors[i].r, points_colors[i].g,
+					points_colors[i].b, 255);
+			}
+			else
+				SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+			renderCircle(points[i], radius, 0.0);
 		}
-		else
-			SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-		renderCircle(points[i], radius, 0.0);
 	}
 	// for circles
 	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 	float thickness = 0.0025*screenSizeInDistanceUnits;
-	for (int i = 0; i < circles.size(); i++)
-		renderCircle(circles[i].center, circles[i].radius, circles[i].radius - thickness);
+	if (circles_ptr)
+	{
+		const std::vector<AdditionalPrimitives2D::Circle>& circles = *circles_ptr;
+		for (int i = 0; i < circles.size(); i++)
+			renderCircle(circles[i].center, circles[i].radius, circles[i].radius - thickness);
+	}
+	// for arrows
+	if (arrows_ptr)
+		renderArrows(*arrows_ptr, arrows_colors);
 	// bring it to the screen
 	SDL_RenderPresent(renderer);
 	return false;
@@ -254,4 +273,32 @@ void Window::renderBoundaryLine(const Geometry2D::HalfPlane2& half_plane, int pi
 	Pixel shift_vector = unitVectorToPixelDirection(half_plane.getNormal());
 	SDL_RenderDrawLine(renderer, p1.i + shift_vector.i*pixel_shift, p1.j + shift_vector.j*pixel_shift,
 		p2.i + shift_vector.i*pixel_shift, p2.j + shift_vector.j*pixel_shift);
+}
+
+void Window::renderArrows(const std::vector<AdditionalPrimitives2D::Arrow>& arrows,
+	const std::vector<Window::sdlColor>& arrows_colors)
+{
+	SDL_Renderer* renderer = allSdlPointers[sdlWindowCreationNumber].renderer; // for convenience
+	for (int i = 0; i < arrows.size(); i++)
+	{
+		if (i < arrows_colors.size())
+		{
+			SDL_SetRenderDrawColor(renderer, arrows_colors[i].r, arrows_colors[i].g,
+					arrows_colors[i].b, 255);
+		}
+		else
+			SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+		Geometry2D::Vec2 d = arrows[i].head - arrows[i].tail;
+		if (d.norm() > 0.00001f)
+		{
+			Geometry2D::Vec2 normal(Geometry2D::Vec2(-d.y, d.x).normalized());
+			Pixel shift_vector = unitVectorToPixelDirection(normal);
+			Pixel head(pointToPixel(arrows[i].head));
+			Pixel tail(pointToPixel(arrows[i].tail));
+			SDL_RenderDrawLine(renderer, tail.i, tail.j, head.i, head.j);
+			SDL_RenderDrawLine(renderer, tail.i, tail.j, head.i+shift_vector.i, head.j+shift_vector.j);
+			SDL_RenderDrawLine(renderer, tail.i, tail.j, head.i-shift_vector.i, head.j-shift_vector.j);
+		}
+		renderCircle(arrows[i].head, 0.005*screenSizeInDistanceUnits, 0.0);
+	}
 }

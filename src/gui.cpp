@@ -7,6 +7,7 @@ GUI::GUI(const char* title, float window_size_in_distance_units)
 	halfplanes = 0;
 	points = 0;
 	circles = 0;
+	arrows = 0;
 
 	bool window_is_good;
 	window = new Window(title, window_size_in_distance_units, 1000, 10.0, &window_is_good);
@@ -18,22 +19,22 @@ GUI::GUI(const char* title, float window_size_in_distance_units)
 }
 
 
-void GUI::update()
+int GUI::update()
 {
-	if (window && halfplanes && points && circles)
-		window->render(*halfplanes, *points, points_colors, *circles);
-	else if (window && halfplanes && points)
-		window->render(*halfplanes, *points, points_colors, std::vector<AdditionalPrimitives2D::Circle>(0));
+	if (window)
+	{
+		bool closed = window->render(halfplanes, points, points_colors, circles, arrows, arrows_colors);
+		return closed ? 1 : 0;
+	}
+	else
+		return 1;
 }
 
 void GUI::blockingShowUntilClosed()
 {
 	if (window)
 	{
-		std::vector<AdditionalPrimitives2D::Circle> dummy(0);
-		if (!circles)
-			circles = &dummy;
-		while (!window->render(*halfplanes, *points, points_colors, *circles))
+		while (!window->render(halfplanes, points, points_colors, circles, arrows, arrows_colors))
 		{
 			window->delayUntilNextFrameInMinutes();
 		}
@@ -41,7 +42,6 @@ void GUI::blockingShowUntilClosed()
 		delete window;
 		window = 0;
 	}
-
 }
 
 

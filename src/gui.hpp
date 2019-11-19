@@ -32,12 +32,14 @@ public:
 
 	void blockingShowUntilClosed();
 
-	void update();
+	int update();
 
 	const std::vector<Geometry2D::HalfPlane2>* halfplanes;
 	const std::vector<Geometry2D::Vec2>* points;
 	const std::vector<AdditionalPrimitives2D::Circle>* circles;
 	std::vector<Window::sdlColor> points_colors;
+	const std::vector<AdditionalPrimitives2D::Arrow>* arrows;
+	std::vector<Window::sdlColor> arrows_colors;
 	//std::vector<Window::sdlColor> circles_colors;
 
 private:

@@ -117,6 +117,9 @@ namespace RDS
 		static const float angular_velocity_limit_at_minimum_linear_velocity;
 		static const float angular_velocity_limit_at_maximum_linear_velocity;
 
+		static const float y_coordinate_of_reference_point_for_command_limits;
+		static const float weight_scaling_of_reference_point_for_command_limits;
+
 	private:
 		Geometry2D::Vec2 computeReferencePoint(const VelocityCommand& nominal_command,
 			const std::vector<CollisionPoint>& collision_points);

@@ -129,6 +129,9 @@ namespace RDS
 	const float ConstraintGenerator::angular_velocity_limit_at_minimum_linear_velocity = 0.f;
 	const float ConstraintGenerator::angular_velocity_limit_at_maximum_linear_velocity = 0.f;
 
+	const float ConstraintGenerator::y_coordinate_of_reference_point_for_command_limits = 0.5f;
+	const float ConstraintGenerator::weight_scaling_of_reference_point_for_command_limits = 1.0f;
+
 	float ConstraintGenerator::computeScaling()
 	{
 		// for the six point velocities created by the corners of the limits for the velocity command,
@@ -165,6 +168,15 @@ namespace RDS
 		Geometry2D::Vec2 reference_point(0.f, 0.f);
 		float unnormalized_weight_sum = 0.f;
 
+		// contribution by the reference point for command limits
+		// ... annoying ...
+		//Geometry2D::Vec2 v_lref_nominal = commandToPointVelocity(nominal_command, Geometry2D::Vec2(0.f,
+		//	y_coordinate_of_reference_point_for_command_limits));
+
+		//y_coordinate_of_reference_point_for_command_limits
+		//weight_scaling_of_reference_point_for_command_limits
+
+		// contribution by collision points
 		Geometry2D::Vec2 normal;
 		float offset;
 		for (std::vector<CollisionPoint>::size_type i = 0; i != collision_points.size(); i++)

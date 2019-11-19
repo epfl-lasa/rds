@@ -165,6 +165,16 @@ namespace AdditionalPrimitives2D
 		Geometry2D::Vec2 center;
 		float radius;
 	};
+
+	struct Arrow
+	{
+		Arrow() { }
+		Arrow(const Geometry2D::Vec2& head, const Geometry2D::Vec2& tail)
+			: head(head)
+			, tail(tail)
+		{ }
+		Geometry2D::Vec2 tail, head;
+	};
 }
 
 #endif

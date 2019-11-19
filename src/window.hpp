@@ -24,10 +24,12 @@ public:
 	float delayUntilNextFrameInMinutes();
 
 	// returns true if the window has been closed, false otherwise
-	bool render(const std::vector<Geometry2D::HalfPlane2>& half_planes,
-		const std::vector<Geometry2D::Vec2>& points,
+	bool render(const std::vector<Geometry2D::HalfPlane2>* half_planes,
+		const std::vector<Geometry2D::Vec2>* points,
 		const std::vector<sdlColor>& points_colors,
-		const std::vector<AdditionalPrimitives2D::Circle>& circles);
+		const std::vector<AdditionalPrimitives2D::Circle>* circles,
+		const std::vector<AdditionalPrimitives2D::Arrow>* arrows,
+		const std::vector<Window::sdlColor>& arrows_colors);
 
 	const float screenSizeInDistanceUnits;
 	const int screenSizeInPixels;
@@ -59,6 +61,8 @@ private:
 	void renderCircle(const Geometry2D::Vec2& center, float r_outer, float r_inner);
 	void renderHalfPlanes(const std::vector<Geometry2D::HalfPlane2>& half_planes);
 	void renderBoundaryLine(const Geometry2D::HalfPlane2& half_plane, int pixel_shift = 0);
+	void renderArrows(const std::vector<AdditionalPrimitives2D::Arrow>& arrows,
+		const std::vector<Window::sdlColor>& arrows_colors);
 
 	static void killSdlWindow(int window_creation_number);
 	struct SDLPointers

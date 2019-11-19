@@ -6,18 +6,25 @@
 #include "collision_point.hpp"
 #include "geometry.hpp"
 
+#include <sensor_msgs/LaserScan.h>
+
 #include <vector>
 
-/*
-RDS::VelocityCommand compute_RDS_command(const RDS::VelocityCommand& nominal_command,
-	const RDS::VelocityCommandBoxLimits& box_limits,
-	const RDS::VelocityCommandHexagonLimits& hexagon_limits,
-	const std::vector<RDS::CollisionPoint>& collision_points,
-	float y_coordinate_of_reference_point_for_command_limits = 0.5f,
-	float weight_scaling_of_reference_point_for_command_limits = 1.f,
-	float tau = 2.f,
-	float delta = 0.1f,
-	float clearance_from_axle_of_final_reference_point = 0.15f);*/
+struct CollisionPointGenerator
+{
+	// provide a constructor in the child class which defines robot_shape_circles
+
+	virtual ~CollisionPointGenerator() { };
+
+	void LRFCallbackToUpdateObstacleCirclesAndVelocities(const sensor_msgs::LaserScan::ConstPtr& laserscan_msg);
+
+	const CollisionPointGenerator& generateCollisionPoints();
+
+	std::vector<AdditionalPrimitives2D::Circle> robot_shape_circles;
+	std::vector<AdditionalPrimitives2D::Circle> obstacle_circles;
+	std::vector<Geometry2D::Vec2> obstacle_velocities;
+	std::vector<RDS::CollisionPoint> collision_points;
+};
 
 struct RDSWrap
 {
@@ -25,6 +32,16 @@ struct RDSWrap
 		const RDS::VelocityCommandBoxLimits& box_limits,
 		const RDS::VelocityCommandHexagonLimits& hexagon_limits,
 		const std::vector<RDS::CollisionPoint>& collision_points,
+		float y_coordinate_of_reference_point_for_command_limits = 0.5f,
+		float weight_scaling_of_reference_point_for_command_limits = 1.f,
+		float tau = 2.f,
+		float delta = 0.1f,
+		float clearance_from_axle_of_final_reference_point = 0.15f);
+
+	RDSWrap(const RDS::VelocityCommand& nominal_command,
+		const RDS::VelocityCommandBoxLimits& box_limits,
+		const RDS::VelocityCommandHexagonLimits& hexagon_limits,
+		CollisionPointGenerator* collision_point_generator,
 		float y_coordinate_of_reference_point_for_command_limits = 0.5f,
 		float weight_scaling_of_reference_point_for_command_limits = 1.f,
 		float tau = 2.f,
