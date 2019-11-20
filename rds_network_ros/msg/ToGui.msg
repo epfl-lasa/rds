@@ -1,0 +1,5 @@
+VelocityCommand nominal_command
+VelocityCommand corrected_command
+Point2D reference_point
+Point2D[] collision_points_on_robot
+Point2D[] collision_points_on_obstacles

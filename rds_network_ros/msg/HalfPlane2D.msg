@@ -1,0 +1,2 @@
+Point2D normal
+float32 offset

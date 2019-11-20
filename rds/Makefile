@@ -27,25 +27,33 @@ build/demo_geo: src/demo_geo.cpp build/libgeometry.a build/libgui.a
 
 rds_wrap: build/librds_wrap.a # target just for convenience
 
-build/librds_wrap.a: src/rds_wrap.cpp src/rds_wrap.hpp build/librds_core.a
+build/librds_wrap.a: build/rds/.hi src/rds_wrap.cpp src/rds_wrap.hpp build/librds_core.a
 	g++ $(FLAGS) -c src/rds_wrap.cpp -o build/rds_wrap.o
 	g++ $(FLAGS) -c src/rds_core.cpp -o build/rds_core.o
 	g++ $(FLAGS) -c src/distance_minimizer.cpp -o build/distance_minimizer.o
 	ar rvs build/librds_wrap.a build/rds_wrap.o build/rds_core.o build/distance_minimizer.o
+	cp src/rds_wrap.hpp build/rds
+	cp src/collision_point.hpp build/rds
+	cp src/differential_drive_kinematics.hpp build/rds
+	cp src/rds_core.hpp build/rds
+	cp src/geometry.hpp build/rds
 
 rds_core: build/librds_core.a # target just for convenience
 
-build/librds_core.a: src/rds_core.cpp src/rds_core.hpp src/differential_drive_kinematics.hpp src/collision_point.hpp build/libgeometry.a
+build/librds_core.a: build/.hi src/rds_core.cpp src/rds_core.hpp src/differential_drive_kinematics.hpp src/collision_point.hpp build/libgeometry.a
 	g++ $(FLAGS) -c src/rds_core.cpp -o build/rds_core.o
 	g++ $(FLAGS) -c src/distance_minimizer.cpp -o build/distance_minimizer.o
 	ar rvs build/librds_core.a build/rds_core.o build/distance_minimizer.o
 
 gui: build/libgui.a # target just for convenience
 
-build/libgui.a: build/.hi src/geometry.hpp src/gui.cpp src/gui.hpp src/window.cpp src/window.hpp
+build/libgui.a: build/rds/.hi src/geometry.hpp src/gui.cpp src/gui.hpp src/window.cpp src/window.hpp
 	g++ $(FLAGS) -c src/gui.cpp -o build/gui.o 
 	g++ $(FLAGS) -c src/window.cpp -o build/window.o
 	ar rvs build/libgui.a build/gui.o build/window.o
+	cp src/geometry.hpp build/rds
+	cp src/gui.hpp build/rds
+	cp src/window.hpp build/rds
 
 geometry: build/libgeometry.a # target just for convenience
 
@@ -57,6 +65,13 @@ build/libgeometry.a: build/.hi src/geometry.hpp src/distance_minimizer.cpp src/d
 
 clean:
 	rm -rf build
+
+build/rds/.hi : build/.hi
+	if ! [ -d build/rds ]; then \
+		mkdir build/rds; \
+	fi
+	touch .hi
+	mv .hi build/rds/.hi
 
 build/.hi: # targets that depend on this will create the build folder (unless existing) before executing their rule
 	if ! [ -d build ]; then \
