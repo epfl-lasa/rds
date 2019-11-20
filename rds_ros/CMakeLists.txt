@@ -11,7 +11,6 @@ find_package(catkin REQUIRED COMPONENTS
   rds_network_ros
   roscpp
   std_msgs
-  velodyne
   velodyne_msgs
   velodyne_pointcloud
   velodyne_driver
@@ -121,7 +120,7 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-  ../rds/build
+  ${CMAKE_CURRENT_SOURCE_DIR}/../rds/build
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -151,10 +150,14 @@ add_executable(${PROJECT_NAME}_nominal_command_node src/nominal_command_node.cpp
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(${PROJECT_NAME}_node rds_network_ros_generate_messages_cpp)
+add_dependencies(${PROJECT_NAME}_lidar_to_lrf_node rds_network_ros_generate_messages_cpp)
+add_dependencies(${PROJECT_NAME}_nominal_command_node rds_network_ros_generate_messages_cpp)
+
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_node
-  ../rds/build/librds_wrap.a
+  ${CMAKE_CURRENT_SOURCE_DIR}/../rds/build/librds_wrap.a
   ${catkin_LIBRARIES}
 )
 target_link_libraries(${PROJECT_NAME}_lidar_to_lrf_node

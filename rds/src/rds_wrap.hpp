@@ -17,7 +17,7 @@ struct CollisionPointGenerator
 	virtual ~CollisionPointGenerator() { };
 
 	// define it to update the obstacle_circles and obstacle_velocities from messages of type T
-	void obstacleMessageCallback(const T& obstacle_sensor_msg) = 0;
+	virtual void obstacleMessageCallback(const T& obstacle_sensor_msg) = 0;
 
 	const CollisionPointGenerator& generateCollisionPoints()
 	{

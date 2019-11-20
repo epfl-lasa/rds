@@ -18,40 +18,40 @@ void QoloCollisionPointGenerator::defineQoloShape()
 	position.x = 208.391*scale;
 	position.y = 95.028*scale;
 	radius = 77.637*scale;
-	robot_shape_circles->push_back(AdditionalPrimitives2D::Circle(position, radius));
+	robot_shape_circles.push_back(AdditionalPrimitives2D::Circle(position, radius));
 	position.x = -208.391*scale;
-	robot_shape_circles->push_back(AdditionalPrimitives2D::Circle(position, radius));
+	robot_shape_circles.push_back(AdditionalPrimitives2D::Circle(position, radius));
 
 	position.x = 153.585*scale;
 	position.y = 4.019*scale;
 	radius = 136.843*scale;
-	robot_shape_circles->push_back(AdditionalPrimitives2D::Circle(position, radius));
+	robot_shape_circles.push_back(AdditionalPrimitives2D::Circle(position, radius));
 	position.x = -153.585*scale;
-	robot_shape_circles->push_back(AdditionalPrimitives2D::Circle(position, radius));
+	robot_shape_circles.push_back(AdditionalPrimitives2D::Circle(position, radius));
 
 	position.x = 57.833*scale;
 	position.y = -105.522*scale;
 	radius = 227.437*scale;
-	robot_shape_circles->push_back(AdditionalPrimitives2D::Circle(position, radius));
+	robot_shape_circles.push_back(AdditionalPrimitives2D::Circle(position, radius));
 	position.x = -57.833*scale;
-	robot_shape_circles->push_back(AdditionalPrimitives2D::Circle(position, radius));
+	robot_shape_circles.push_back(AdditionalPrimitives2D::Circle(position, radius));
 
 	position.x = 0.0;
 	position.y = -284.338*scale;
 	radius = 230.051*scale;
-	robot_shape_circles->push_back(AdditionalPrimitives2D::Circle(position, radius));
+	robot_shape_circles.push_back(AdditionalPrimitives2D::Circle(position, radius));
 
 	position.x = 0.0;
 	position.y = -383.821*scale;
 	radius = 174.055*scale;
-	robot_shape_circles->push_back(AdditionalPrimitives2D::Circle(position, radius));
+	robot_shape_circles.push_back(AdditionalPrimitives2D::Circle(position, radius));
 }
 
 void QoloCollisionPointGenerator::obstacleMessageCallback(const sensor_msgs::LaserScan::ConstPtr& lrf_msg)
 {
 	obstacle_circles.resize(lrf_msg->ranges.size());
 	obstacle_velocities.resize(lrf_msg->ranges.size());
-	for (std::vector<float>::size_type i = 0; i != range_scan.size(); i++)
+	for (std::vector<float>::size_type i = 0; i != lrf_msg->ranges.size(); i++)
 	{
 		obstacle_velocities[i] = Geometry2D::Vec2(0.f, 0.f);
 		float phi = lrf_orientation + lrf_msg->angle_min + i*lrf_msg->angle_increment;
@@ -61,19 +61,19 @@ void QoloCollisionPointGenerator::obstacleMessageCallback(const sensor_msgs::Las
 	}
 }
 
-bool RDSNode::commandCorrectionService(VelocityCommandCorrectionRDS::Request& request,
-	VelocityCommandCorrectionRDS::Response& response)
+bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectionRDS::Request& request,
+	rds_network_ros::VelocityCommandCorrectionRDS::Response& response)
 {
-	VelocityCommand nominal_command(request.nominal_command.linear, request.nominal_command.angular);
+	RDS::VelocityCommand nominal_command(request.nominal_command.linear, request.nominal_command.angular);
 
-	VelocityCommandHexagonLimits hexagon_limits;
+	RDS::VelocityCommandHexagonLimits hexagon_limits;
 	hexagon_limits.min_linear = request.velocity_limits.min_linear;
 	hexagon_limits.max_linear = request.velocity_limits.max_linear;
 	hexagon_limits.absolute_angular_at_min_linear = request.velocity_limits.abs_angular_at_min_linear;
 	hexagon_limits.absolute_angular_at_max_linear = request.velocity_limits.abs_angular_at_max_linear;
 	hexagon_limits.absolute_angular_at_zero_linear = request.velocity_limits.abs_angular_at_zero_linear;
 
-	VelocityCommandBoxLimits box_limits;
+	RDS::VelocityCommandBoxLimits box_limits;
 	box_limits.min_linear = request.last_actual_command.linear - request.command_cycle_time*request.abs_linear_acceleration_limit;
 	box_limits.min_angular = request.last_actual_command.angular - request.command_cycle_time*request.abs_angular_acceleration_limit;
 	box_limits.max_linear = request.last_actual_command.linear + request.command_cycle_time*request.abs_linear_acceleration_limit;
@@ -106,7 +106,7 @@ bool RDSNode::commandCorrectionService(VelocityCommandCorrectionRDS::Request& re
 	return true;
 }
 
-RDSNode::RDSNode(ros::NodeHandle* node_handle)
+RDSNode::RDSNode(ros::NodeHandle* n)
 	: qolo_cpg()
 	, laserscan_subscriber(n->subscribe<sensor_msgs::LaserScan>("laserscan", 1,
 		&QoloCollisionPointGenerator::obstacleMessageCallback, &qolo_cpg))
@@ -121,6 +121,6 @@ int main(int argc, char** argv)
 {
 	ros::init(argc, argv, "rds_ros_node");
 	ros::NodeHandle n;
-	RDSNode(&n);
+	RDSNode rds_node(&n);
 	return 0;
 }

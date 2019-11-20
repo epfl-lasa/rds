@@ -9,28 +9,29 @@
 
 int main(int argc, char** argv)
 {
-	VelocityCommand nominal_command(0.75f, 0.5f);
+	RDS::VelocityCommand nominal_command(0.75f, 0.5f);
 
-	VelocityCommandHexagonLimits hexagon_limits;
+	RDS::VelocityCommandHexagonLimits hexagon_limits;
 	hexagon_limits.min_linear = -0.75f;
 	hexagon_limits.max_linear = 1.75f;
 	hexagon_limits.absolute_angular_at_min_linear = 0.f;
 	hexagon_limits.absolute_angular_at_max_linear = 0.f;
 	hexagon_limits.absolute_angular_at_zero_linear = 1.f;
 
-	VelocityCommandBoxLimits box_limits;
+	RDS::VelocityCommandBoxLimits box_limits;
 	box_limits.min_linear = 0.5f;
 	box_limits.min_angular = 0.25f;
 	box_limits.max_linear = 1.5f;
 	box_limits.max_angular = 0.75f;
 
-	rds_network_ros::VelocityCommandCorrectionRDS::Request request;
+	rds_network_ros::VelocityCommandCorrectionRDS srv;
+	rds_network_ros::VelocityCommandCorrectionRDS::Request& request = srv.request;
 
 	request.nominal_command.linear = nominal_command.linear;
 	request.nominal_command.angular = nominal_command.angular;
 
-	request.velocity_limits.min_linear = hexagon_limits.min_linear = request.velocity_limits.min_linear;
-	request.velocity_limits.max_linear = hexagon_limits.max_linear = request.velocity_limits.max_linear;
+	request.velocity_limits.min_linear = hexagon_limits.min_linear;
+	request.velocity_limits.max_linear = hexagon_limits.max_linear;
 	request.velocity_limits.abs_angular_at_min_linear = hexagon_limits.absolute_angular_at_min_linear;
 	request.velocity_limits.abs_angular_at_max_linear = hexagon_limits.absolute_angular_at_max_linear;
 	request.velocity_limits.abs_angular_at_zero_linear = hexagon_limits.absolute_angular_at_zero_linear;
@@ -41,12 +42,9 @@ int main(int argc, char** argv)
 	request.abs_linear_acceleration_limit = (box_limits.max_linear - box_limits.min_linear)/2.f/request.command_cycle_time;
 	request.abs_angular_acceleration_limit = (box_limits.max_angular - box_limits.min_angular)/2.f/request.command_cycle_time;
 
-
 	ros::init(argc, argv, "rds_ros_nominal_command_node");
 	ros::NodeHandle n;
 	ros::ServiceClient c(n.serviceClient<rds_network_ros::VelocityCommandCorrectionRDS>("velocity_command_correction_rds"));
-	rds_network_ros::VelocityCommandCorrectionRDS srv;
-	srv.request = request;
 
 	std::chrono::milliseconds command_cycle_time(int(request.command_cycle_time*1000.f));
 

@@ -20,7 +20,7 @@ struct QoloCollisionPointGenerator : public CollisionPointGenerator<sensor_msgs:
 
 	void obstacleMessageCallback(const sensor_msgs::LaserScan::ConstPtr& obstacle_sensor_msg);
 
-	Geometry2D::Vec2& lrf_location;
+	Geometry2D::Vec2 lrf_location;
 	float lrf_orientation;
 
 private:
