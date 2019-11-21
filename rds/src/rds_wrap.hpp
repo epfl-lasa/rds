@@ -7,6 +7,7 @@
 #include "geometry.hpp"
 
 #include <vector>
+#include <iostream>
 
 // making this a template just for fun
 template <typename T>
@@ -26,8 +27,14 @@ struct CollisionPointGenerator
 		{
 			for (std::vector<AdditionalPrimitives2D::Circle>::size_type i = 0; i != obstacle_circles.size(); i++)
 			{
+
+				try{
 				collision_points[j*obstacle_circles.size() + i] = RDS::CollisionPoint(robot_shape_circles[j],
 					obstacle_circles[i], obstacle_velocities[i]);
+				}
+				catch (RDS::CollisionPoint::CollisionException e) {
+				  std::cout << "Skipping colliding point ..." << std::endl;
+				}
 			}
 		}
 		return *this;
