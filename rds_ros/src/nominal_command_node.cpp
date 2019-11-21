@@ -9,7 +9,7 @@
 
 int main(int argc, char** argv)
 {
-	RDS::VelocityCommand nominal_command(0.75f, 0.5f);
+	RDS::VelocityCommand nominal_command(0.5f, 0.f);
 
 	RDS::VelocityCommandHexagonLimits hexagon_limits;
 	hexagon_limits.min_linear = -0.75f;
@@ -19,10 +19,10 @@ int main(int argc, char** argv)
 	hexagon_limits.absolute_angular_at_zero_linear = 1.f;
 
 	RDS::VelocityCommandBoxLimits box_limits;
-	box_limits.min_linear = 0.5f;
-	box_limits.min_angular = 0.25f;
-	box_limits.max_linear = 1.5f;
-	box_limits.max_angular = 0.75f;
+	box_limits.min_linear = -10.5f;
+	box_limits.min_angular = -10.25f;
+	box_limits.max_linear = 11.5f;
+	box_limits.max_angular = 10.75f;//these high values are just to disable the limits for now
 
 	rds_network_ros::VelocityCommandCorrectionRDS srv;
 	rds_network_ros::VelocityCommandCorrectionRDS::Request& request = srv.request;
