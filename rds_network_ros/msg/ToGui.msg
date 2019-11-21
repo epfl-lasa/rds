@@ -1,5 +1,14 @@
 VelocityCommand nominal_command
 VelocityCommand corrected_command
 Point2D reference_point
+Point2D reference_point_velocity_solution
+Point2D reference_point_nominal_velocity
+HalfPlane2D[] reference_point_velocity_constraints
+Point2D solver_solution
+HalfPlane2D[] solver_constraints
+Point2D reference_point_for_command_limits
 Point2D[] collision_points_on_robot
 Point2D[] collision_points_on_obstacles
+float32 limit_velocity_command_abs_angular_at_zero_linear
+float32 limit_velocity_command_max_linear
+Circle[] robot_shape

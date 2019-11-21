@@ -4,6 +4,9 @@
 #include <rds/collision_point.hpp>
 
 #include <rds_network_ros/ToGui.h>
+#include <rds_network_ros/HalfPlane2D.h>
+#include <rds_network_ros/Point2D.h>
+#include <rds_network_ros/Circle.h>
 
 #include <cmath>
 
@@ -99,8 +102,55 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 	response.corrected_command.angular = rds_wrap.getCommandSolution().angular;
 
 	rds_network_ros::ToGui msg_to_gui;
-	// msg_to_gui.nominal_command = ...
-	// ...
+	msg_to_gui.nominal_command.linear = nominal_command.linear;
+	msg_to_gui.nominal_command.angular = nominal_command.angular;
+	msg_to_gui.corrected_command.linear = rds_wrap.getCommandSolution().linear;
+	msg_to_gui.corrected_command.angular = rds_wrap.getCommandSolution().angular;
+	msg_to_gui.reference_point.x = rds_wrap.getReferencePoint().x;
+	msg_to_gui.reference_point.y = rds_wrap.getReferencePoint().y;
+	msg_to_gui.reference_point_velocity_solution.x = rds_wrap.getReferencePointVelocitySolution().x;
+	msg_to_gui.reference_point_velocity_solution.y = rds_wrap.getReferencePointVelocitySolution().y;
+	msg_to_gui.reference_point_nominal_velocity.x = nominal_command.pointVelocity(rds_wrap.getReferencePoint()).x;
+	msg_to_gui.reference_point_nominal_velocity.y = nominal_command.pointVelocity(rds_wrap.getReferencePoint()).y;
+	rds_network_ros::HalfPlane2D h_msg;
+	for (auto& h : rds_wrap.getReferencePointVelocityConstraints())
+	{
+		h_msg.normal.x = h.getNormal().x;
+		h_msg.normal.y = h.getNormal().y;
+		h_msg.offset = h.getOffset();
+		msg_to_gui.reference_point_velocity_constraints.push_back(h_msg);
+	}
+	msg_to_gui.solver_solution.x = rds_wrap.getScaledShiftedSolution().x;
+	msg_to_gui.solver_solution.y = rds_wrap.getScaledShiftedSolution().y;
+	for (auto& h : rds_wrap.getScaledShiftedConstraints())
+	{
+		h_msg.normal.x = h.getNormal().x;
+		h_msg.normal.y = h.getNormal().y;
+		h_msg.offset = h.getOffset();
+		msg_to_gui.solver_constraints.push_back(h_msg);
+	}
+	msg_to_gui.reference_point_for_command_limits.x = 0.f;
+	msg_to_gui.reference_point_for_command_limits.y = y_coordinate_of_reference_point_for_command_limits;
+	rds_network_ros::Point2D p_msg;
+	for (auto& cp : qolo_cpg.collision_points)
+	{
+		p_msg.x = cp.p.x;
+		p_msg.y = cp.p.y;
+		msg_to_gui.collision_points_on_robot.push_back(p_msg);
+		p_msg.x = (cp.p + cp.p_to_q).x;
+		p_msg.y = (cp.p + cp.p_to_q).y;
+		msg_to_gui.collision_points_on_obstacles.push_back(p_msg);
+	}
+	msg_to_gui.limit_velocity_command_abs_angular_at_zero_linear = hexagon_limits.absolute_angular_at_zero_linear;
+	msg_to_gui.limit_velocity_command_max_linear = hexagon_limits.max_linear;
+	rds_network_ros::Circle c_msg;
+	for (auto& c : qolo_cpg.robot_shape_circles)
+	{
+		c_msg.center.x = c.center.x;
+		c_msg.center.y = c.center.y;
+		c_msg.radius = c.radius;
+		msg_to_gui.robot_shape.push_back(c_msg);
+	}
 	publisher_for_gui.publish(msg_to_gui);
 
 	return true;
