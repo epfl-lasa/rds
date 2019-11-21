@@ -2,6 +2,7 @@
 #include "distance_minimizer.hpp"
 
 #include <cmath>
+#include <iostream>
 
 namespace RDS
 {
@@ -129,7 +130,12 @@ namespace RDS
 		for (auto& h : scaled_shifted_constraints)
 			h.shift(shift).rescale(scaling);
 
-		scaled_shifted_solution = Geometry2D::DistanceMinimizer::IncrementalDistanceMinimization(scaled_shifted_constraints);
+		try {
+			scaled_shifted_solution = Geometry2D::DistanceMinimizer::IncrementalDistanceMinimization(scaled_shifted_constraints);
+		}
+		catch (Geometry2D::DistanceMinimizer::InfeasibilityException e) {
+			std::cout << "Infeasible constraints ..." << std::endl;
+		} 
 
 		reference_point_velocity_solution = scaled_shifted_solution/scaling - shift;
 
