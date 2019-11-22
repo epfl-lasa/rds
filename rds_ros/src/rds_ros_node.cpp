@@ -60,6 +60,7 @@ void QoloCollisionPointGenerator::obstacleMessageCallback(const sensor_msgs::Las
 		float phi = lrf_orientation + lrf_msg->angle_min + i*lrf_msg->angle_increment;
 		Geometry2D::Vec2 center(lrf_location + lrf_msg->ranges[i]*Geometry2D::Vec2(std::cos(phi),
 			std::sin(phi)));
+		//if (lrf_msg->ranges[i] > 1.f)
 		obstacle_circles[i] = AdditionalPrimitives2D::Circle(center, 0.f);
 	}
 }
@@ -88,10 +89,12 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 	float delta = 0.1f;
 	float clearance_from_axle_of_final_reference_point = 0.15f;
 
+	try
+	{
 	RDSWrap rds_wrap(nominal_command,
 		box_limits,
 		hexagon_limits,
-		qolo_cpg.collision_points,
+		qolo_cpg.generateCollisionPoints().collision_points,
 		y_coordinate_of_reference_point_for_command_limits,
 		weight_scaling_of_reference_point_for_command_limits,
 		tau,
@@ -154,6 +157,10 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 	publisher_for_gui.publish(msg_to_gui);
 
 	return true;
+	}
+	catch(...)
+	{}
+	return false;
 }
 
 RDSNode::RDSNode(ros::NodeHandle* n)

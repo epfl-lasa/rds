@@ -1,0 +1,6 @@
+<launch>
+  <include file="$(find velodyne_pointcloud)/launch/VLP16_points.launch"/>
+  <node name="rds_ros" pkg="rds_ros" type="rds_ros_node" />
+  <node name="lidar_to_lrf_node" pkg="rds_ros" type="rds_ros_lidar_to_lrf_node" />
+  <node name="nominal_command_node" pkg="rds_ros" type="rds_ros_nominal_command_node" />
+</launch>
