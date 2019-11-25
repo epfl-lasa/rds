@@ -21,20 +21,37 @@ struct CollisionPointGenerator
 	virtual void obstacleMessageCallback(const T& obstacle_sensor_msg) = 0;
 
 	const CollisionPointGenerator& generateCollisionPoints()
+	/*{
+		collision_points.resize(0);//obstacle_circles.size()*robot_shape_circles.size());
+		//collision_points[j*obstacle_circles.size() + i] = RDS::CollisionPoint(robot_shape_circles[j],
+		//	obstacle_circles[i], obstacle_velocities[i]);
+		for (std::vector<AdditionalPrimitives2D::Circle>::size_type i = 0; i != obstacle_circles.size(); i++)
+		{
+			try
+			{
+				for (std::vector<AdditionalPrimitives2D::Circle>::size_type j = 0; j != robot_shape_circles.size(); j++)
+					RDS::CollisionPoint(robot_shape_circles[j], obstacle_circles[i], obstacle_velocities[i]);
+				// no collision exception occurred, so create the collision points for this obstacle
+				for (std::vector<AdditionalPrimitives2D::Circle>::size_type j = 0; j != robot_shape_circles.size(); j++)
+				{
+					collision_points.push_back(RDS::CollisionPoint(robot_shape_circles[j], obstacle_circles[i], obstacle_velocities[i]));
+				}
+			}
+			catch (RDS::CollisionPoint::CollisionException e)
+			{
+				//std::cout << "Skipping colliding point ..." << std::endl;
+			}
+		}
+		return *this;
+	}*/
 	{
 		collision_points.resize(obstacle_circles.size()*robot_shape_circles.size());
 		for (std::vector<AdditionalPrimitives2D::Circle>::size_type j = 0; j != robot_shape_circles.size(); j++)
 		{
 			for (std::vector<AdditionalPrimitives2D::Circle>::size_type i = 0; i != obstacle_circles.size(); i++)
 			{
-
-				try{
 				collision_points[j*obstacle_circles.size() + i] = RDS::CollisionPoint(robot_shape_circles[j],
 					obstacle_circles[i], obstacle_velocities[i]);
-				}
-				catch (RDS::CollisionPoint::CollisionException e) {
-				  std::cout << "Skipping colliding point ..." << std::endl;
-				}
 			}
 		}
 		return *this;
@@ -91,6 +108,11 @@ struct RDSWrap
 	const std::vector<RDS::PointVelocityConstraint>& getPointVelocityCollisionConstraints() const
 	{
 		return pvcg.getCollisionConstraints();
+	}
+
+	bool isFeasible() const
+	{
+		return rpvo.isFeasible();
 	}
 
 private:

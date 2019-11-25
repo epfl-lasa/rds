@@ -8,12 +8,22 @@
 #include <rds_network_ros/Point2D.h>
 #include <rds_network_ros/Circle.h>
 
+#define _USE_MATH_DEFINES
 #include <cmath>
+
+QoloCollisionPointGenerator::QoloCollisionPointGenerator()
+	: lrf_location(Geometry2D::Vec2(0.f, 0.f))
+	, lrf_orientation(M_PI/2.f)
+	, angle_cutoff_from_forward_direction(2.f*M_PI/3.f)
+	, range_cutoff_lower(0.05f)
+{
+	defineQoloShape();
+}
 
 void QoloCollisionPointGenerator::defineQoloShape()
 {
 	// create a Qolo-like shape using 8 circles
-	float scale = 0.3f*2.f/357.0f*2.f;
+	float scale = 0.3f*2.f/357.0f;//*2.f;
 
 	Geometry2D::Vec2 position;
 	float radius;
@@ -50,18 +60,33 @@ void QoloCollisionPointGenerator::defineQoloShape()
 	robot_shape_circles.push_back(AdditionalPrimitives2D::Circle(position, radius));
 }
 
+float angleToPlus270Minus90(float angle)
+{
+	while (angle < -M_PI/2.f)
+		angle += 2.f*M_PI;
+	while (angle > 3.f*M_PI/2.f)
+		angle -= 2.f*M_PI;
+	return angle;
+}
+
 void QoloCollisionPointGenerator::obstacleMessageCallback(const sensor_msgs::LaserScan::ConstPtr& lrf_msg)
 {
-	obstacle_circles.resize(lrf_msg->ranges.size());
-	obstacle_velocities.resize(lrf_msg->ranges.size());
+	obstacle_circles.resize(0);//lrf_msg->ranges.size());
+	obstacle_velocities.resize(0);//lrf_msg->ranges.size());
 	for (std::vector<float>::size_type i = 0; i != lrf_msg->ranges.size(); i++)
 	{
-		obstacle_velocities[i] = Geometry2D::Vec2(0.f, 0.f);
+		//obstacle_velocities[i] = Geometry2D::Vec2(0.f, 0.f);
 		float phi = lrf_orientation + lrf_msg->angle_min + i*lrf_msg->angle_increment;
 		Geometry2D::Vec2 center(lrf_location + lrf_msg->ranges[i]*Geometry2D::Vec2(std::cos(phi),
 			std::sin(phi)));
 		//if (lrf_msg->ranges[i] > 1.f)
-		obstacle_circles[i] = AdditionalPrimitives2D::Circle(center, 0.f);
+		//obstacle_circles[i] = AdditionalPrimitives2D::Circle(center, 0.f);
+		if ((std::abs(angleToPlus270Minus90(phi - M_PI/2.f)) < angle_cutoff_from_forward_direction) &&
+			(lrf_msg->ranges[i] > range_cutoff_lower))
+		{
+			obstacle_circles.push_back(AdditionalPrimitives2D::Circle(center, 0.f));
+			obstacle_velocities.push_back(Geometry2D::Vec2(0.f, 0.f));
+		}
 	}
 }
 
@@ -89,8 +114,8 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 	float delta = 0.1f;
 	float clearance_from_axle_of_final_reference_point = 0.15f;
 
-	try
-	{
+	//try
+	//{
 	RDSWrap rds_wrap(nominal_command,
 		box_limits,
 		hexagon_limits,
@@ -103,6 +128,7 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 
 	response.corrected_command.linear = rds_wrap.getCommandSolution().linear;
 	response.corrected_command.angular = rds_wrap.getCommandSolution().angular;
+	response.feasible = rds_wrap.isFeasible();
 
 	rds_network_ros::ToGui msg_to_gui;
 	msg_to_gui.nominal_command.linear = nominal_command.linear;
@@ -157,10 +183,10 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 	publisher_for_gui.publish(msg_to_gui);
 
 	return true;
-	}
-	catch(...)
-	{}
-	return false;
+	//}
+	//catch(...)
+	//{}
+	//return false;
 }
 
 RDSNode::RDSNode(ros::NodeHandle* n)
