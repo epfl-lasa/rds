@@ -25,6 +25,7 @@ namespace RDS
 			p = c_p.center + c_p.radius*n_p_to_q;
 			float d = (c_q.center - c_p.center).norm() - c_p.radius - c_q.radius;
 			p_to_q = (d > 0.f) ? n_p_to_q*d : throw CollisionException();
+			//p_to_q = n_p_to_q*d;
 			v_q = c_q_v;
 		}
 
@@ -34,6 +35,7 @@ namespace RDS
 			p = c_p.center + c_p.radius*n_p_to_q;
 			float d = (p_q - c_p.center).norm() - c_p.radius;
 			p_to_q = (d > 0.f) ? n_p_to_q*d : throw CollisionException();
+			//p_to_q = n_p_to_q*d;
 			v_q = c_q_v;
 		}
 

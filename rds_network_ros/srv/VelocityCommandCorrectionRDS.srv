@@ -6,3 +6,4 @@ float32 abs_linear_acceleration_limit
 float32 abs_angular_acceleration_limit
 ---
 VelocityCommand corrected_command
+bool feasible

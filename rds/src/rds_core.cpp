@@ -132,10 +132,12 @@ namespace RDS
 
 		try {
 			scaled_shifted_solution = Geometry2D::DistanceMinimizer::IncrementalDistanceMinimization(scaled_shifted_constraints);
+			feasible = true;
 		}
 		catch (Geometry2D::DistanceMinimizer::InfeasibilityException e) {
-			std::cout << "Infeasible constraints ..." << std::endl;
-		} 
+			//std::cout << "Infeasible constraints ..." << std::endl;
+			feasible = false;
+		}
 
 		reference_point_velocity_solution = scaled_shifted_solution/scaling - shift;
 

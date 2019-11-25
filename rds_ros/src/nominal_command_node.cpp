@@ -53,6 +53,10 @@ int main(int argc, char** argv)
 	{
 		t1 = std::chrono::high_resolution_clock::now();
 		c.call(srv);
+		ROS_INFO("Nominal command [%f,%f], corrected command [%f,%f], feasible=%d",
+			nominal_command.linear, nominal_command.angular,
+			srv.response.corrected_command.linear, srv.response.corrected_command.angular,
+			srv.response.feasible);
 		ros::spinOnce();
 		t2 = std::chrono::high_resolution_clock::now();
 		std::this_thread::sleep_for(command_cycle_time - std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1));

@@ -89,8 +89,8 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 	float delta = 0.1f;
 	float clearance_from_axle_of_final_reference_point = 0.15f;
 
-	try
-	{
+	//try
+	//{
 	RDSWrap rds_wrap(nominal_command,
 		box_limits,
 		hexagon_limits,
@@ -103,6 +103,7 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 
 	response.corrected_command.linear = rds_wrap.getCommandSolution().linear;
 	response.corrected_command.angular = rds_wrap.getCommandSolution().angular;
+	response.feasible = rds_wrap.isFeasible();
 
 	rds_network_ros::ToGui msg_to_gui;
 	msg_to_gui.nominal_command.linear = nominal_command.linear;
@@ -157,10 +158,10 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 	publisher_for_gui.publish(msg_to_gui);
 
 	return true;
-	}
-	catch(...)
-	{}
-	return false;
+	//}
+	//catch(...)
+	//{}
+	//return false;
 }
 
 RDSNode::RDSNode(ros::NodeHandle* n)

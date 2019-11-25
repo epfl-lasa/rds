@@ -96,6 +96,11 @@ namespace RDS
 			return scaled_shifted_constraints;
 		}
 
+		bool isFeasible() const
+		{
+			return feasible;
+		}
+
 		class HexagonLimitsException { };
 
 	private:
@@ -106,6 +111,7 @@ namespace RDS
 		Geometry2D::Vec2 shift;
 		float scaling;
 
+		bool feasible;
 		VelocityCommand command_solution;
 		Geometry2D::Vec2 reference_point_velocity_solution;
 		Geometry2D::Vec2 scaled_shifted_solution;

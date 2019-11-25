@@ -13,7 +13,7 @@ struct QoloCollisionPointGenerator : public CollisionPointGenerator<sensor_msgs:
 {
 	QoloCollisionPointGenerator()
 		: lrf_location(Geometry2D::Vec2(0.f, 0.f))
-		, lrf_orientation(0.f)
+		, lrf_orientation(3.141f/2.f)
 	{
 		defineQoloShape();
 	}
