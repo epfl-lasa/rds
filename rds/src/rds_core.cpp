@@ -117,6 +117,14 @@ namespace RDS
 			constraints.push_back(transformPointAVelocityConstraintToPointB(pvc, rpg.getReferencePoint()));
 		for (auto& pvc : pvcg.getCollisionConstraints())
 			constraints.push_back(transformPointAVelocityConstraintToPointB(pvc, rpg.getReferencePoint()));
+
+		// free the origin
+		for (auto& c : constraints)
+		{
+			float d = c.getOffset();
+			if (d < 0.f)
+				c.shift(-d*c.getNormal());
+		}
 	}
 
 	ReferencePointVelocityOptimization::ReferencePointVelocityOptimization(const VelocityCommand& nominal_command,

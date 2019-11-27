@@ -14,7 +14,7 @@
 QoloCollisionPointGenerator::QoloCollisionPointGenerator()
 	: lrf_location(Geometry2D::Vec2(0.f, 0.f))
 	, lrf_orientation(M_PI/2.f)
-	, angle_cutoff_from_forward_direction(2.f*M_PI/3.f)
+	, angle_cutoff_from_forward_direction(3.f*M_PI/4.f)
 	, range_cutoff_lower(0.05f)
 {
 	defineQoloShape();
