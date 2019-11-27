@@ -39,8 +39,8 @@ void LidarToLRFNode::velodyneMessageCallback(const velodyne_msgs::VelodyneScan::
 	lrf_scan.ranges = std::vector<float>(lrf_number_of_bins, 100000.f);
 	for (auto& p : point_cloud.points)
 	{
-		//if (p.z > -lidar_mount_height)
-		if ((p.z > -0.04f) && (p.z < 0.04f))
+		if (p.z > -lidar_mount_height)
+		//if ((p.z > -0.04f) && (p.z < 0.04f))
 		{
 			float phi = std::atan2(p.y, p.x);
 			float r = std::sqrt(p.x*p.x + p.y*p.y);

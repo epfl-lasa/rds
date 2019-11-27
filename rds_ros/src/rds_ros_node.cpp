@@ -24,8 +24,8 @@ QoloCollisionPointGenerator::QoloCollisionPointGenerator()
 void QoloCollisionPointGenerator::defineQoloShape()
 {
 	// create a shape containing the two LIDAR blind zones (it contains Qolo as well)
-	robot_shape_circles.push_back(AdditionalPrimitives2D::Circle(front_lrf_location, 0.5f));
-	robot_shape_circles.push_back(AdditionalPrimitives2D::Circle(rear_lrf_location, 0.5f));
+	robot_shape_circles.push_back(AdditionalPrimitives2D::Circle(front_lrf_location, 0.4f));
+	robot_shape_circles.push_back(AdditionalPrimitives2D::Circle(rear_lrf_location, 0.3f));
 	return;
 
 	// create a Qolo-like shape using 8 circles
@@ -75,7 +75,7 @@ float angleToPlus270Minus90(float angle)
 	return angle;
 }
 
-void QoloCollisionPointGenerator::frontLRFMessageCallback(const sensor_msgs::LaserScan::ConstPtr& lrf_msg)
+void QoloCollisionPointGenerator::obstacleMessageCallback(const sensor_msgs::LaserScan::ConstPtr& lrf_msg)
 {
 	obstacle_circles.resize(0);//lrf_msg->ranges.size());
 	obstacle_velocities.resize(0);//lrf_msg->ranges.size());
@@ -117,7 +117,7 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 	float y_coordinate_of_reference_point_for_command_limits = 0.5f;
 	float weight_scaling_of_reference_point_for_command_limits = 1.f;
 	float tau = 2.f;
-	float delta = 0.1f;
+	float delta = 0.05f;
 	float clearance_from_axle_of_final_reference_point = 0.15f;
 
 	//try
@@ -198,7 +198,7 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 RDSNode::RDSNode(ros::NodeHandle* n)
 	: qolo_cpg()
 	, laserscan_subscriber(n->subscribe<sensor_msgs::LaserScan>("laserscan", 1,
-		&QoloCollisionPointGenerator::frontLRFMessageCallback, &qolo_cpg))
+		&QoloCollisionPointGenerator::obstacleMessageCallback, &qolo_cpg))
 	, publisher_for_gui(n->advertise<rds_network_ros::ToGui>("rds_to_gui", 1)) 
 	, command_correction_server(n->advertiseService("rds_velocity_command_correction",
 		&RDSNode::commandCorrectionService, this))

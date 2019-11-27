@@ -45,8 +45,13 @@ namespace RDS
 		{
 			//return Geometry2D::HalfPlane2(p_to_q, 1.f).rescale(1.f/tau*(p_to_q.norm() - delta) + 
 			//	v_q.dot(p_to_q.normalized()));
-			return Geometry2D::HalfPlane2(p_to_q, 1.f).rescale(1.f/tau*(std::sqrt(p_to_q.norm() + 0.00001f) - delta) + 
-				v_q.dot(p_to_q.normalized()));
+			if (p_to_q.norm() > delta)
+			{
+				return Geometry2D::HalfPlane2(p_to_q, 1.f).rescale(1.f/tau*(std::sqrt(p_to_q.norm() - delta)) + 
+								v_q.dot(p_to_q.normalized()));
+			}
+			
+			return Geometry2D::HalfPlane2(p_to_q, 1.f).rescale(v_q.dot(p_to_q.normalized()));
 		}
 
 		class CollisionException { };

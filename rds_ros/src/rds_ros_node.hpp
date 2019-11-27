@@ -13,7 +13,7 @@ struct QoloCollisionPointGenerator : public CollisionPointGenerator<sensor_msgs:
 {
 	QoloCollisionPointGenerator();
 
-	void frontLRFMessageCallback(const sensor_msgs::LaserScan::ConstPtr& obstacle_sensor_msg);
+	void obstacleMessageCallback(const sensor_msgs::LaserScan::ConstPtr& obstacle_sensor_msg);
 	//void frontLRFMessageCallback(const sensor_msgs::LaserScan::ConstPtr& obstacle_sensor_msg);
 
 	Geometry2D::Vec2 front_lrf_location;
