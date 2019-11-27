@@ -12,16 +12,22 @@
 #include <cmath>
 
 QoloCollisionPointGenerator::QoloCollisionPointGenerator()
-	: lrf_location(Geometry2D::Vec2(0.f, 0.f))
-	, lrf_orientation(M_PI/2.f)
-	, angle_cutoff_from_forward_direction(3.f*M_PI/4.f)
-	, range_cutoff_lower(0.05f)
+	: front_lrf_location(Geometry2D::Vec2(0.f, 0.056f))
+	, front_lrf_orientation(M_PI/2.f)
+	, front_angle_cutoff_from_forward_direction(3.f*M_PI/4.f)
+	, front_range_cutoff_lower(0.05f)
+	, rear_lrf_location(0.f, -0.517)
 {
 	defineQoloShape();
 }
 
 void QoloCollisionPointGenerator::defineQoloShape()
 {
+	// create a shape containing the two LIDAR blind zones (it contains Qolo as well)
+	robot_shape_circles.push_back(AdditionalPrimitives2D::Circle(front_lrf_location, 0.5f));
+	robot_shape_circles.push_back(AdditionalPrimitives2D::Circle(rear_lrf_location, 0.5f));
+	return;
+
 	// create a Qolo-like shape using 8 circles
 	float scale = 0.3f*2.f/357.0f;//*2.f;
 
@@ -69,20 +75,20 @@ float angleToPlus270Minus90(float angle)
 	return angle;
 }
 
-void QoloCollisionPointGenerator::obstacleMessageCallback(const sensor_msgs::LaserScan::ConstPtr& lrf_msg)
+void QoloCollisionPointGenerator::frontLRFMessageCallback(const sensor_msgs::LaserScan::ConstPtr& lrf_msg)
 {
 	obstacle_circles.resize(0);//lrf_msg->ranges.size());
 	obstacle_velocities.resize(0);//lrf_msg->ranges.size());
 	for (std::vector<float>::size_type i = 0; i != lrf_msg->ranges.size(); i++)
 	{
 		//obstacle_velocities[i] = Geometry2D::Vec2(0.f, 0.f);
-		float phi = lrf_orientation + lrf_msg->angle_min + i*lrf_msg->angle_increment;
-		Geometry2D::Vec2 center(lrf_location + lrf_msg->ranges[i]*Geometry2D::Vec2(std::cos(phi),
+		float phi = front_lrf_orientation + lrf_msg->angle_min + i*lrf_msg->angle_increment;
+		Geometry2D::Vec2 center(front_lrf_location + lrf_msg->ranges[i]*Geometry2D::Vec2(std::cos(phi),
 			std::sin(phi)));
 		//if (lrf_msg->ranges[i] > 1.f)
 		//obstacle_circles[i] = AdditionalPrimitives2D::Circle(center, 0.f);
-		if ((std::abs(angleToPlus270Minus90(phi - M_PI/2.f)) < angle_cutoff_from_forward_direction) &&
-			(lrf_msg->ranges[i] > range_cutoff_lower))
+		if ((std::abs(angleToPlus270Minus90(phi - M_PI/2.f)) < front_angle_cutoff_from_forward_direction) &&
+			(lrf_msg->ranges[i] > front_range_cutoff_lower))
 		{
 			obstacle_circles.push_back(AdditionalPrimitives2D::Circle(center, 0.f));
 			obstacle_velocities.push_back(Geometry2D::Vec2(0.f, 0.f));
@@ -192,7 +198,7 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 RDSNode::RDSNode(ros::NodeHandle* n)
 	: qolo_cpg()
 	, laserscan_subscriber(n->subscribe<sensor_msgs::LaserScan>("laserscan", 1,
-		&QoloCollisionPointGenerator::obstacleMessageCallback, &qolo_cpg))
+		&QoloCollisionPointGenerator::frontLRFMessageCallback, &qolo_cpg))
 	, publisher_for_gui(n->advertise<rds_network_ros::ToGui>("rds_to_gui", 1)) 
 	, command_correction_server(n->advertiseService("rds_velocity_command_correction",
 		&RDSNode::commandCorrectionService, this))

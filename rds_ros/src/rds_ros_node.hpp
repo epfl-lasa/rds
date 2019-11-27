@@ -13,12 +13,18 @@ struct QoloCollisionPointGenerator : public CollisionPointGenerator<sensor_msgs:
 {
 	QoloCollisionPointGenerator();
 
-	void obstacleMessageCallback(const sensor_msgs::LaserScan::ConstPtr& obstacle_sensor_msg);
+	void frontLRFMessageCallback(const sensor_msgs::LaserScan::ConstPtr& obstacle_sensor_msg);
+	//void frontLRFMessageCallback(const sensor_msgs::LaserScan::ConstPtr& obstacle_sensor_msg);
 
-	Geometry2D::Vec2 lrf_location;
-	float lrf_orientation;
-	float angle_cutoff_from_forward_direction;
-	float range_cutoff_lower;
+	Geometry2D::Vec2 front_lrf_location;
+	float front_lrf_orientation;
+	float front_angle_cutoff_from_forward_direction;
+	float front_range_cutoff_lower;
+
+	Geometry2D::Vec2 rear_lrf_location;
+	//float rear_lrf_orientation;
+	//float rear_angle_cutoff_from_forward_direction;
+	//float rear_range_cutoff_lower;
 
 private:
 	void defineQoloShape();
