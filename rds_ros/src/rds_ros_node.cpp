@@ -194,7 +194,7 @@ RDSNode::RDSNode(ros::NodeHandle* n)
 	, laserscan_subscriber(n->subscribe<sensor_msgs::LaserScan>("laserscan", 1,
 		&QoloCollisionPointGenerator::obstacleMessageCallback, &qolo_cpg))
 	, publisher_for_gui(n->advertise<rds_network_ros::ToGui>("rds_to_gui", 1)) 
-	, command_correction_server(n->advertiseService("velocity_command_correction_rds",
+	, command_correction_server(n->advertiseService("rds_velocity_command_correction",
 		&RDSNode::commandCorrectionService, this))
 {
 	ros::spin();
