@@ -48,7 +48,7 @@ private:
 		Pixel(int i, int j);
 		int i, j;
 	};
-	Pixel pointToPixel(const Geometry2D::Vec2& point);
+	Pixel pointToPixel(const Geometry2D::Vec2& point) const;
 	Pixel unitVectorToPixelDirection(const Geometry2D::Vec2& unit_vector);
 	struct BoundingBox
 	{
@@ -56,7 +56,7 @@ private:
 		Pixel upper_bounds;
 	};
 	BoundingBox circleToBoundingBox(const Geometry2D::Vec2& center, float radius);
-	Geometry2D::Vec2 pixelToPoint(const Pixel& p);
+	Geometry2D::Vec2 pixelToPoint(const Pixel& p) const;
 
 	void renderCircle(const Geometry2D::Vec2& center, float r_outer, float r_inner);
 	void renderHalfPlanes(const std::vector<Geometry2D::HalfPlane2>& half_planes);
@@ -74,6 +74,23 @@ private:
 	static bool sdlIsInitialized;
 
 	const int sdlWindowCreationNumber;
+
+	class HalfPlaneRenderer
+	{
+	public:
+		HalfPlaneRenderer(const Window& win,
+			const std::vector<Geometry2D::HalfPlane2>& halfplanes);
+		~HalfPlaneRenderer();
+		void render(SDL_Renderer* renderer);
+	private:
+		Geometry2D::Vec2 lower_left_corner_bounding_box;
+		Geometry2D::Vec2 upper_left_corner_bounding_box;
+		Geometry2D::Vec2 lower_right_corner_bounding_box;
+		Geometry2D::Vec2 upper_right_corner_bounding_box;
+		std::vector<Geometry2D::Vec2> feasible_points;
+		SDL_Point* infeasible_points;
+		int count_infeasible;
+	};
 };
 
 #endif

@@ -173,7 +173,7 @@ Window::Pixel::Pixel() : i(0), j(0) {}
 		
 Window::Pixel::Pixel(int i, int j) : i(i), j(j) {}
 
-Window::Pixel Window::pointToPixel(const Geometry2D::Vec2& point)
+Window::Pixel Window::pointToPixel(const Geometry2D::Vec2& point) const
 {
 	Pixel p;
 	p.i = point.x*pixelsPerDistanceUnit + screenSizeInPixels/2;
@@ -203,7 +203,7 @@ Window::BoundingBox Window::circleToBoundingBox(const Geometry2D::Vec2& center, 
 	return bb;
 }
 
-Geometry2D::Vec2 Window::pixelToPoint(const Pixel& p)
+Geometry2D::Vec2 Window::pixelToPoint(const Pixel& p) const
 {
 	return Geometry2D::Vec2((p.i - screenSizeInPixels/2 + 0.5)/pixelsPerDistanceUnit,
 		-(p.j - screenSizeInPixels/2 + 0.5)/pixelsPerDistanceUnit);
@@ -235,6 +235,7 @@ void Window::renderHalfPlanes(const std::vector<Geometry2D::HalfPlane2>& half_pl
 {
 	// for convenience
 	SDL_Renderer* renderer = allSdlPointers[sdlWindowCreationNumber].renderer;
+
 	// render the complementary half-planes, in grey
 	SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
 	Geometry2D::Vec2 point;
@@ -253,6 +254,8 @@ void Window::renderHalfPlanes(const std::vector<Geometry2D::HalfPlane2>& half_pl
 			}
 		}	
 	}
+	//HalfPlaneRenderer(*this, half_planes).render(renderer);
+
 	// render boundary lines shifted outwards (into the "infeasible" space), in red
 	SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
 	for (int i = 0; i < half_planes.size(); i++)
@@ -301,4 +304,83 @@ void Window::renderArrows(const std::vector<AdditionalPrimitives2D::Arrow>& arro
 		}
 		renderCircle(arrows[i].head, 0.005*screenSizeInDistanceUnits, 0.0);
 	}
+}
+
+Window::HalfPlaneRenderer::HalfPlaneRenderer(const Window& win,
+	const std::vector<Geometry2D::HalfPlane2>& halfplanes)
+	: lower_left_corner_bounding_box(-win.screenSizeInDistanceUnits-1.f, -win.screenSizeInDistanceUnits-1.f)
+	, upper_left_corner_bounding_box(-win.screenSizeInDistanceUnits-1.f, win.screenSizeInDistanceUnits+1.f)
+	, lower_right_corner_bounding_box(win.screenSizeInDistanceUnits+1.f, -win.screenSizeInDistanceUnits-1.f)
+	, upper_right_corner_bounding_box(win.screenSizeInDistanceUnits+1.f, win.screenSizeInDistanceUnits+1.f)
+	, infeasible_points(new SDL_Point[win.screenSizeInPixels*win.screenSizeInPixels])
+	, count_infeasible(0)
+{
+	feasible_points.resize(win.screenSizeInPixels*win.screenSizeInPixels);
+	for (int i = 0; i < win.screenSizeInPixels; i++)
+	{
+		for (int j = 0; j < win.screenSizeInPixels; j++)
+		{
+			feasible_points[i*win.screenSizeInPixels + j] = win.pixelToPoint(Pixel(i,j));
+		}
+	}
+
+	for (auto& h : halfplanes)
+	{
+		if ((h.signedDistance(lower_left_corner_bounding_box) < 0.f) &&
+			(h.signedDistance(upper_left_corner_bounding_box) < 0.f) &&
+			(h.signedDistance(lower_right_corner_bounding_box) < 0.f) &&
+			(h.signedDistance(upper_right_corner_bounding_box) < 0.f))
+			continue;
+
+		lower_left_corner_bounding_box = Geometry2D::Vec2(win.screenSizeInDistanceUnits+1.f, win.screenSizeInDistanceUnits+1.f);
+		upper_left_corner_bounding_box = Geometry2D::Vec2(win.screenSizeInDistanceUnits+1.f, -win.screenSizeInDistanceUnits-1.f);
+		lower_right_corner_bounding_box = Geometry2D::Vec2(-win.screenSizeInDistanceUnits-1.f, win.screenSizeInDistanceUnits+1.f);
+		upper_right_corner_bounding_box = Geometry2D::Vec2(-win.screenSizeInDistanceUnits-1.f, -win.screenSizeInDistanceUnits-1.f);
+
+		std::vector<Geometry2D::Vec2>::iterator it = feasible_points.begin();
+		while (it != feasible_points.end())
+		{
+			if (h.signedDistance(*it) > 0.f)
+			{
+				infeasible_points[count_infeasible].x = win.pointToPixel(*it).i;
+				infeasible_points[count_infeasible].y = win.pointToPixel(*it).j;
+				count_infeasible++;
+				it = feasible_points.erase(it);
+			}
+			else
+			{
+				if (it->x < lower_left_corner_bounding_box.x)
+				{
+					lower_left_corner_bounding_box.x = it->x;
+					upper_left_corner_bounding_box.x = it->x;
+				}
+				if (it->x > lower_right_corner_bounding_box.x)
+				{
+					lower_right_corner_bounding_box.x = it->x;
+					upper_right_corner_bounding_box.x = it->x;
+				}
+				if (it->y < lower_left_corner_bounding_box.y)
+				{
+					lower_left_corner_bounding_box.y = it->y;
+					lower_right_corner_bounding_box.y = it->y;
+				}
+				if (it->y > lower_right_corner_bounding_box.y)
+				{
+					upper_left_corner_bounding_box.y = it->y;
+					upper_right_corner_bounding_box.y = it->y;
+				}
+				it++;
+			}
+		}
+	}
+}
+
+Window::HalfPlaneRenderer::~HalfPlaneRenderer()
+{
+	delete[] infeasible_points;
+}
+
+void Window::HalfPlaneRenderer::render(SDL_Renderer* renderer)
+{
+	SDL_RenderDrawPoints(renderer, infeasible_points, count_infeasible);
 }
