@@ -75,6 +75,7 @@ private:
 
 	const int sdlWindowCreationNumber;
 
+	/*
 	class HalfPlaneRenderer
 	{
 	public:
@@ -83,14 +84,30 @@ private:
 		~HalfPlaneRenderer();
 		void render(SDL_Renderer* renderer);
 	private:
+		struct BinaryPoint
+		{
+			Geometry2D::Vec2 point;
+			bool feasible;
+		};
 		Geometry2D::Vec2 lower_left_corner_bounding_box;
 		Geometry2D::Vec2 upper_left_corner_bounding_box;
 		Geometry2D::Vec2 lower_right_corner_bounding_box;
 		Geometry2D::Vec2 upper_right_corner_bounding_box;
-		std::vector<Geometry2D::Vec2> feasible_points;
+		std::vector<BinaryPoint> binary_points;
 		SDL_Point* infeasible_points;
 		int count_infeasible;
+	};*/
+
+	struct HalfPlaneRenderer
+	{
+		HalfPlaneRenderer(const Window& win);
+		~HalfPlaneRenderer();
+		void render(SDL_Renderer* renderer, const std::vector<Geometry2D::HalfPlane2>& half_planes);
+		const Window& win;
+		SDL_Point* infeasible_points;
 	};
+
+	HalfPlaneRenderer half_plane_renderer;
 };
 
 #endif
