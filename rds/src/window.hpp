@@ -108,6 +108,26 @@ private:
 	};
 
 	HalfPlaneRenderer half_plane_renderer;
+
+	/*struct HierarchicalHalfplaneRenderer
+	{
+		HalfPlaneRenderer(const Window& win);
+		~HalfPlaneRenderer();
+		void render(SDL_Renderer* renderer, const std::vector<Geometry2D::HalfPlane2>& half_planes);
+		const Window& win;
+		SDL_Point* infeasible_points;
+
+		struct AABB
+		{
+			Geometry2D::Vec2 lower_left_corner;
+			Geometry2D::Vec2 upper_left_corner;
+			Geometry2D::Vec2 lower_right_corner;
+			Geometry2D::Vec2 upper_right_corner;
+		};
+	private:
+		int feasibility(const Geometry2D::Vec2& point, const Geometry2D::HalfPlane2& h);
+		int feasibility(const AABB& box, const Geometry2D::HalfPlane2& h);
+	};*/
 };
 
 #endif
