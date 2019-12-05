@@ -36,6 +36,8 @@ public:
 	const float pixelsPerDistanceUnit;
 	const float frameRateInHz;
 
+	bool render_feasible_region;
+
 private:
 	// call it once before rendering to a new frame,
 	// returns true if the sdl window has been closed
@@ -75,6 +77,8 @@ private:
 
 	const int sdlWindowCreationNumber;
 
+	float halfplanes_areas_time, halfplanes_borders_time, points_time, circles_time, arrows_time;
+	long long n_frames;
 	/*
 	class HalfPlaneRenderer
 	{
@@ -105,6 +109,19 @@ private:
 		void render(SDL_Renderer* renderer, const std::vector<Geometry2D::HalfPlane2>& half_planes);
 		const Window& win;
 		SDL_Point* infeasible_points;
+		int count_infeasible;
+		SDL_Point* close_to_infeasible_points;
+		int count_close_to_infeasible;
+		float closeness_threshold;
+
+		void divideAndConquerRendering(SDL_Renderer* renderer, const std::vector<Geometry2D::HalfPlane2>& half_planes);
+	private:
+		void subdivideAndRender(SDL_Renderer* renderer, const std::vector<Geometry2D::HalfPlane2>& half_planes,
+			int n_sub_divide, float lower_x, float upper_x, float lower_y, float upper_y);
+		int pointFeasibility(const Geometry2D::Vec2& point, const std::vector<Geometry2D::HalfPlane2>& half_planes);
+		int boxFeasibility(float lower_x, float upper_x, float lower_y, float upper_y, const std::vector<Geometry2D::HalfPlane2>& half_planes);
+		void renderBox(SDL_Renderer* renderer, bool feasible, float lower_x, float upper_x, float lower_y, float upper_y);
+		void createPixelRectangle(float lower_x, float upper_x, float lower_y, float upper_y, SDL_Rect* rectangle);
 	};
 
 	HalfPlaneRenderer half_plane_renderer;

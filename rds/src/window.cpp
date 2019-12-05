@@ -3,6 +3,8 @@
 #include <iostream>
 #include <cmath>
 
+#include <chrono>
+
 std::vector<Window::SDLPointers> Window::allSdlPointers = std::vector<SDLPointers>(0);
 bool Window::sdlIsInitialized = false;
 
@@ -14,7 +16,14 @@ Window::Window(const char* name, float screen_size_in_distance_units,
 	pixelsPerDistanceUnit(screen_size_in_pixels/screen_size_in_distance_units),
 	sdlWindowCreationNumber(allSdlPointers.size()),
 	frameRateInHz(frame_rate_in_Hz),
-	half_plane_renderer(*this)
+	half_plane_renderer(*this),
+	halfplanes_areas_time(0.f),
+	halfplanes_borders_time(0.f),
+	points_time(0.f),
+	circles_time(0.f),
+	arrows_time(0.f),
+	n_frames(0),
+	render_feasible_region(false)
 {
 	SDLPointers sdl_pointers;
 	sdl_pointers.window = 0;
@@ -63,6 +72,13 @@ Window::~Window()
 		sdlIsInitialized = false;
 		SDL_Quit();
 	}
+
+	std::cout << "N_frames " << n_frames << std::endl;
+	std::cout << "halfplanes_areas_time " << halfplanes_areas_time << std::endl;
+	std::cout << "halfplanes_borders_time " << halfplanes_borders_time << std::endl;
+	std::cout << "points_time " << points_time << std::endl;
+	std::cout << "circles_time " << circles_time << std::endl;
+	std::cout << "arrows_time " << arrows_time << std::endl;
 }
 
 void Window::killSdlWindow(int window_creation_number)
@@ -126,6 +142,7 @@ bool Window::render(const std::vector<Geometry2D::HalfPlane2>* half_planes_ptr,
 		const std::vector<AdditionalPrimitives2D::Arrow>* arrows_ptr,
 		const std::vector<Window::sdlColor>& arrows_colors)
 {
+	n_frames++;
 	if (sdlCheck())
 		return true;
 	// for convenience
@@ -137,6 +154,8 @@ bool Window::render(const std::vector<Geometry2D::HalfPlane2>* half_planes_ptr,
 	if (half_planes_ptr)
 		renderHalfPlanes(*half_planes_ptr);
 	// for points
+	std::chrono::high_resolution_clock::time_point t1, t2;
+	t1 = std::chrono::high_resolution_clock::now();
 	float radius = 0.005*screenSizeInDistanceUnits;
 	if (points_ptr)
 	{
@@ -153,7 +172,11 @@ bool Window::render(const std::vector<Geometry2D::HalfPlane2>* half_planes_ptr,
 			renderCircle(points[i], radius, 0.0);
 		}
 	}
+	t2 = std::chrono::high_resolution_clock::now();
+	points_time = points_time*(n_frames-1)/n_frames +
+		(std::chrono::duration_cast<std::chrono::duration<float> >(t2 - t1)).count()/n_frames;
 	// for circles
+	t1 = std::chrono::high_resolution_clock::now();
 	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 	float thickness = 0.0025*screenSizeInDistanceUnits;
 	if (circles_ptr)
@@ -162,9 +185,16 @@ bool Window::render(const std::vector<Geometry2D::HalfPlane2>* half_planes_ptr,
 		for (int i = 0; i < circles.size(); i++)
 			renderCircle(circles[i].center, circles[i].radius, circles[i].radius - thickness);
 	}
+	t2 = std::chrono::high_resolution_clock::now();
+	circles_time = circles_time*(n_frames-1)/n_frames +
+		(std::chrono::duration_cast<std::chrono::duration<float> >(t2 - t1)).count()/n_frames;
 	// for arrows
+	t1 = std::chrono::high_resolution_clock::now();
 	if (arrows_ptr)
 		renderArrows(*arrows_ptr, arrows_colors);
+	t2 = std::chrono::high_resolution_clock::now();
+	arrows_time = arrows_time*(n_frames-1)/n_frames +
+		(std::chrono::duration_cast<std::chrono::duration<float> >(t2 - t1)).count()/n_frames;
 	// bring it to the screen
 	SDL_RenderPresent(renderer);
 	return false;
@@ -236,9 +266,11 @@ void Window::renderHalfPlanes(const std::vector<Geometry2D::HalfPlane2>& half_pl
 {
 	// for convenience
 	SDL_Renderer* renderer = allSdlPointers[sdlWindowCreationNumber].renderer;
-
+	
+	std::chrono::high_resolution_clock::time_point t1, t2;
+	t1 = std::chrono::high_resolution_clock::now();
 	// render the complementary half-planes, in grey
-	SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
+	//SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
 	/*Geometry2D::Vec2 point;
 	for (int i = 0; i < screenSizeInPixels; i++)
 	{
@@ -255,9 +287,14 @@ void Window::renderHalfPlanes(const std::vector<Geometry2D::HalfPlane2>& half_pl
 			}
 		}	
 	}*/
-	half_plane_renderer.render(renderer, half_planes);
-
+	//half_plane_renderer.render(renderer, half_planes);
+	if (render_feasible_region)
+		half_plane_renderer.divideAndConquerRendering(renderer, half_planes);
+	t2 = std::chrono::high_resolution_clock::now();
+	halfplanes_areas_time = halfplanes_areas_time*(n_frames-1)/n_frames +
+		(std::chrono::duration_cast<std::chrono::duration<float> >(t2 - t1)).count()/n_frames;
 	// render boundary lines shifted outwards (into the "infeasible" space), in red
+	t1 = std::chrono::high_resolution_clock::now();
 	SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
 	for (int i = 0; i < half_planes.size(); i++)
 		renderBoundaryLine(half_planes[i], 2);
@@ -265,6 +302,9 @@ void Window::renderHalfPlanes(const std::vector<Geometry2D::HalfPlane2>& half_pl
 	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 	for (int i = 0; i < half_planes.size(); i++)
 		renderBoundaryLine(half_planes[i]);
+	t2 = std::chrono::high_resolution_clock::now();
+	halfplanes_borders_time = halfplanes_borders_time*(n_frames-1)/n_frames +
+		(std::chrono::duration_cast<std::chrono::duration<float> >(t2 - t1)).count()/n_frames;
 }
 
 void Window::renderBoundaryLine(const Geometry2D::HalfPlane2& half_plane, int pixel_shift)
@@ -300,10 +340,13 @@ void Window::renderArrows(const std::vector<AdditionalPrimitives2D::Arrow>& arro
 			Pixel head(pointToPixel(arrows[i].head));
 			Pixel tail(pointToPixel(arrows[i].tail));
 			SDL_RenderDrawLine(renderer, tail.i, tail.j, head.i, head.j);
-			SDL_RenderDrawLine(renderer, tail.i, tail.j, head.i+shift_vector.i, head.j+shift_vector.j);
-			SDL_RenderDrawLine(renderer, tail.i, tail.j, head.i-shift_vector.i, head.j-shift_vector.j);
+			for (int k = 0; k < int(0.006*screenSizeInPixels); k++)
+			{
+				SDL_RenderDrawLine(renderer, tail.i, tail.j, head.i+(k+1)*shift_vector.i, head.j+(k+1)*shift_vector.j);
+				SDL_RenderDrawLine(renderer, tail.i, tail.j, head.i-(k+1)*shift_vector.i, head.j-(k+1)*shift_vector.j);
+			}
 		}
-		renderCircle(arrows[i].head, 0.005*screenSizeInDistanceUnits, 0.0);
+		renderCircle(arrows[i].head, 0.009*screenSizeInDistanceUnits, 0.0);
 	}
 }
 
@@ -379,7 +422,11 @@ Window::HalfPlaneRenderer::HalfPlaneRenderer(const Window& win,
 
 Window::HalfPlaneRenderer::HalfPlaneRenderer(const Window& win)
 	: win(win)
-	, infeasible_points(new SDL_Point[win.screenSizeInPixels*win.screenSizeInPixels])
+	, infeasible_points(new SDL_Point[win.screenSizeInPixels*win.screenSizeInPixels*2])
+	, close_to_infeasible_points(new SDL_Point[win.screenSizeInPixels*win.screenSizeInPixels*2])
+	, count_infeasible(0)
+	, count_close_to_infeasible(0)
+	, closeness_threshold(-0.002*win.screenSizeInDistanceUnits)
 { }
 
 Window::HalfPlaneRenderer::~HalfPlaneRenderer()
@@ -389,7 +436,7 @@ Window::HalfPlaneRenderer::~HalfPlaneRenderer()
 
 void Window::HalfPlaneRenderer::render(SDL_Renderer* renderer, const std::vector<Geometry2D::HalfPlane2>& half_planes)
 {
-	int count_infeasible = 0;
+	count_infeasible = 0;
 	for (int i = 0; i < win.screenSizeInPixels; i++)
 	{
 		for (int j = 0; j < win.screenSizeInPixels; j++)
@@ -407,4 +454,161 @@ void Window::HalfPlaneRenderer::render(SDL_Renderer* renderer, const std::vector
 		}	
 	}
 	SDL_RenderDrawPoints(renderer, infeasible_points, count_infeasible);
+}
+
+void Window::HalfPlaneRenderer::divideAndConquerRendering(SDL_Renderer* renderer,
+	const std::vector<Geometry2D::HalfPlane2>& half_planes)
+{
+	count_infeasible = 0;
+	count_close_to_infeasible = 0;
+	subdivideAndRender(renderer, half_planes, 8,
+		-win.screenSizeInDistanceUnits/2.f, win.screenSizeInDistanceUnits/2.f,
+		-win.screenSizeInDistanceUnits/2.f, win.screenSizeInDistanceUnits/2.f);
+
+	SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
+	SDL_RenderDrawPoints(renderer, infeasible_points, count_infeasible);
+	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+	SDL_RenderDrawPoints(renderer, close_to_infeasible_points, count_close_to_infeasible);
+}
+
+void Window::HalfPlaneRenderer::subdivideAndRender(SDL_Renderer* renderer,
+	const std::vector<Geometry2D::HalfPlane2>& half_planes,
+	int n_sub_divide, float lower_x, float upper_x, float lower_y, float upper_y)
+{
+	int result = boxFeasibility(lower_x, upper_x, lower_y, upper_y, half_planes);
+	if (result == 1)
+		renderBox(renderer, true, lower_x, upper_x, lower_y, upper_y);
+	else if (result == -1)
+		renderBox(renderer, false, lower_x, upper_x, lower_y, upper_y);
+	else if (n_sub_divide > 0)
+	{
+		subdivideAndRender(renderer, half_planes, n_sub_divide -1,
+			lower_x, (lower_x + upper_x)/2.f, lower_y, (lower_y + upper_y)/2.f);
+		subdivideAndRender(renderer, half_planes, n_sub_divide -1,
+			(lower_x + upper_x)/2.f, upper_x, lower_y, (lower_y + upper_y)/2.f);
+		subdivideAndRender(renderer, half_planes, n_sub_divide -1,
+			lower_x, (lower_x + upper_x)/2.f, (lower_y + upper_y)/2.f, upper_y);
+		subdivideAndRender(renderer, half_planes, n_sub_divide -1,
+			(lower_x + upper_x)/2.f, upper_x, (lower_y + upper_y)/2.f, upper_y);
+	}
+	else
+	{
+		SDL_Rect rect;
+		createPixelRectangle(lower_x, upper_x, lower_y, upper_y, &rect);
+		for (int i = rect.x; i <= rect.x + rect.w; i++)
+		{
+			for (int j = rect.y; j <= rect.y + rect.h; j++)
+			{
+				int point_feasibility = pointFeasibility(win.pixelToPoint(Pixel(i, j)), half_planes);
+				if (point_feasibility == -1)
+				{
+					infeasible_points[count_infeasible].x = i;
+					infeasible_points[count_infeasible].y = j;
+					count_infeasible++;
+				}
+				else if (point_feasibility == 0)
+				{
+					close_to_infeasible_points[count_close_to_infeasible].x = i;
+					close_to_infeasible_points[count_close_to_infeasible].y = j;
+					count_close_to_infeasible++;
+				}
+			}
+		}
+	}
+}
+
+int Window::HalfPlaneRenderer::pointFeasibility(const Geometry2D::Vec2& point,
+	const std::vector<Geometry2D::HalfPlane2>& half_planes)
+{
+	float closeness = -10.f*win.screenSizeInDistanceUnits;
+	for (int k = 0; k < half_planes.size(); k++)
+	{
+		if (half_planes[k].signedDistance(point) > 0.0)
+			return -1;
+		else if (half_planes[k].signedDistance(point) > closeness)
+			closeness = half_planes[k].signedDistance(point);
+	}
+	if (closeness > closeness_threshold)
+		return 0;
+	return 1;
+}
+
+int Window::HalfPlaneRenderer::boxFeasibility(float lower_x, float upper_x, float lower_y, float upper_y,
+	const std::vector<Geometry2D::HalfPlane2>& half_planes)
+{
+	Geometry2D::Vec2 p_lower_x_lower_y(lower_x, lower_y);
+	Geometry2D::Vec2 p_upper_x_lower_y(upper_x, lower_y);
+	Geometry2D::Vec2 p_lower_x_upper_y(lower_x, upper_y);
+	Geometry2D::Vec2 p_upper_x_upper_y(upper_x, upper_y);
+	bool found_infeasible_or_close_to_infeasible_point = false;
+	for (int k = 0; k < half_planes.size(); k++)
+	{
+		if ((half_planes[k].signedDistance(p_lower_x_lower_y) > closeness_threshold) ||
+			(half_planes[k].signedDistance(p_upper_x_lower_y) > closeness_threshold) ||
+			(half_planes[k].signedDistance(p_lower_x_upper_y) > closeness_threshold) ||
+			(half_planes[k].signedDistance(p_upper_x_upper_y) > closeness_threshold))
+			found_infeasible_or_close_to_infeasible_point = true;
+		if ((half_planes[k].signedDistance(p_lower_x_lower_y) > 0.0) &&
+			(half_planes[k].signedDistance(p_upper_x_lower_y) > 0.0) &&
+			(half_planes[k].signedDistance(p_lower_x_upper_y) > 0.0) &&
+			(half_planes[k].signedDistance(p_upper_x_upper_y) > 0.0))
+			return -1;
+	}
+	if (found_infeasible_or_close_to_infeasible_point)
+		return 0;
+	else
+		return 1;
+}
+
+void Window::HalfPlaneRenderer::renderBox(SDL_Renderer* renderer, bool feasible,
+	float lower_x, float upper_x, float lower_y, float upper_y)
+{
+	if (feasible)
+		return;
+	else
+	{
+		SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
+		SDL_Rect rect;
+		createPixelRectangle(lower_x, upper_x, lower_y, upper_y, &rect);
+		SDL_RenderFillRect(renderer, &rect);
+	}
+}
+
+void Window::HalfPlaneRenderer::createPixelRectangle(float lower_x, float upper_x, float lower_y, float upper_y,
+	SDL_Rect* rectangle)
+{
+	SDL_Rect& rect = *rectangle;
+	rect.x = win.pointToPixel(Geometry2D::Vec2(lower_x, upper_y)).i;
+	rect.y = win.pointToPixel(Geometry2D::Vec2(lower_x, upper_y)).j;
+	rect.w = win.pointToPixel(Geometry2D::Vec2(upper_x, upper_y)).i - rect.x;
+	rect.h = win.pointToPixel(Geometry2D::Vec2(lower_x, lower_y)).j - rect.y;
+	return;
+	if (win.pixelToPoint(Pixel(rect.x - 1, rect.y)).x >= lower_x)
+	{
+		rect.x--;
+		rect.w++;
+	}
+	if (win.pixelToPoint(Pixel(rect.x, rect.y)).x < lower_x)
+	{
+		rect.x++;
+		rect.w--;
+	}
+	if (win.pixelToPoint(Pixel(rect.x, rect.y + 1)).y <= upper_y)
+	{
+		rect.y--;
+		rect.h++;
+	}
+	if (win.pixelToPoint(Pixel(rect.x, rect.y)).y > upper_y)
+	{
+		rect.y++;
+		rect.h--;
+	}
+	if (win.pixelToPoint(Pixel(rect.x + rect.w + 1, rect.y + rect.h)).x <= upper_x)
+		rect.w++;
+	if (win.pixelToPoint(Pixel(rect.x + rect.w, rect.y + rect.h)).x > upper_x)
+		rect.w--;
+	if (win.pixelToPoint(Pixel(rect.x + rect.w, rect.y + rect.h + 1)).y >= lower_y)
+		rect.h++;
+	if (win.pixelToPoint(Pixel(rect.x + rect.w, rect.y + rect.h)).y < lower_y)
+		rect.h--;
 }

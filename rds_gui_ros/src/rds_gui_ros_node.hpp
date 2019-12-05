@@ -29,7 +29,7 @@ struct RDSGUIROSNode
 	std::vector<AdditionalPrimitives2D::Arrow> work_space_arrows;
 	std::vector<AdditionalPrimitives2D::Circle> work_space_circles;
 
-	GuiColor green, blue, red, magenta, cyan, yellow, orange;
+	GuiColor green, blue, red, magenta, cyan, yellow, orange, blue_fade, white, purple, color_nominal, color_corrected;
 };
 
 #endif

@@ -76,8 +76,8 @@ namespace RDS
 	inline Geometry2D::HalfPlane2 transformPointVelocityConstraintToCommandConstraint(const PointVelocityConstraint& pvc,
 		float linear_normalization, float angular_normalization)
 	{
-		Geometry2D::Vec2 n_unnormalized(pvc.h.getNormal().y*linear_normalization,
-			(-pvc.p.y*pvc.h.getNormal().x + pvc.p.x*pvc.h.getNormal().y)*angular_normalization);
+		Geometry2D::Vec2 n_unnormalized(-(-pvc.p.y*pvc.h.getNormal().x + pvc.p.x*pvc.h.getNormal().y)*
+			angular_normalization, pvc.h.getNormal().y*linear_normalization);
 		return Geometry2D::HalfPlane2(n_unnormalized, 1.f).rescale(pvc.h.getOffset()/n_unnormalized.norm());
 	}
 }

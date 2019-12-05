@@ -42,6 +42,11 @@ public:
 	std::vector<GuiColor> arrows_colors;
 	//std::vector<Window::sdlColor> circles_colors;
 
+	void activateHalfplaneAreaRendering()
+	{
+		window->render_feasible_region = true;
+	}
+
 private:
 	Window* window;
 };
