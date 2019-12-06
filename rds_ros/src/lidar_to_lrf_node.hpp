@@ -17,6 +17,7 @@ struct LidarToLRFNode
 	ros::Subscriber velodyne_subscriber;
 
 	const float lidar_mount_height;
+	const float lidar_tilt_angle;
 	const int lrf_number_of_bins;
 	const float lrf_angle_step;
 

@@ -87,7 +87,7 @@ void QoloCollisionPointGenerator::obstacleMessageCallback(const sensor_msgs::Las
 			std::sin(phi)));
 		//if (lrf_msg->ranges[i] > 1.f)
 		//obstacle_circles[i] = AdditionalPrimitives2D::Circle(center, 0.f);
-		if ((std::abs(angleToPlus270Minus90(phi - M_PI/2.f)) < front_angle_cutoff_from_forward_direction) &&
+		if ((std::abs(angleToPlus270Minus90(phi) - M_PI/2.f) < front_angle_cutoff_from_forward_direction) &&
 			(lrf_msg->ranges[i] > front_range_cutoff_lower))
 		{
 			obstacle_circles.push_back(AdditionalPrimitives2D::Circle(center, 0.f));
@@ -114,11 +114,18 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 	box_limits.max_linear = request.last_actual_command.linear + request.command_cycle_time*request.abs_linear_acceleration_limit;
 	box_limits.max_angular = request.last_actual_command.angular + request.command_cycle_time*request.abs_angular_acceleration_limit;
 
+	/*
 	float y_coordinate_of_reference_point_for_command_limits = 0.5f;
 	float weight_scaling_of_reference_point_for_command_limits = 1.f;
 	float tau = 2.f;
 	float delta = 0.05f;
 	float clearance_from_axle_of_final_reference_point = 0.15f;
+	*/
+	float y_coordinate_of_reference_point_for_command_limits = request.y_coordinate_of_reference_point_for_command_limits;
+	float weight_scaling_of_reference_point_for_command_limits = request.weight_scaling_of_reference_point_for_command_limits;
+	float tau = request.tau;
+	float delta = request.delta;
+	float clearance_from_axle_of_final_reference_point = request.clearance_from_axle_of_final_reference_point;
 
 	//try
 	//{

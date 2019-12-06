@@ -12,7 +12,7 @@
 float positive_angle(float angle)
 {
 	while (angle < 0.f)
-		angle += 2.f*2*std::asin(1.0);
+		angle += 2.f*M_PI;
 	return angle;
 }
 
@@ -28,6 +28,21 @@ void LidarToLRFNode::velodyneMessageCallback(const velodyne_msgs::VelodyneScan::
 	for (auto& packet : v_scan->packets)
 		raw_data.unpack(packet, point_cloud);
 
+	// rotate around x-axis to compensate forward tilting
+	float ryy = std::cos(-lidar_tilt_angle);
+	float ryz = std::sin(-lidar_tilt_angle);
+	float rzy = -ryz;
+	float rzz = ryy;
+	float y_new, z_new;
+	for (auto& p : point_cloud.points)
+	{
+		y_new = ryy*p.y + rzy*p.z;
+		z_new = ryz*p.y + rzz*p.z;
+		p.y = y_new;
+		p.z = z_new;
+	}
+
+	// create a 2D laserscan message (skip ground scans)
 	sensor_msgs::LaserScan lrf_scan;
 	lrf_scan.header.frame_id = "velodyne";
 	lrf_scan.header.stamp = v_scan->header.stamp;
@@ -57,6 +72,7 @@ LidarToLRFNode::LidarToLRFNode(ros::NodeHandle* n)
 	, velodyne_subscriber(n->subscribe<velodyne_msgs::VelodyneScan>("velodyne_packets", 1,
 		&LidarToLRFNode::velodyneMessageCallback, this))
 	, lidar_mount_height(0.35f)
+	, lidar_tilt_angle(2.f/360.f*2.f*M_PI)
 	, lrf_number_of_bins(720)
 	, lrf_angle_step(2.f*M_PI/lrf_number_of_bins)
 {
