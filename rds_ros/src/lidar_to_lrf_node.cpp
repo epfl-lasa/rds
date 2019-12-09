@@ -71,7 +71,7 @@ LidarToLRFNode::LidarToLRFNode(ros::NodeHandle* n)
 	: lrf_publisher(n->advertise<sensor_msgs::LaserScan>("laserscan", 1))
 	, velodyne_subscriber(n->subscribe<velodyne_msgs::VelodyneScan>("velodyne_packets", 1,
 		&LidarToLRFNode::velodyneMessageCallback, this))
-	, lidar_mount_height(0.35f)
+	, lidar_mount_height(0.35f)//0.48 would be exact
 	, lidar_tilt_angle(2.f/360.f*2.f*M_PI)
 	, lrf_number_of_bins(720)
 	, lrf_angle_step(2.f*M_PI/lrf_number_of_bins)

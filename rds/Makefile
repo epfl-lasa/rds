@@ -1,8 +1,13 @@
-all: geometry gui demo_geo rds_core rds_wrap demo_rds # list only what is ready to build
+all: geometry gui demo_geo rds_core rds_wrap demo_rds demo_simu # list only what is ready to build
 
 FLAGS = -std=c++11 -g -Wall
 
 # DEMOS
+
+demo_simu: build/demo_simu
+
+build/demo_simu: src/demo_simu.cpp src/simulator.cpp src/simulator.hpp build/librds_wrap.a
+	g++ $(FLAGS) src/demo_simu.cpp src/simulator.cpp -Lbuild -lrds_wrap -lgui -lSDL2 -o build/demo_simu
 
 demo_rds: build/demo_rds  # target just for convenience
 
