@@ -16,14 +16,19 @@ namespace RDS
 
 		struct Obstacle
 		{
-			Obstacle(pointDS motion_law, const Geometry2D::Vec2& initial_position, float radius)
+			Obstacle(pointDS motion_law, const Geometry2D::Vec2& initial_position, float radius,
+				bool use_constant_motion_law = false, const Geometry2D::Vec2& constant_motion_law = Geometry2D::Vec2())
 				: motion_law(motion_law)
 				, position(initial_position)
 				, radius(radius)
+				, use_constant_motion_law(use_constant_motion_law)
+				, constant_motion_law(constant_motion_law)
 			{ }
 			pointDS motion_law;
 			Geometry2D::Vec2 position;
 			float radius;
+			bool use_constant_motion_law;
+			Geometry2D::Vec2 constant_motion_law;
 		};
 
 		struct Robot
@@ -44,8 +49,13 @@ namespace RDS
 		};
 
 		Simulator(robotDS robot_motion_law, const std::vector<AdditionalPrimitives2D::Circle>& robot_shape,
-				const Geometry2D::Vec2& robot_initial_position, float robot_initial_orientation, const VelocityCommand& robot_previous_command)
-			: robot(robot_motion_law, robot_shape, robot_initial_position, robot_initial_orientation, robot_previous_command)
+				const Geometry2D::Vec2& robot_initial_position, float robot_initial_orientation, const VelocityCommand& robot_previous_command,
+				float tau = 2.f)
+			: time(0.f)
+			, robot(robot_motion_law, robot_shape, robot_initial_position, robot_initial_orientation, robot_previous_command)
+			, use_orca_style(false)
+			, tau(tau)
+			, tau_orca_style(2.f)
 		{ }
 
 		void stepEuler(float dt);
@@ -53,6 +63,10 @@ namespace RDS
 		float time;
 		Robot robot;
 		std::vector<Obstacle> obstacles;
+		std::vector<Geometry2D::Vec2> orca_velocities;
+		bool use_orca_style;
+		float tau;
+		float tau_orca_style;
 
 	private:
 		void createCollisionPointsInRobotFrame(std::vector<CollisionPoint>* collision_points) const;

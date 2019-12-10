@@ -1,5 +1,6 @@
 #include "simulator.hpp"
 #include "rds_wrap.hpp"
+#include "orca_style.hpp"
 
 #include <cmath>
 
@@ -10,6 +11,13 @@ namespace RDS
 {
 	void Simulator::stepEuler(float dt)
 	{
+		if (use_orca_style)
+		{
+			orca_velocities.resize(obstacles.size());
+			for (int i = 0; i < obstacles.size(); i++)
+				orca_velocities[i] = OrcaStyle::avoid(robot, obstacles, i, time, tau_orca_style);
+		}
+
 		// set RDS parameters
 		float abs_linear_acceleration_limit = 1.f;
 		float abs_angular_acceleration_limit = 1.f;
@@ -23,7 +31,7 @@ namespace RDS
 
 		float y_coordinate_of_reference_point_for_command_limits = 0.5f;
 		float weight_scaling_of_reference_point_for_command_limits = 1.f;
-		float tau = 1.f;
+		//float tau = 2.f; is a member now 
 		float delta = 0.05f;
 		float clearance_from_axle_of_final_reference_point = 0.15f;
 
@@ -63,8 +71,21 @@ namespace RDS
 			rxy*robot_local_velocity.x + ryy*robot_local_velocity.y);
 		robot.position = robot.position + dt*robot_global_velocity;
 		robot.orientation += dt*rds_wrap.getCommandSolution().angular;
-		for (auto& ob : obstacles)
-			ob.position = ob.position + dt*ob.motion_law(time, ob.position);
+		if (use_orca_style)
+		{
+			for (int i = 0; i < obstacles.size(); i++)
+				obstacles[i].position = obstacles[i].position + dt*orca_velocities[i];
+		}
+		else
+		{
+			for (auto& ob : obstacles)
+			{
+				if (ob.use_constant_motion_law)
+					ob.position = ob.position + dt*ob.constant_motion_law;
+				else
+					ob.position = ob.position + dt*ob.motion_law(time, ob.position);
+			}
+		}
 		time += dt;
 	}
 
@@ -78,11 +99,16 @@ namespace RDS
 		std::vector<CollisionPoint>& cps = *collision_points;
 		cps.resize(obstacles.size()*robot.shape.size());
 		std::vector<CollisionPoint>::size_type i = 0;
+		int j = 0;
 		for (auto& ob : obstacles)
 		{
 			for (auto& rs : robot.shape)
 			{
 				Vec2 ob_velocity_global(ob.motion_law(time, ob.position));
+				if (use_orca_style)
+					ob_velocity_global = orca_velocities[j];
+				else if (ob.use_constant_motion_law)
+					ob_velocity_global = ob.constant_motion_law;
 				Vec2 ob_velocity_local(rxx*ob_velocity_global.x + ryx*ob_velocity_global.y,
 					rxy*ob_velocity_global.x + ryy*ob_velocity_global.y);
 				Vec2 ob_position_diff = ob.position - robot.position;
@@ -91,6 +117,7 @@ namespace RDS
 				cps[i] = CollisionPoint(rs, Circle(ob_center_local, ob.radius), ob_velocity_local);
 				i++;
 			}
+			j++;
 		}
 	}
 }

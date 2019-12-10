@@ -6,8 +6,8 @@ FLAGS = -std=c++11 -g -Wall
 
 demo_simu: build/demo_simu
 
-build/demo_simu: src/demo_simu.cpp src/simulator.cpp src/simulator.hpp build/librds_wrap.a
-	g++ $(FLAGS) src/demo_simu.cpp src/simulator.cpp -Lbuild -lrds_wrap -lgui -lSDL2 -o build/demo_simu
+build/demo_simu: src/demo_simu.cpp src/simulator.cpp src/simulator.hpp src/orca_style.cpp src/orca_style.hpp build/librds_wrap.a
+	g++ $(FLAGS) src/demo_simu.cpp src/simulator.cpp src/orca_style.cpp -Lbuild -lrds_wrap -lgui -lSDL2 -o build/demo_simu
 
 demo_rds: build/demo_rds  # target just for convenience
 
