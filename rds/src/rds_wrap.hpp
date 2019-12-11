@@ -73,7 +73,8 @@ struct RDSWrap
 		float weight_scaling_of_reference_point_for_command_limits = 1.f,
 		float tau = 2.f,
 		float delta = 0.1f,
-		float clearance_from_axle_of_final_reference_point = 0.15f);
+		float clearance_from_axle_of_final_reference_point = 0.15f,
+		bool unilateral_velocity_shift = false);
 
 	const RDS::VelocityCommand& getCommandSolution() const
 	{

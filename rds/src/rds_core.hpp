@@ -16,7 +16,8 @@ namespace RDS
 			const std::vector<CollisionPoint>& collision_points,
 			float y_coordinate_of_reference_point_for_command_limits,
 			float tau,
-			float delta);
+			float delta,
+			bool unilateral_velocity_shift);
 
 		const std::vector<PointVelocityConstraint>& getBoxLimitConstraints() const
 		{

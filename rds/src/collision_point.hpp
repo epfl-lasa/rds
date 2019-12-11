@@ -41,17 +41,29 @@ namespace RDS
 			v_q = c_q_v;
 		}
 
-		Geometry2D::HalfPlane2 createPointPVelocityConstraint(float tau = 2.f, float delta = 0.1f) const
+		Geometry2D::HalfPlane2 createPointPVelocityConstraint(float tau = 2.f, float delta = 0.1f, bool unilateral_velocity_shift = false) const
 		{
 			//return Geometry2D::HalfPlane2(p_to_q, 1.f).rescale(1.f/tau*(p_to_q.norm() - delta) + 
 			//	v_q.dot(p_to_q.normalized()));
-			if (p_to_q.norm() > delta)
+			if (unilateral_velocity_shift && (v_q.dot(p_to_q.normalized()) < 0.f))
 			{
-				return Geometry2D::HalfPlane2(p_to_q, 1.f).rescale(1.f/tau*(std::sqrt(p_to_q.norm() - delta)) + 
-								v_q.dot(p_to_q.normalized()));
+				if (p_to_q.norm() > delta)
+				{
+					return Geometry2D::HalfPlane2(p_to_q, 1.f).rescale(1.f/tau*(std::sqrt(p_to_q.norm() - delta)));
+				}
+				
+				return Geometry2D::HalfPlane2(p_to_q, 1.f).rescale(0.f);
 			}
-			
-			return Geometry2D::HalfPlane2(p_to_q, 1.f).rescale(v_q.dot(p_to_q.normalized()));
+			else
+			{
+				if (p_to_q.norm() > delta)
+				{
+					return Geometry2D::HalfPlane2(p_to_q, 1.f).rescale(1.f/tau*(std::sqrt(p_to_q.norm() - delta)) + 
+									v_q.dot(p_to_q.normalized()));
+				}
+				
+				return Geometry2D::HalfPlane2(p_to_q, 1.f).rescale(v_q.dot(p_to_q.normalized()));
+			}
 		}
 
 		class CollisionException { };

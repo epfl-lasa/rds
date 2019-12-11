@@ -11,7 +11,8 @@ namespace RDS
 			const std::vector<CollisionPoint>& collision_points,
 			float y_coordinate_of_reference_point_for_command_limits,
 			float tau,
-			float delta)
+			float delta,
+			bool unilateral_velocity_shift)
 	{
 		Geometry2D::Vec2 p_ref(0.f, y_coordinate_of_reference_point_for_command_limits);
 
@@ -61,7 +62,7 @@ namespace RDS
 
 		// generate constraints from the collision points
 		for (auto& cp : collision_points)
-			collision_constraints.push_back(PointVelocityConstraint(cp.p, cp.createPointPVelocityConstraint(tau, delta)));
+			collision_constraints.push_back(PointVelocityConstraint(cp.p, cp.createPointPVelocityConstraint(tau, delta, unilateral_velocity_shift)));
 	}
 
 	ReferencePointGenerator::ReferencePointGenerator(const VelocityCommand& nominal_command,

@@ -56,7 +56,8 @@ namespace RDS
 			weight_scaling_of_reference_point_for_command_limits,
 			tau,
 			delta,
-			clearance_from_axle_of_final_reference_point);
+			clearance_from_axle_of_final_reference_point,
+			unilateral_velocity_shift);
 
 		// for computing the acceleration-based constraints in the next step
 		robot.previous_command = rds_wrap.getCommandSolution();
@@ -111,6 +112,8 @@ namespace RDS
 					ob_velocity_global = ob.constant_motion_law;
 				Vec2 ob_velocity_local(rxx*ob_velocity_global.x + ryx*ob_velocity_global.y,
 					rxy*ob_velocity_global.x + ryy*ob_velocity_global.y);
+				if (!use_velocities)
+					ob_velocity_local = Vec2(0.f, 0.f);
 				Vec2 ob_position_diff = ob.position - robot.position;
 				Vec2 ob_center_local = Vec2(rxx*ob_position_diff.x + ryx*ob_position_diff.y,
 					rxy*ob_position_diff.x + ryy*ob_position_diff.y);

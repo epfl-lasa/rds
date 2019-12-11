@@ -50,12 +50,14 @@ namespace RDS
 
 		Simulator(robotDS robot_motion_law, const std::vector<AdditionalPrimitives2D::Circle>& robot_shape,
 				const Geometry2D::Vec2& robot_initial_position, float robot_initial_orientation, const VelocityCommand& robot_previous_command,
-				float tau = 2.f)
+				float tau = 2.f, bool unilateral_velocity_shift = false)
 			: time(0.f)
 			, robot(robot_motion_law, robot_shape, robot_initial_position, robot_initial_orientation, robot_previous_command)
 			, use_orca_style(false)
 			, tau(tau)
 			, tau_orca_style(2.f)
+			, unilateral_velocity_shift(unilateral_velocity_shift)
+			, use_velocities(true)
 		{ }
 
 		void stepEuler(float dt);
@@ -67,6 +69,8 @@ namespace RDS
 		bool use_orca_style;
 		float tau;
 		float tau_orca_style;
+		bool unilateral_velocity_shift;
+		bool use_velocities;
 
 	private:
 		void createCollisionPointsInRobotFrame(std::vector<CollisionPoint>* collision_points) const;

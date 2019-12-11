@@ -8,13 +8,15 @@ RDSWrap::RDSWrap(const RDS::VelocityCommand& nominal_command,
 	float weight_scaling_of_reference_point_for_command_limits,
 	float tau,
 	float delta,
-	float clearance_from_axle_of_final_reference_point)
+	float clearance_from_axle_of_final_reference_point,
+	bool unilateral_velocity_shift)
 	: pvcg(box_limits,
 		hexagon_limits,
 		collision_points,
 		y_coordinate_of_reference_point_for_command_limits,
 		tau,
-		delta)
+		delta,
+		unilateral_velocity_shift)
 	, rpg(nominal_command,
 		weight_scaling_of_reference_point_for_command_limits,
 		clearance_from_axle_of_final_reference_point,
