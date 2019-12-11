@@ -1,4 +1,5 @@
 all: geometry gui demo_geo rds_core rds_wrap demo_rds demo_simu # list only what is ready to build
+	@echo "\033[92mDone with building RDS.\033[0m"
 
 FLAGS = -std=c++11 -g -Wall
 

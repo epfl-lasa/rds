@@ -53,7 +53,7 @@ Vec2 OrcaStyle::avoid(const RDS::Simulator::Robot& robot,
 	else if (shift.y < -v_limit)
 		shift.y = -v_limit;
 
-	float scaling = 1/v_limit;
+	float scaling = 1/(2.f*v_limit);
 
 	for (auto& con : constraints)
 		con.shift(shift).rescale(scaling);

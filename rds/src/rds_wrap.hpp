@@ -74,7 +74,9 @@ struct RDSWrap
 		float tau = 2.f,
 		float delta = 0.1f,
 		float clearance_from_axle_of_final_reference_point = 0.15f,
-		bool unilateral_velocity_shift = false);
+		bool unilateral_velocity_shift = false,
+		float y_coordinate_of_reference_biasing_point = 1.f,
+		float weight_of_reference_biasing_point = 0.f);
 
 	const RDS::VelocityCommand& getCommandSolution() const
 	{

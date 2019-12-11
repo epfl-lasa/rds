@@ -45,6 +45,8 @@ namespace RDS
 		ReferencePointGenerator(const VelocityCommand& nominal_command,
 			float weight_scaling_of_reference_point_for_command_limits,
 			float clearance_from_axle_of_final_reference_point,
+			float y_coordinate_of_reference_biasing_point,
+			float weight_of_reference_biasing_point,
 			const PointVelocityConstraintGenerator& pvcg);
 
 		const Geometry2D::Vec2& getReferencePoint() const

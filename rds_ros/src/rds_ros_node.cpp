@@ -127,6 +127,9 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 	float delta = request.delta;
 	float clearance_from_axle_of_final_reference_point = request.clearance_from_axle_of_final_reference_point;
 
+	float y_coordinate_of_reference_biasing_point = request.y_coordinate_of_reference_biasing_point;
+	float weight_of_reference_biasing_point = request.weight_of_reference_biasing_point;
+
 	//try
 	//{
 	RDSWrap rds_wrap(nominal_command,
@@ -137,7 +140,9 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 		weight_scaling_of_reference_point_for_command_limits,
 		tau,
 		delta,
-		clearance_from_axle_of_final_reference_point);
+		clearance_from_axle_of_final_reference_point,
+		y_coordinate_of_reference_biasing_point,
+		weight_of_reference_biasing_point);
 
 	response.corrected_command.linear = rds_wrap.getCommandSolution().linear;
 	response.corrected_command.angular = rds_wrap.getCommandSolution().angular;

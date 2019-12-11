@@ -68,6 +68,8 @@ namespace RDS
 	ReferencePointGenerator::ReferencePointGenerator(const VelocityCommand& nominal_command,
 		float weight_scaling_of_reference_point_for_command_limits,
 		float clearance_from_axle_of_final_reference_point,
+		float y_coordinate_of_reference_biasing_point,
+		float weight_of_reference_biasing_point,
 		const PointVelocityConstraintGenerator& pvcg)
 	{
 		reference_point = Geometry2D::Vec2(0.f, 0.f);
@@ -103,6 +105,15 @@ namespace RDS
 			}
 		}
 		reference_point = reference_point/(unnormalized_weight_sum + 0.0001f);
+
+		if (weight_of_reference_biasing_point > 1.f)
+			weight_of_reference_biasing_point = 1.f;
+		else if (weight_of_reference_biasing_point < 0.f)
+			weight_of_reference_biasing_point = 0.f;
+
+		reference_point = (1.f - weight_of_reference_biasing_point)*reference_point +
+			weight_of_reference_biasing_point*Geometry2D::Vec2(0.f, y_coordinate_of_reference_biasing_point);
+
 		if (reference_point.y < 0.f)
 			reference_point.y = -reference_point.y;
 		if (reference_point.y < clearance_from_axle_of_final_reference_point)
