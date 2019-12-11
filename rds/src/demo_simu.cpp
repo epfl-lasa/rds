@@ -339,7 +339,7 @@ int main(int argc, char** argv)
 			RDS::Simulator simu_x(
 				[](float time, const Vec2& position, float orientation) { 
 					float orientation_ref = 0.f;
-					return VelocityCommand(1.5f, std::sin(time)*std::sin(time)*orientationReferenceTracking(orientation, orientation_ref, 10.f));}, // nominal control law
+					return VelocityCommand(1.5f, orientationReferenceTracking(orientation, orientation_ref, 1.f));}, // nominal control law
 				robot_shape,
 				Vec2(0.5f, -6.f), // initial position
 				-0.5f, // initial orientation
@@ -355,7 +355,7 @@ int main(int argc, char** argv)
 						0.25f));
 				}
 			}
-			simulate_while_displaying(&simu_x, "With on/off orientation control through alternating pillars.");
+			simulate_while_displaying(&simu_x, "With orientation control through alternating pillars.");
 			if (argc > 2)
 				break;
 		}
@@ -415,7 +415,7 @@ int main(int argc, char** argv)
 			RDS::Simulator simu_x(
 				[](float time, const Vec2& position, float orientation) { 
 					float orientation_ref = 0.f;
-					return VelocityCommand(1.5f, orientationReferenceTracking(orientation, orientation_ref, 10.f));}, // nominal control law
+					return VelocityCommand(1.5f, orientationReferenceTracking(orientation, orientation_ref, 1.f));}, // nominal control law
 				robot_shape,
 				Vec2(0.5f, -6.f), // initial position
 				0.f, // initial orientation
@@ -458,7 +458,7 @@ int main(int argc, char** argv)
 				Vec2(-2.f, 2.f),
 				0.25f));
 
-			simulate_while_displaying(&simu_x, "Robot with orientation control moving through reactive dynamic obstacles.");
+			simulate_while_displaying(&simu_x, "With orientation control through reactive dynamic obstacles. Compare case 20.");
 			if (argc > 2)
 				break;
 		}
@@ -513,7 +513,7 @@ int main(int argc, char** argv)
 			RDS::Simulator simu_x(
 				[](float time, const Vec2& position, float orientation) { 
 					float orientation_ref = 0.f;
-					return VelocityCommand(1.5f, orientationReferenceTracking(orientation, orientation_ref, 10.f));}, // nominal control law
+					return VelocityCommand(1.5f, orientationReferenceTracking(orientation, orientation_ref, 4.f));}, // nominal control law
 				robot_shape,
 				Vec2(-1.1f, -3.1f), // initial position
 				0.f, // initial orientation
@@ -609,7 +609,7 @@ int main(int argc, char** argv)
 			RDS::Simulator simu_x(
 				[](float time, const Vec2& position, float orientation) { 
 					float orientation_ref = 0.f;
-					return VelocityCommand(1.5f, orientationReferenceTracking(orientation, orientation_ref, 10.f));}, // nominal control law
+					return VelocityCommand(1.5f, orientationReferenceTracking(orientation, orientation_ref, 4.f));}, // nominal control law
 				robot_shape,
 				Vec2(-1.1f, -3.1f), // initial position
 				0.f, // initial orientation
@@ -680,7 +680,7 @@ int main(int argc, char** argv)
 			RDS::Simulator simu_x(
 				[](float time, const Vec2& position, float orientation) { 
 					float orientation_ref = 0.f;
-					return VelocityCommand(1.3f, std::sin(time)*std::sin(time)*orientationReferenceTracking(orientation, orientation_ref, 1.f));}, // nominal control law
+					return VelocityCommand(1.3f, orientationReferenceTracking(orientation, orientation_ref, 1.f));}, // nominal control law
 				robot_shape,
 				Vec2(-1.1f, -3.1f-6.f), // initial position
 				0.f, // initial orientation
@@ -708,7 +708,7 @@ int main(int argc, char** argv)
 				}
 			}
 
-			simulate_while_displaying(&simu_x, "Robot with on/off orientation control moving through in 1D flow without using velocities.");
+			simulate_while_displaying(&simu_x, "Robot with orientation control moving through in 1D flow without using velocities.");
 			if (argc > 2)
 				break;
 		}
@@ -717,7 +717,7 @@ int main(int argc, char** argv)
 			RDS::Simulator simu_x(
 				[](float time, const Vec2& position, float orientation) { 
 					float orientation_ref = 0.f;
-					return VelocityCommand(1.3f, std::sin(time)*std::sin(time)*orientationReferenceTracking(orientation, orientation_ref, 1.f));}, // nominal control law
+					return VelocityCommand(1.3f, orientationReferenceTracking(orientation, orientation_ref, 1.f));}, // nominal control law
 				robot_shape,
 				Vec2(-1.1f, -3.1f-6.f), // initial position
 				0.f, // initial orientation
@@ -743,7 +743,7 @@ int main(int argc, char** argv)
 				}
 			}
 
-			simulate_while_displaying(&simu_x, "Robot with on/off orientation control moving through in 1D flow using velocities (unilateral shifting).");
+			simulate_while_displaying(&simu_x, "Robot with orientation control moving through in 1D flow using velocities (unilateral shifting).");
 			if (argc > 2)
 				break;
 		}
@@ -752,7 +752,7 @@ int main(int argc, char** argv)
 			RDS::Simulator simu_x(
 				[](float time, const Vec2& position, float orientation) { 
 					float orientation_ref = 0.f;
-					return VelocityCommand(1.3f, std::sin(time)*std::sin(time)*orientationReferenceTracking(orientation, orientation_ref, 1.f));}, // nominal control law
+					return VelocityCommand(1.5f, orientationReferenceTracking(orientation, orientation_ref, 1.f));}, // nominal control law
 				robot_shape,
 				Vec2(-1.1f- 3.f, -3.1f-12.f), // initial position
 				0.f, // initial orientation
@@ -770,10 +770,10 @@ int main(int argc, char** argv)
 					if (j == 1 && i == 2)
 						continue;
 					simu_x.obstacles.push_back(RDS::Simulator::Obstacle(
-						[](float time, const Vec2& position) {return Vec2();},
+						[](float time, const Vec2& position) {return Vec2(0.3f*std::sin(time), 1.3f);},
 						Vec2(-5.f + i*11.f/6 + 11.f/12.f*(j%2)- 3.f, -5.f + j*11.f/6-12.f),
 						0.25f,
-						true,
+						false,
 						Vec2(0.f, 1.3f)));
 				}
 			}
@@ -783,10 +783,10 @@ int main(int argc, char** argv)
 				for (int j = 0; j < 7; j++)
 				{
 					simu_x.obstacles.push_back(RDS::Simulator::Obstacle(
-						[](float time, const Vec2& position) {return Vec2();},
+						[](float time, const Vec2& position) {return Vec2(1.3f, 0.3f*std::sin(2.5f*time-3.f));},
 						Vec2(-5.f + i*11.f/6 + 11.f/12.f*(j%2)-12.f, -5.f + j*11.f/6 + 3.f),
 						0.25f,
-						true,
+						false,
 						Vec2(1.3f, 0.f)));
 				}
 			}
@@ -796,10 +796,10 @@ int main(int argc, char** argv)
 				for (int j = 0; j < 7; j++)
 				{
 					simu_x.obstacles.push_back(RDS::Simulator::Obstacle(
-						[](float time, const Vec2& position) {return Vec2();},
+						[](float time, const Vec2& position) {return Vec2(-1.3f, 0.3f*std::sin(1.5f*time-1.5f));},
 						Vec2(-5.f + i*11.f/6 + 11.f/12.f*(j%2)+12.f, -5.f + j*11.f/6 - 3.f),
 						0.25f,
-						true,
+						false,
 						Vec2(-1.3f, 0.f)));
 				}
 			}
@@ -809,15 +809,69 @@ int main(int argc, char** argv)
 				for (int j = 0; j < 7; j++)
 				{
 					simu_x.obstacles.push_back(RDS::Simulator::Obstacle(
-						[](float time, const Vec2& position) {return Vec2();},
+						[](float time, const Vec2& position) {return Vec2(0.3f*std::sin(0.5f*time-4.5), -1.3f);},
 						Vec2(-5.f + i*11.f/6 + 11.f/12.f*(j%2) + 3.f, -5.f + j*11.f/6+12.f),
 						0.25f,
-						true,
+						false,
 						Vec2(0.f, -1.3f)));
 				}
 			}
 
-			simulate_while_displaying(&simu_x, "Robot with on/off orientation control moving through in cross flow using velocities (unilateral shifting).");
+			simulate_while_displaying(&simu_x, "Robot with orientation control moving through in cross flow using velocities (unilateral shifting).");
+			if (argc > 2)
+				break;
+		}
+		case 20:
+		{
+			RDS::Simulator simu_x(
+				[](float time, const Vec2& position, float orientation) { 
+					float orientation_ref = 0.f;
+					return VelocityCommand(1.5f, orientationReferenceTracking(orientation, orientation_ref, 1.f));}, // nominal control law
+				robot_shape,
+				Vec2(0.5f, -6.f), // initial position
+				0.f, // initial orientation
+				VelocityCommand(0.f, 0.f), // previous command
+				2.f, // rds_tau
+				true); // rds unilateral velocity shift
+
+			simu_x.use_orca_style = true;
+
+			simu_x.obstacles.push_back(RDS::Simulator::Obstacle(
+				[](float time, const Vec2& position) {return Vec2(0.f, -1.f);},
+				Vec2(0.f, 0.f),
+				0.25f));
+
+			simu_x.obstacles.push_back(RDS::Simulator::Obstacle(
+				[](float time, const Vec2& position) {return Vec2(0.65f, 0.f);},
+				Vec2(-3.f, -3.f),
+				0.25f));
+
+			simu_x.obstacles.push_back(RDS::Simulator::Obstacle(
+				[](float time, const Vec2& position) {return Vec2(1.f, 0.5f);},
+				Vec2(-6.f, -3.f),
+				0.25f));
+
+			simu_x.obstacles.push_back(RDS::Simulator::Obstacle(
+				[](float time, const Vec2& position) {return Vec2(0.5f, 1.2f);},
+				Vec2(-5.f, -10.f),
+				0.25f));
+
+			simu_x.obstacles.push_back(RDS::Simulator::Obstacle(
+				[](float time, const Vec2& position) {return Vec2(0.f, 0.f);},
+				Vec2(-3.5f, -5.5f),
+				0.25f));
+
+			simu_x.obstacles.push_back(RDS::Simulator::Obstacle(
+				[](float time, const Vec2& position) {return Vec2(0.f, -1.f);},
+				Vec2(2.f, -2.f),
+				0.25f));
+
+			simu_x.obstacles.push_back(RDS::Simulator::Obstacle(
+				[](float time, const Vec2& position) {return Vec2(0.f, -1.f);},
+				Vec2(-2.f, 2.f),
+				0.25f));
+
+			simulate_while_displaying(&simu_x, "With unilateral velocity shift and orientation control through reactive dynamic obstacles.");
 			if (argc > 2)
 				break;
 		}
