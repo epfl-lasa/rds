@@ -875,5 +875,184 @@ int main(int argc, char** argv)
 			if (argc > 2)
 				break;
 		}
+		case 21:
+		{
+			RDS::Simulator simu_x(
+				[](float time, const Vec2& position, float orientation) {return VelocityCommand(1.5f, 0.f);}, // nominal control law
+				robot_shape,
+				Vec2(0.f, -4.f), // initial position
+				0.2f, // initial orientation
+				VelocityCommand(0.f, 0.f), // previous command
+				2.f, // rds_tau
+				true); // rds unilateral velocity shift
+			simu_x.y_coordinate_of_reference_biasing_point = 50.f;
+			simu_x.weight_of_reference_biasing_point = 1.f;
+			for (int i = 0; i < 20; i++)
+			{
+				simu_x.obstacles.push_back(RDS::Simulator::Obstacle(
+					[](float time, const Vec2& position) {return Vec2(0.f, 0.f);},
+					Vec2(2.6f-i*0.25f, -1.5f),
+					0.25f));
+			}
+			simulate_while_displaying(&simu_x, "Using a fixed reference point 50 meters in front of the wheel axle.");
+			if (argc > 2)
+				break;
+		}
+		case 22:
+		{
+			RDS::Simulator simu_x(
+				[](float time, const Vec2& position, float orientation) {return VelocityCommand(1.5f, 0.f);}, // nominal control law
+				robot_shape,
+				Vec2(0.f, -4.f), // initial position
+				0.2f, // initial orientation
+				VelocityCommand(0.f, 0.f), // previous command
+				2.f, // rds_tau
+				true); // rds unilateral velocity shift
+			simu_x.y_coordinate_of_reference_biasing_point = 0.3f;
+			simu_x.weight_of_reference_biasing_point = 1.f;
+			for (int i = 0; i < 20; i++)
+			{
+				simu_x.obstacles.push_back(RDS::Simulator::Obstacle(
+					[](float time, const Vec2& position) {return Vec2(0.f, 0.f);},
+					Vec2(2.6f-i*0.25f, -1.5f),
+					0.25f));
+			}
+			simulate_while_displaying(&simu_x, "Using a fixed reference point 0.3 meters in front of the wheel axle.");
+			if (argc > 2)
+				break;
+		}
+		case 23:
+		{
+			RDS::Simulator simu_x(
+				[](float time, const Vec2& position, float orientation) {return VelocityCommand(1.5f, 0.f);}, // nominal control law
+				robot_shape,
+				Vec2(0.f, -4.f), // initial position
+				0.2f, // initial orientation
+				VelocityCommand(0.f, 0.f), // previous command
+				2.f, // rds_tau
+				true); // rds unilateral velocity shift
+			simu_x.y_coordinate_of_reference_biasing_point = 1.f;
+			simu_x.weight_of_reference_biasing_point = 0.7f;
+			for (int i = 0; i < 20; i++)
+			{
+				simu_x.obstacles.push_back(RDS::Simulator::Obstacle(
+					[](float time, const Vec2& position) {return Vec2(0.f, 0.f);},
+					Vec2(2.6f-i*0.25f, -1.5f),
+					0.25f));
+			}
+			simulate_while_displaying(&simu_x, "Using a 70 percent biased reference point towards 1 meter in front of the wheel axle.");
+			if (argc > 2)
+				break;
+		}
+		case 24:
+		{
+			RDS::Simulator simu_x(
+				[](float time, const Vec2& position, float orientation) {return VelocityCommand(1.5f, 0.f);}, // nominal control law
+				robot_shape,
+				Vec2(0.f, -4.f), // initial position
+				0.2f, // initial orientation
+				VelocityCommand(0.f, 0.f), // previous command
+				2.f, // rds_tau
+				true); // rds unilateral velocity shift
+			simu_x.y_coordinate_of_reference_biasing_point = 0.f;
+			simu_x.weight_of_reference_biasing_point = 0.7f;
+			for (int i = 0; i < 20; i++)
+			{
+				simu_x.obstacles.push_back(RDS::Simulator::Obstacle(
+					[](float time, const Vec2& position) {return Vec2(0.f, 0.f);},
+					Vec2(2.6f-i*0.25f, -1.5f),
+					0.25f));
+			}
+			simulate_while_displaying(&simu_x, "With the usual adaptive reference point.");
+			if (argc > 2)
+				break;
+		}
+		case 25:
+		{
+			RDS::Simulator simu_x(
+				[](float time, const Vec2& position, float orientation) {return VelocityCommand(1.5f, 0.f);}, // nominal control law
+				robot_shape,
+				Vec2(0.f, -4.f), // initial position
+				0.2f, // initial orientation
+				VelocityCommand(0.f, 0.f), // previous command
+				2.f, // rds_tau
+				true); // rds unilateral velocity shift
+			simu_x.y_coordinate_of_reference_biasing_point = 0.15f;
+			simu_x.weight_of_reference_biasing_point = 1.f;
+			for (int i = 0; i < 20; i++)
+			{
+				simu_x.obstacles.push_back(RDS::Simulator::Obstacle(
+					[](float time, const Vec2& position) {return Vec2(0.f, 0.f);},
+					Vec2(2.6f-i*0.25f, -1.5f),
+					0.25f));
+			}
+			simulate_while_displaying(&simu_x, "Using a fixed reference point 0.15 meters in front of the wheel axle.");
+			if (argc > 2)
+				break;
+		}
+		case 26:
+		{
+			RDS::Simulator simu2_2(
+				[](float time, const Vec2& position, float orientation) { 
+					return VelocityCommand(0.5f, 0.f);}, // nominal control law
+				robot_shape,
+				Vec2(0.f, -1.f), // initial position
+				0.f, // initial orientation
+				VelocityCommand(0.f, 0.f)); // previous command
+			simu2_2.y_coordinate_of_reference_biasing_point = 0.15f;
+			simu2_2.weight_of_reference_biasing_point = 1.f;
+			for (int i = 0; i < 6; i++)
+			{
+				simu2_2.obstacles.push_back(RDS::Simulator::Obstacle(
+					[](float time, const Vec2& position) {return Vec2(0.f, 0.f);},
+					Vec2(-0.2f-i*0.5f, 1.5f),
+					0.25f));
+
+				simu2_2.obstacles.push_back(RDS::Simulator::Obstacle(
+					[](float time, const Vec2& position) {return Vec2(0.f, 0.f);},
+					Vec2(0.5f-0.2*i, 3.5f),
+					0.25f));
+
+				simu2_2.obstacles.push_back(RDS::Simulator::Obstacle(
+					[](float time, const Vec2& position) {return Vec2(0.f, 0.f);},
+					Vec2(1.5f, 1.5f+i*0.2f),
+					0.25f));
+
+				simu2_2.obstacles.push_back(RDS::Simulator::Obstacle(
+					[](float time, const Vec2& position) {return Vec2(0.f, 0.f);},
+					Vec2(1.5f-i*0.15f, 2.6f+i*0.15f),
+					0.25f));
+			}
+
+			simulate_while_displaying(&simu2_2, "With a fixed reference point 0.15 meters in front of the wheel axle, getting stuck in a curved corridor.");
+			if (argc > 2)
+				break;
+		}
+		case 27:
+		{
+			RDS::Simulator simu_x(
+				[](float time, const Vec2& position, float orientation) { 
+					float orientation_ref = 0.f;
+					return VelocityCommand(1.5f, orientationReferenceTracking(orientation, orientation_ref, 3.f));}, // nominal control law
+				robot_shape,
+				Vec2(0.5f, -6.f), // initial position
+				-0.5f, // initial orientation
+				VelocityCommand(0.f, 0.f)); // previous command
+			simu_x.y_coordinate_of_reference_biasing_point = 0.15f;
+			simu_x.weight_of_reference_biasing_point = 1.f;
+			for (int i = 0; i < 7; i++)
+			{
+				for (int j = 0; j < 7; j++)
+				{
+					simu_x.obstacles.push_back(RDS::Simulator::Obstacle(
+						[](float time, const Vec2& position) {return Vec2(0.f, 0.f);},
+						Vec2(-5.f + i*11.f/6 + 11.f/12.f*(j%2), -5.f + j*11.f/6),
+						0.25f));
+				}
+			}
+			simulate_while_displaying(&simu_x, "With a fixed reference point 0.15 meters in front of the wheel axle, with orientation control through alternating pillars.");
+			if (argc > 2)
+				break;
+		}
 	}
 }

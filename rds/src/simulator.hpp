@@ -58,6 +58,8 @@ namespace RDS
 			, tau_orca_style(2.f)
 			, unilateral_velocity_shift(unilateral_velocity_shift)
 			, use_velocities(true)
+			, weight_of_reference_biasing_point(0.f)
+			, y_coordinate_of_reference_biasing_point(1.f)
 		{ }
 
 		void stepEuler(float dt);
@@ -71,6 +73,9 @@ namespace RDS
 		float tau_orca_style;
 		bool unilateral_velocity_shift;
 		bool use_velocities;
+		float weight_of_reference_biasing_point;
+		float y_coordinate_of_reference_biasing_point;
+
 
 	private:
 		void createCollisionPointsInRobotFrame(std::vector<CollisionPoint>* collision_points) const;
