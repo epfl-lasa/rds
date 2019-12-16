@@ -50,7 +50,7 @@ namespace RDS
 
 		Simulator(robotDS robot_motion_law, const std::vector<AdditionalPrimitives2D::Circle>& robot_shape,
 				const Geometry2D::Vec2& robot_initial_position, float robot_initial_orientation, const VelocityCommand& robot_previous_command,
-				float tau = 2.f, bool unilateral_velocity_shift = false)
+				float tau = 2.f, bool unilateral_velocity_shift = false, bool velocity_obstacle_style = false)
 			: time(0.f)
 			, robot(robot_motion_law, robot_shape, robot_initial_position, robot_initial_orientation, robot_previous_command)
 			, use_orca_style(false)
@@ -60,6 +60,7 @@ namespace RDS
 			, use_velocities(true)
 			, weight_of_reference_biasing_point(0.f)
 			, y_coordinate_of_reference_biasing_point(1.f)
+			, velocity_obstacle_style(velocity_obstacle_style)
 		{ }
 
 		void stepEuler(float dt);
@@ -75,6 +76,7 @@ namespace RDS
 		bool use_velocities;
 		float weight_of_reference_biasing_point;
 		float y_coordinate_of_reference_biasing_point;
+		bool velocity_obstacle_style;
 
 
 	private:

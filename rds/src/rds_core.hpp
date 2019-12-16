@@ -17,7 +17,8 @@ namespace RDS
 			float y_coordinate_of_reference_point_for_command_limits,
 			float tau,
 			float delta,
-			bool unilateral_velocity_shift);
+			bool unilateral_velocity_shift,
+			bool velocity_obstacle_style);
 
 		const std::vector<PointVelocityConstraint>& getBoxLimitConstraints() const
 		{

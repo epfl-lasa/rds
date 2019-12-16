@@ -59,7 +59,8 @@ namespace RDS
 			clearance_from_axle_of_final_reference_point,
 			unilateral_velocity_shift,
 			y_coordinate_of_reference_biasing_point,
-			weight_of_reference_biasing_point);
+			weight_of_reference_biasing_point,
+			velocity_obstacle_style);
 
 		// for computing the acceleration-based constraints in the next step
 		robot.previous_command = rds_wrap.getCommandSolution();
