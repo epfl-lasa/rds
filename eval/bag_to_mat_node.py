@@ -21,14 +21,14 @@ nominal_command_angular = []
 collision_points_on_obstacles = []
 
 def signal_handler(sig, frame):
-	plt.plot(nominal_command_linear, color='blue', label='nominal')
-	plt.plot(corrected_command_linear, color='green', label='corrected')
-	plt.title("Linear command (nominal and corrected)")
-	plt.show()
-	plt.plot(nominal_command_angular, color='blue', label='nominal')
-	plt.plot(corrected_command_angular, color='green', label='corrected')
-	plt.title("Angular command (nominal and corrected)")
-	plt.show()
+	#plt.plot(nominal_command_linear, color='blue', label='nominal')
+	#plt.plot(corrected_command_linear, color='green', label='corrected')
+	#plt.title("Linear command (nominal and corrected)")
+	#plt.show()
+	#plt.plot(nominal_command_angular, color='blue', label='nominal')
+	#plt.plot(corrected_command_angular, color='green', label='corrected')
+	#plt.title("Angular command (nominal and corrected)")
+	#plt.show()
 
 	# write the result to a npy-file and a mat-file
 	result = np.array([time, nominal_command_linear, nominal_command_angular,
