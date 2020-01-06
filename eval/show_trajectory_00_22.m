@@ -1,8 +1,11 @@
-load('2019-11-29-09-00-22.bag_commands_log.mat')
+clc
+clear all
+close all
 
+load('2019-11-29-09-00-22.bag_commands_log.mat')
+time = commands(1,:);
 i_start = 1341;
 i_end = i_start + 20;
-
 position = zeros(2,i_end-i_start+2);
 angle = zeros(2,i_end-i_start+2);
 for i = 2:(i_end-i_start+2)
@@ -30,3 +33,29 @@ for i = i_start:i_end
      j = j*1.2;
      k = k + 1;
 end
+
+%% Reading Log files
+    nfig = 2;
+
+    Omega_max = 4.124 /4;
+    Vel_max = 1;
+    Command_U = commands(2:3,:);
+    Command_R = commands(4:5,:);
+
+    [heading,disagreement ,Contribution] = similarity(Command_U ,Command_R, Vel_max, Omega_max);
+
+    mean(Contribution)
+    std(Contribution)
+
+    figure(nfig)
+    subplot(2,1,1),plot(time,Command_U(1,:));
+    hold on;
+    grid on;
+    subplot(2,1,1),plot(time,Command_R(1,:))
+    title('Linear Speed')
+    
+    subplot(2,1,2),plot(time,Command_U(2,:));
+    hold on;
+    grid on;
+    subplot(2,1,2),plot(time,Command_R(2,:))
+    title('Angular Speed')
