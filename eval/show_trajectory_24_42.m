@@ -38,17 +38,21 @@ end
 
 %% Reading Log files
     nfig = 2;
-
+    
     Omega_max = 4.124 /4;
     Vel_max = 1;
     Command_U = commands(2:3,:);
     Command_R = commands(4:5,:);
 
-    [heading,disagreement ,Contribution] = similarity(Command_U ,Command_R, Vel_max, Omega_max);
-
-    mean(Contribution)
-    std(Contribution)
-
+    [linear_diff,heading,disagreement ,Contribution] = similarity(Command_U ,Command_R, Vel_max, Omega_max);
+    [fluency] = user_fluency(Command_U, Vel_max, Omega_max)
+    Contribution_score = [mean(Contribution); std(Contribution)]
+    linear_diff
+    heading
+    disagreement
+    fluency
+    
+%%
     figure(nfig)
     subplot(2,1,1),plot(time,Command_U(1,:));
     hold on;

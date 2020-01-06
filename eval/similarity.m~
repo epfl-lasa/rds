@@ -32,7 +32,8 @@ function [linear_diff,heading,disagreement ,Contribution] = similarity(Command_U
     heading = [mean(Command_diff(2,:)); std(Command_diff(2,:))];
 %     disagreement(1,1) = sum(vecnorm(Command_R_norm - Command_U_norm)) / Ccount; % L2-Norm difference
     
-    disagreement = [mean(vecnorm(Command_diff)); std(vecnorm(Command_diff))];
+    disagreement(1,1) = mean(Command_diff)
+    disagreement(1,2) = sum(vecnorm(Command_R_norm - Command_U_norm)) / Ccount; % L2-Norm difference
     
     jj=1;
     for ii=1:Lc
