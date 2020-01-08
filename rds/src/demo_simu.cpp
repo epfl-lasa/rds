@@ -57,8 +57,13 @@ void simulate_while_displaying(RDS::Simulator* simulator, const char* title = "R
 				work_space_circles.push_back(Circle(center_global, rs.radius));
 			}
 
-			//work_space_points.resize(0);
-			//work_space_points.push_back()
+			work_space_points.resize(0);
+			work_space_points.push_back(Vec2(rxx*simu.robot.previous_reference_point.x + 
+				ryx*simu.robot.previous_reference_point.y,
+				rxy*simu.robot.previous_reference_point.x + 
+				ryy*simu.robot.previous_reference_point.y) + simu.robot.position);
+			gui_work_space.points_colors.resize(0);
+			gui_work_space.points_colors.push_back(green);
 		}
 
 		t2 = std::chrono::high_resolution_clock::now();

@@ -63,6 +63,8 @@ namespace RDS
 
 		// for computing the acceleration-based constraints in the next step
 		robot.previous_command = rds_wrap.getCommandSolution();
+		// for display
+		robot.previous_reference_point = rds_wrap.getReferencePoint();
 
 		// perform the Euler integration step
 		Vec2 robot_local_velocity = rds_wrap.getCommandSolution().pointVelocity(Vec2(0.f, 0.f));

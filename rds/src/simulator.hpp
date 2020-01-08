@@ -46,6 +46,7 @@ namespace RDS
 			Geometry2D::Vec2 position;
 			float orientation;
 			VelocityCommand previous_command;
+			Geometry2D::Vec2 previous_reference_point; //local, for displaying
 		};
 
 		Simulator(robotDS robot_motion_law, const std::vector<AdditionalPrimitives2D::Circle>& robot_shape,
