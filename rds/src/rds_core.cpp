@@ -70,41 +70,71 @@ namespace RDS
 		float clearance_from_axle_of_final_reference_point,
 		float y_coordinate_of_reference_biasing_point,
 		float weight_of_reference_biasing_point,
-		const PointVelocityConstraintGenerator& pvcg)
+		const PointVelocityConstraintGenerator& pvcg,
+		bool use_exponential_weighting)
 	{
 		reference_point = Geometry2D::Vec2(0.f, 0.f);
-		float unnormalized_weight_sum = 0.f;
+		if (!use_exponential_weighting)
+		{
+			float unnormalized_weight_sum = 0.f;
 
-		for (auto& pvc : pvcg.getBoxLimitConstraints())
-		{
-			float weight = pvc.h.signedDistance(nominal_command.pointVelocity(pvc.p));
-			if (weight > 0.f)
+			for (auto& pvc : pvcg.getBoxLimitConstraints())
 			{
+				float weight = pvc.h.signedDistance(nominal_command.pointVelocity(pvc.p));
+				if (weight > 0.f)
+				{
+					weight *= weight_scaling_of_reference_point_for_command_limits;
+					reference_point = reference_point + weight*pvc.p;
+					unnormalized_weight_sum += weight;
+				}
+			}
+			for (auto& pvc : pvcg.getHexagonLimitConstraints())
+			{
+				float weight = pvc.h.signedDistance(nominal_command.pointVelocity(pvc.p));
+				if (weight > 0.f)
+				{
+					weight *= weight_scaling_of_reference_point_for_command_limits;
+					reference_point = reference_point + weight*pvc.p;
+					unnormalized_weight_sum += weight;
+				}
+			}
+			for (auto& pvc : pvcg.getCollisionConstraints()) // not scaling weights here
+			{
+				float weight = pvc.h.signedDistance(nominal_command.pointVelocity(pvc.p));
+				if (weight > 0.f)
+				{
+					reference_point = reference_point + weight*pvc.p;
+					unnormalized_weight_sum += weight;
+				}
+			}
+			reference_point = reference_point/(unnormalized_weight_sum + 0.0001f);
+		}
+		else
+		{
+			float unnormalized_weight_sum = 0.f;
+
+			for (auto& pvc : pvcg.getBoxLimitConstraints())
+			{
+				float weight = std::exp(pvc.h.signedDistance(nominal_command.pointVelocity(pvc.p)));
 				weight *= weight_scaling_of_reference_point_for_command_limits;
 				reference_point = reference_point + weight*pvc.p;
 				unnormalized_weight_sum += weight;
 			}
-		}
-		for (auto& pvc : pvcg.getHexagonLimitConstraints())
-		{
-			float weight = pvc.h.signedDistance(nominal_command.pointVelocity(pvc.p));
-			if (weight > 0.f)
+			for (auto& pvc : pvcg.getHexagonLimitConstraints())
 			{
+				float weight = std::exp(pvc.h.signedDistance(nominal_command.pointVelocity(pvc.p)));
 				weight *= weight_scaling_of_reference_point_for_command_limits;
 				reference_point = reference_point + weight*pvc.p;
 				unnormalized_weight_sum += weight;
 			}
-		}
-		for (auto& pvc : pvcg.getCollisionConstraints()) // not scaling weights here
-		{
-			float weight = pvc.h.signedDistance(nominal_command.pointVelocity(pvc.p));
-			if (weight > 0.f)
+			for (auto& pvc : pvcg.getCollisionConstraints()) // not scaling weights here
 			{
+				float weight = std::exp(pvc.h.signedDistance(nominal_command.pointVelocity(pvc.p)));
 				reference_point = reference_point + weight*pvc.p;
 				unnormalized_weight_sum += weight;
 			}
+			reference_point = reference_point/(unnormalized_weight_sum + 0.0001f);
 		}
-		reference_point = reference_point/(unnormalized_weight_sum + 0.0001f);
 
 		if (weight_of_reference_biasing_point > 1.f)
 			weight_of_reference_biasing_point = 1.f;

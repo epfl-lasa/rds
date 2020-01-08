@@ -11,7 +11,8 @@ RDSWrap::RDSWrap(const RDS::VelocityCommand& nominal_command,
 	float clearance_from_axle_of_final_reference_point,
 	bool unilateral_velocity_shift,
 	float y_coordinate_of_reference_biasing_point,
-	float weight_of_reference_biasing_point)
+	float weight_of_reference_biasing_point,
+	bool use_exponential_weighting)
 	: pvcg(box_limits,
 		hexagon_limits,
 		collision_points,
@@ -24,7 +25,8 @@ RDSWrap::RDSWrap(const RDS::VelocityCommand& nominal_command,
 		clearance_from_axle_of_final_reference_point,
 		y_coordinate_of_reference_biasing_point,
 		weight_of_reference_biasing_point,
-		pvcg)
+		pvcg,
+		use_exponential_weighting)
 	, rpvcc(rpg,
 		pvcg)
 	, rpvo(nominal_command,

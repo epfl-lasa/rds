@@ -61,6 +61,7 @@ namespace RDS
 			, use_velocities(true)
 			, weight_of_reference_biasing_point(0.f)
 			, y_coordinate_of_reference_biasing_point(1.f)
+			, use_exponential_weighting(false)
 		{ }
 
 		void stepEuler(float dt);
@@ -76,6 +77,7 @@ namespace RDS
 		bool use_velocities;
 		float weight_of_reference_biasing_point;
 		float y_coordinate_of_reference_biasing_point;
+		bool use_exponential_weighting;
 
 
 	private:

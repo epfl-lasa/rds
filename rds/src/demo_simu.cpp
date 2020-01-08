@@ -978,7 +978,7 @@ int main(int argc, char** argv)
 				[](float time, const Vec2& position, float orientation) {return VelocityCommand(1.5f, 0.f);}, // nominal control law
 				robot_shape,
 				Vec2(0.f, -4.f), // initial position
-				0.2f, // initial orientation
+				0.12f, // initial orientation
 				VelocityCommand(0.f, 0.f), // previous command
 				2.f, // rds_tau
 				true); // rds unilateral velocity shift
@@ -1059,5 +1059,63 @@ int main(int argc, char** argv)
 			if (argc > 2)
 				break;
 		}
+		case 28:
+		{
+			RDS::Simulator simu_x(
+				[](float time, const Vec2& position, float orientation) { 
+					float orientation_ref = 0.f;
+					return VelocityCommand(1.5f, orientationReferenceTracking(orientation, orientation_ref, 1.f));}, // nominal control law
+				robot_shape,
+				Vec2(0.5f, -6.f), // initial position
+				-0.5f, // initial orientation
+				VelocityCommand(0.f, 0.f), // previous command
+				1.f); //tau
+
+			simu_x.use_exponential_weighting = true;
+
+			for (int i = 0; i < 7; i++)
+			{
+				for (int j = 0; j < 7; j++)
+				{
+					simu_x.obstacles.push_back(RDS::Simulator::Obstacle(
+						[](float time, const Vec2& position) {return Vec2(0.f, 0.f);},
+						Vec2(-5.f + i*11.f/6 + 11.f/12.f*(j%2), -5.f + j*11.f/6),
+						0.25f));
+				}
+			}
+			simulate_while_displaying(&simu_x, "With exponential weighting and orientation control through alternating pillars.");
+			if (argc > 2)
+				break;
+		}
+		case 29:
+		{
+			RDS::Simulator simu_x(
+				[](float time, const Vec2& position, float orientation) {return VelocityCommand(1.5f, 0.f);}, // nominal control law
+				robot_shape,
+				Vec2(0.f, -4.f), // initial position
+				0.12f, // initial orientation
+				VelocityCommand(0.f, 0.f), // previous command
+				1.f, // rds_tau
+				true); // rds unilateral velocity shift
+			simu_x.y_coordinate_of_reference_biasing_point = 0.15f;
+			simu_x.weight_of_reference_biasing_point = 1.f;
+
+			simu_x.use_exponential_weighting = true;
+
+			for (int i = 0; i < 20; i++)
+			{
+				simu_x.obstacles.push_back(RDS::Simulator::Obstacle(
+					[](float time, const Vec2& position) {return Vec2(0.f, 0.f);},
+					Vec2(2.6f-i*0.25f, -1.5f),
+					0.25f));
+			}
+			simulate_while_displaying(&simu_x, "Using exponential weighting.");
+			if (argc > 2)
+				break;
+		}
+		///case ...:
+		///{
+		///	// examine deflection behaviour at a wall with asymmetric obstacle density
+		//}
 	}
 }

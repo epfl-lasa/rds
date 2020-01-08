@@ -47,7 +47,8 @@ namespace RDS
 			float clearance_from_axle_of_final_reference_point,
 			float y_coordinate_of_reference_biasing_point,
 			float weight_of_reference_biasing_point,
-			const PointVelocityConstraintGenerator& pvcg);
+			const PointVelocityConstraintGenerator& pvcg,
+			bool use_exponential_weighting = false);
 
 		const Geometry2D::Vec2& getReferencePoint() const
 		{
