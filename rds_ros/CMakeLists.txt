@@ -139,6 +139,7 @@ include_directories(
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(${PROJECT_NAME}_node src/rds_ros_node.cpp)
 add_executable(${PROJECT_NAME}_lidar_to_lrf_node src/lidar_to_lrf_node.cpp)
+add_executable(${PROJECT_NAME}_two_lidar_to_lrf_node src/two_lidar_to_lrf_node.cpp)
 add_executable(${PROJECT_NAME}_nominal_command_node src/nominal_command_node.cpp)
 
 ## Rename C++ executable without prefix
@@ -152,6 +153,7 @@ add_executable(${PROJECT_NAME}_nominal_command_node src/nominal_command_node.cpp
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(${PROJECT_NAME}_node rds_network_ros_generate_messages_cpp)
 add_dependencies(${PROJECT_NAME}_lidar_to_lrf_node rds_network_ros_generate_messages_cpp)
+add_dependencies(${PROJECT_NAME}_two_lidar_to_lrf_node rds_network_ros_generate_messages_cpp)
 add_dependencies(${PROJECT_NAME}_nominal_command_node rds_network_ros_generate_messages_cpp)
 
 
@@ -161,6 +163,9 @@ target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
 )
 target_link_libraries(${PROJECT_NAME}_lidar_to_lrf_node
+  ${catkin_LIBRARIES}
+)
+target_link_libraries(${PROJECT_NAME}_two_lidar_to_lrf_node
   ${catkin_LIBRARIES}
 )
 target_link_libraries(${PROJECT_NAME}_nominal_command_node
