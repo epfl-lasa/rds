@@ -3,9 +3,9 @@ clear all
 close all
 
 
-load('2019-11-28-07-24-42.bag_commands_log.mat')
+load('2019-11-28-07-43-35.bag_commands_log.mat')
 time = commands(1,:);
-i_start = find(time>458, 1);
+i_start = find(time>8.94, 1);
 i_end = i_start + 100;
 
 position = zeros(2,i_end-i_start+2);
@@ -19,7 +19,7 @@ end
 plot(position(1,:), position(2,:))
 
 hold on
-load('2019-11-28-07-24-42.bag_collision_points_log.mat')
+load('2019-11-28-07-43-35.bag_collision_points_log.mat')
 j = 1;
 k = 1;
 for i = i_start:i_end
@@ -38,7 +38,7 @@ end
 
 %% Reading Log files
     nfig = 2;
-    
+
     Omega_max = 4.124 /4;
     Vel_max = 1;
     Command_U = commands(2:3,:);
@@ -46,13 +46,9 @@ end
 
     [linear_diff,heading,disagreement ,Contribution] = similarity(Command_U ,Command_R, Vel_max, Omega_max);
     [fluency] = user_fluency(Command_U, Vel_max, Omega_max)
-    Contribution_score = [mean(Contribution); std(Contribution)]
-    linear_diff
-    heading
-    disagreement
-    fluency
-    
-%%
+    mean(Contribution)
+    std(Contribution)
+
     figure(nfig)
     subplot(2,1,1),plot(time,Command_U(1,:));
     hold on;
