@@ -75,20 +75,17 @@ float angleToPlus270Minus90(float angle)
 	return angle;
 }
 
-void QoloCollisionPointGenerator::obstacleMessageCallback(const sensor_msgs::LaserScan::ConstPtr& lrf_msg)
+void QoloCollisionPointGenerator::obstacleMessageCallback(const visualization_msgs::MarkerArray::ConstPtr& circle_msg)
 {
 	obstacle_circles.resize(0);//lrf_msg->ranges.size());
 	obstacle_velocities.resize(0);//lrf_msg->ranges.size());
-	for (std::vector<float>::size_type i = 0; i != lrf_msg->ranges.size(); i++)
+	for (std::vector<float>::size_type i = 0; i != circle_msg->markers.size(); i++)
 	{
 		//obstacle_velocities[i] = Geometry2D::Vec2(0.f, 0.f);
-		float phi = front_lrf_orientation + lrf_msg->angle_min + i*lrf_msg->angle_increment;
-		Geometry2D::Vec2 center(front_lrf_location + lrf_msg->ranges[i]*Geometry2D::Vec2(std::cos(phi),
-			std::sin(phi)));
+		Geometry2D::Vec2 center(front_lrf_location + Geometry2D::Vec2(circle_msg->markers[i].pose.position.x,
+			circle_msg->markers[i].pose.position.y));
 		//if (lrf_msg->ranges[i] > 1.f)
 		//obstacle_circles[i] = AdditionalPrimitives2D::Circle(center, 0.f);
-		if ((std::abs(angleToPlus270Minus90(phi) - M_PI/2.f) < front_angle_cutoff_from_forward_direction) &&
-			(lrf_msg->ranges[i] > front_range_cutoff_lower))
 		{
 			obstacle_circles.push_back(AdditionalPrimitives2D::Circle(center, 0.f));
 			obstacle_velocities.push_back(Geometry2D::Vec2(0.f, 0.f));
@@ -99,6 +96,21 @@ void QoloCollisionPointGenerator::obstacleMessageCallback(const sensor_msgs::Las
 bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectionRDS::Request& request,
 	rds_network_ros::VelocityCommandCorrectionRDS::Response& response)
 {
+	/////////////////////////////////////////////////////////////////////////////////////////////
+	// access to the stored circles (from measurements)
+	for (int i = 0; i < qolo_cpg.obstacle_circles.size(); i++)
+	{
+		//... = qolo_cpg.obstacle_circles[i].center.x;
+		//... = qolo_cpg.obstacle_circles[i].center.y;
+		//... = qolo_cpg.obstacle_circles[i].radius;
+	}
+
+	// calling the MDS with the request and then setting the response object
+	// ...
+
+	return true;
+	/////////////////////////////////////////////////////////////////////////////////////////////
+	
 	RDS::VelocityCommand nominal_command(request.nominal_command.linear, request.nominal_command.angular);
 
 	RDS::VelocityCommandHexagonLimits hexagon_limits;
@@ -209,7 +221,7 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 
 RDSNode::RDSNode(ros::NodeHandle* n)
 	: qolo_cpg()
-	, laserscan_subscriber(n->subscribe<sensor_msgs::LaserScan>("laserscan", 1,
+	, laserscan_subscriber(n->subscribe<visualization_msgs::MarkerArray>("circles", 1,
 		&QoloCollisionPointGenerator::obstacleMessageCallback, &qolo_cpg))
 	, publisher_for_gui(n->advertise<rds_network_ros::ToGui>("rds_to_gui", 1)) 
 	, command_correction_server(n->advertiseService("rds_velocity_command_correction",

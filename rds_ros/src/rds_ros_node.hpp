@@ -8,12 +8,14 @@
 
 #include <ros/ros.h>
 #include <sensor_msgs/LaserScan.h>
+#include <visualization_msgs/Marker.h>
+#include <visualization_msgs/MarkerArray.h>
 
-struct QoloCollisionPointGenerator : public CollisionPointGenerator<sensor_msgs::LaserScan::ConstPtr>
+struct QoloCollisionPointGenerator : public CollisionPointGenerator<visualization_msgs::MarkerArray::ConstPtr>
 {
 	QoloCollisionPointGenerator();
 
-	void obstacleMessageCallback(const sensor_msgs::LaserScan::ConstPtr& obstacle_sensor_msg);
+	void obstacleMessageCallback(const visualization_msgs::MarkerArray::ConstPtr& obstacle_sensor_msg);
 	//void frontLRFMessageCallback(const sensor_msgs::LaserScan::ConstPtr& obstacle_sensor_msg);
 
 	Geometry2D::Vec2 front_lrf_location;
