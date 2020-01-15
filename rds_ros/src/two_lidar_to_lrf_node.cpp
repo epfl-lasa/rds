@@ -16,9 +16,9 @@ float positive_angle(float angle)
 
 TwoLidarToLRFNode::TwoLidarToLRFNode(ros::NodeHandle* n)
 	: lrf_publisher(n->advertise<sensor_msgs::LaserScan>("laserscan", 1))
-	, front_velodyne_subscriber(n->subscribe<velodyne_msgs::VelodyneScan>("front_velodyne_packets", 1,
+	, front_velodyne_subscriber(n->subscribe<velodyne_msgs::VelodyneScan>("front_lidar/velodyne_packets", 1,
 		&TwoLidarToLRFNode::frontVelodyneMessageCallback, this))
-	, rear_velodyne_subscriber(n->subscribe<velodyne_msgs::VelodyneScan>("rear_velodyne_packets", 1,
+	, rear_velodyne_subscriber(n->subscribe<velodyne_msgs::VelodyneScan>("rear_lidar/velodyne_packets", 1,
 		&TwoLidarToLRFNode::rearVelodyneMessageCallback, this))
 	, front_lidar_y_coordinate(0.056)
 	, front_lidar_mount_height(0.35f)//0.48 would be exact

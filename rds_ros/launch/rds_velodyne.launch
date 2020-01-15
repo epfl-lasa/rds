@@ -20,19 +20,42 @@
   <arg name="laserscan_ring" default="-1" />
   <arg name="laserscan_resolution" default="0.007" />
 
-  <!-- start nodelet manager and driver nodelets -->
-  <include file="$(find velodyne_driver)/launch/nodelet_manager.launch">
-    <arg name="device_ip" value="$(arg device_ip)"/>
-    <arg name="frame_id" value="$(arg frame_id)"/>
-    <arg name="manager" value="$(arg manager)" />
-    <arg name="model" value="VLP16"/>
-    <arg name="pcap" value="$(arg pcap)"/>
-    <arg name="port" value="$(arg port)"/>
-    <arg name="read_fast" value="$(arg read_fast)"/>
-    <arg name="read_once" value="$(arg read_once)"/>
-    <arg name="repeat_delay" value="$(arg repeat_delay)"/>
-    <arg name="rpm" value="$(arg rpm)"/>
-    <arg name="cut_angle" value="$(arg cut_angle)"/>
-  </include>
+  <group ns="front_lidar">
+
+    <!-- start nodelet manager and driver nodelets -->
+    <include file="$(find velodyne_driver)/launch/nodelet_manager.launch">
+      <arg name="device_ip" value="192.168.1.201"/>
+      <arg name="frame_id" value="$(arg frame_id)"/>
+      <arg name="manager" value="$(arg manager)" />
+      <arg name="model" value="VLP16"/>
+      <arg name="pcap" value="$(arg pcap)"/>
+      <arg name="port" value="2368"/>
+      <arg name="read_fast" value="$(arg read_fast)"/>
+      <arg name="read_once" value="$(arg read_once)"/>
+      <arg name="repeat_delay" value="$(arg repeat_delay)"/>
+      <arg name="rpm" value="$(arg rpm)"/>
+      <arg name="cut_angle" value="$(arg cut_angle)"/>
+    </include>
+
+  </group>
+
+  <group ns="rear_lidar">
+
+    <!-- start nodelet manager and driver nodelets -->
+    <include file="$(find velodyne_driver)/launch/nodelet_manager.launch">
+      <arg name="device_ip" value="192.168.13.19"/>
+      <arg name="frame_id" value="$(arg frame_id)"/>
+      <arg name="manager" value="$(arg manager)" />
+      <arg name="model" value="VLP16"/>
+      <arg name="pcap" value="$(arg pcap)"/>
+      <arg name="port" value="2369"/>
+      <arg name="read_fast" value="$(arg read_fast)"/>
+      <arg name="read_once" value="$(arg read_once)"/>
+      <arg name="repeat_delay" value="$(arg repeat_delay)"/>
+      <arg name="rpm" value="$(arg rpm)"/>
+      <arg name="cut_angle" value="$(arg cut_angle)"/>
+    </include>
+
+  </group>
 
 </launch>
