@@ -13,7 +13,8 @@ const float OrcaStyle::delta = 0.05f;
 const float OrcaStyle::v_limit = 2.f;
 
 Vec2 OrcaStyle::avoid(const RDS::Simulator::Robot& robot,
-	const std::vector<RDS::Simulator::Obstacle>& obstacles, int i, float time, float tau)
+	const std::vector<RDS::Simulator::Obstacle>& obstacles, int i, float time, float tau,
+	const std::vector<RDS::Simulator::Obstacle>& static_obstacles)
 {
 	std::vector<HalfPlane2> constraints;
 	
@@ -34,6 +35,11 @@ Vec2 OrcaStyle::avoid(const RDS::Simulator::Robot& robot,
 			continue;
 		constraints.push_back(createConstraint(obstacles[j].position - obstacles[i].position,
 			obstacles[j].radius + obstacles[i].radius, tau));
+	}
+	for (int j = 0; j < static_obstacles.size(); j++)
+	{
+		constraints.push_back(createConstraint(static_obstacles[j].position - obstacles[i].position,
+			static_obstacles[j].radius + obstacles[i].radius, tau));
 	}
 
 	constraints.push_back(HalfPlane2(Vec2(1.f, 0.f), v_limit));

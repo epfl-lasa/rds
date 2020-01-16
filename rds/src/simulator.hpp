@@ -70,6 +70,7 @@ namespace RDS
 		Robot robot;
 		std::vector<Obstacle> obstacles;
 		std::vector<Geometry2D::Vec2> orca_velocities;
+		std::vector<Obstacle> static_obstacles;
 		bool use_orca_style;
 		float tau;
 		float tau_orca_style;

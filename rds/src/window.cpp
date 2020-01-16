@@ -140,7 +140,8 @@ bool Window::render(const std::vector<Geometry2D::HalfPlane2>* half_planes_ptr,
 		const std::vector<sdlColor>& points_colors,
 		const std::vector<AdditionalPrimitives2D::Circle>* circles_ptr,
 		const std::vector<AdditionalPrimitives2D::Arrow>* arrows_ptr,
-		const std::vector<Window::sdlColor>& arrows_colors)
+		const std::vector<Window::sdlColor>& arrows_colors,
+		const std::vector<Window::sdlColor>& circles_colors)
 {
 	n_frames++;
 	if (sdlCheck())
@@ -163,13 +164,9 @@ bool Window::render(const std::vector<Geometry2D::HalfPlane2>* half_planes_ptr,
 		for (int i = 0; i < points.size(); i++)
 		{
 			if (i < points_colors.size())
-			{
-				SDL_SetRenderDrawColor(renderer, points_colors[i].r, points_colors[i].g,
-					points_colors[i].b, 255);
-			}
+				renderCircle(points[i], radius, 0.0, points_colors[i]);
 			else
-				SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-			renderCircle(points[i], radius, 0.0);
+				renderCircle(points[i], radius, 0.0);
 		}
 	}
 	t2 = std::chrono::high_resolution_clock::now();
@@ -183,7 +180,12 @@ bool Window::render(const std::vector<Geometry2D::HalfPlane2>* half_planes_ptr,
 	{
 		const std::vector<AdditionalPrimitives2D::Circle>& circles = *circles_ptr;
 		for (int i = 0; i < circles.size(); i++)
-			renderCircle(circles[i].center, circles[i].radius, circles[i].radius - thickness);
+		{
+			if (circles_colors.size() > i)
+				renderCircle(circles[i].center, circles[i].radius, circles[i].radius - thickness, circles_colors[i]);
+			else
+				renderCircle(circles[i].center, circles[i].radius, circles[i].radius - thickness);
+		}
 	}
 	t2 = std::chrono::high_resolution_clock::now();
 	circles_time = circles_time*(n_frames-1)/n_frames +
@@ -240,10 +242,12 @@ Geometry2D::Vec2 Window::pixelToPoint(const Pixel& p) const
 		-(p.j - screenSizeInPixels/2 + 0.5)/pixelsPerDistanceUnit);
 }
 
-void Window::renderCircle(const Geometry2D::Vec2& center, float r_outer, float r_inner)
+void Window::renderCircle(const Geometry2D::Vec2& center, float r_outer, float r_inner, const Window::sdlColor& color)
 {
 	// for convenience
 	SDL_Renderer* renderer = allSdlPointers[sdlWindowCreationNumber].renderer;
+
+	SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, 255);
 
 	BoundingBox bb = circleToBoundingBox(center, r_outer);
 	Geometry2D::Vec2 point;

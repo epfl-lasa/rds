@@ -16,6 +16,7 @@ public:
 
 	struct sdlColor
 	{
+		sdlColor() : r(255), g(255), b(255) {};
 		Uint8 r,g,b;
 	};
 
@@ -29,7 +30,8 @@ public:
 		const std::vector<sdlColor>& points_colors,
 		const std::vector<AdditionalPrimitives2D::Circle>* circles,
 		const std::vector<AdditionalPrimitives2D::Arrow>* arrows,
-		const std::vector<Window::sdlColor>& arrows_colors);
+		const std::vector<Window::sdlColor>& arrows_colors,
+		const std::vector<Window::sdlColor>& = std::vector<Window::sdlColor>(0));
 
 	const float screenSizeInDistanceUnits;
 	const int screenSizeInPixels;
@@ -60,7 +62,7 @@ private:
 	BoundingBox circleToBoundingBox(const Geometry2D::Vec2& center, float radius);
 	Geometry2D::Vec2 pixelToPoint(const Pixel& p) const;
 
-	void renderCircle(const Geometry2D::Vec2& center, float r_outer, float r_inner);
+	void renderCircle(const Geometry2D::Vec2& center, float r_outer, float r_inner, const Window::sdlColor& color = Window::sdlColor());
 	void renderHalfPlanes(const std::vector<Geometry2D::HalfPlane2>& half_planes);
 	void renderBoundaryLine(const Geometry2D::HalfPlane2& half_plane, int pixel_shift = 0);
 	void renderArrows(const std::vector<AdditionalPrimitives2D::Arrow>& arrows,

@@ -23,7 +23,7 @@ int GUI::update()
 {
 	if (window)
 	{
-		bool closed = window->render(halfplanes, points, points_colors, circles, arrows, arrows_colors);
+		bool closed = window->render(halfplanes, points, points_colors, circles, arrows, arrows_colors, circles_colors);
 		return closed ? 1 : 0;
 	}
 	else
@@ -34,7 +34,7 @@ void GUI::blockingShowUntilClosed()
 {
 	if (window)
 	{
-		while (!window->render(halfplanes, points, points_colors, circles, arrows, arrows_colors))
+		while (!window->render(halfplanes, points, points_colors, circles, arrows, arrows_colors, circles_colors))
 		{
 			window->delayUntilNextFrameInMinutes();
 		}

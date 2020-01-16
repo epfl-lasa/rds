@@ -7,7 +7,8 @@
 struct OrcaStyle
 {
 	static Geometry2D::Vec2 avoid(const RDS::Simulator::Robot& robot,
-		const std::vector<RDS::Simulator::Obstacle>& obstacles, int i, float time, float tau);
+		const std::vector<RDS::Simulator::Obstacle>& obstacles, int i, float time, float tau,
+		const std::vector<RDS::Simulator::Obstacle>& static_obstacles);
 
 	static const float delta, v_limit;
 

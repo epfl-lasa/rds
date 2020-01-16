@@ -24,13 +24,16 @@ void simulate_while_displaying(RDS::Simulator* simulator, const char* title = "R
 	gui_work_space.circles = &work_space_circles;
 	//gui_work_space.arrows = &work_space_arrows;
 
-	GuiColor green, blue, red;
+	GuiColor green, blue, red, white, cyan;
 	green.r = green.b = 0;
 	green.g = 255;
 	blue.r = blue.g = 0;
 	blue.b = 255;
 	red.g = red.b = 0;
 	red.r = 255;
+	white.r = white.g = white.b = 255;
+	cyan.r = 0;
+	cyan.g = cyan.b = 255;
 
 	std::chrono::milliseconds gui_cycle_time(50);
 	std::chrono::high_resolution_clock::time_point t1, t2;
@@ -47,14 +50,25 @@ void simulate_while_displaying(RDS::Simulator* simulator, const char* title = "R
 			float ryy = rxx;
 
 			work_space_circles.resize(0);
+			gui_work_space.circles_colors.resize(0);
 			for (auto& ob : simu.obstacles)
+			{
 				work_space_circles.push_back(Circle(ob.position, ob.radius));
+				gui_work_space.circles_colors.push_back(white);
+			}
+
+			for (auto& ob : simu.static_obstacles)
+			{
+				work_space_circles.push_back(Circle(ob.position, ob.radius));
+				gui_work_space.circles_colors.push_back(cyan);
+			}
 
 			for (auto& rs : simu.robot.shape)
 			{
 				Vec2 center_global = Vec2(rxx*rs.center.x + ryx*rs.center.y,
 					rxy*rs.center.x + ryy*rs.center.y) + simu.robot.position;
 				work_space_circles.push_back(Circle(center_global, rs.radius));
+				gui_work_space.circles_colors.push_back(red);
 			}
 
 			work_space_points.resize(0);
@@ -1117,5 +1131,67 @@ int main(int argc, char** argv)
 		///{
 		///	// examine deflection behaviour at a wall with asymmetric obstacle density
 		//}
+		case 30:
+		{
+			RDS::Simulator simu_x(
+				[](float time, const Vec2& position, float orientation) { 
+					float orientation_ref = 0.f;
+					return VelocityCommand(1.5f, orientationReferenceTracking(orientation, orientation_ref, 4.f));}, // nominal control law
+				robot_shape,
+				Vec2(-1.1f, -3.1f), // initial position
+				0.f, // initial orientation
+				VelocityCommand(0.f, 0.f), // previous command
+				1.f); // rds_tau
+
+			simu_x.use_orca_style = true;
+			simu_x.tau_orca_style = 1.f;
+
+			//simu_x.y_coordinate_of_reference_biasing_point = 0.2f;
+			//simu_x.weight_of_reference_biasing_point = 1.f;
+
+			for (int i = 0; i < 7; i++)
+			{
+				for (int j = 0; j < 7; j++)
+				{
+					if (j == 1 && i == 2)
+						continue;
+					if (j > 2)
+					{
+						simu_x.obstacles.push_back(RDS::Simulator::Obstacle(
+							[](float time, const Vec2& position) {return Vec2();},
+							Vec2(-5.f + i*11.f/6 + 11.f/12.f*(j%2), -5.f + j*11.f/6),
+							0.25f,
+							true,
+							Vec2(0.f, -1.f) + 0.5*Vec2(std::cos(random_angles[i*7 + j]),
+								std::sin(random_angles[i*7 + j]))));
+					}
+					else
+					{
+						simu_x.obstacles.push_back(RDS::Simulator::Obstacle(
+							[](float time, const Vec2& position) {return Vec2();},
+							Vec2(-5.f + i*11.f/6 + 11.f/12.f*(j%2), -5.f + j*11.f/6),
+							0.25f,
+							true,
+							Vec2(0.f, 1.f) + 0.5*Vec2(std::cos(random_angles[i*7 + j]),
+								std::sin(random_angles[i*7 + j]))));	
+					}
+				}
+			}
+
+			/*
+			for (int i = 0; i < 6; i++)
+			{
+				simu_x.static_obstacles.push_back(RDS::Simulator::Obstacle(
+					[](float time, const Vec2& position) {return Vec2(0.f,0.f);},
+					Vec2(1.f - i*0.15, 0.f + i*0.25),
+					0.25f,
+					true,
+					Vec2(0.f, 0.f)));
+			}*/
+
+			simulate_while_displaying(&simu_x, "Robot with orientation control moving through crowd with smaller taus.");
+			if (argc > 2)
+				break;
+		}
 	}
 }

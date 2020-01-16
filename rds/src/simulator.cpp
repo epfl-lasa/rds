@@ -15,7 +15,7 @@ namespace RDS
 		{
 			orca_velocities.resize(obstacles.size());
 			for (int i = 0; i < obstacles.size(); i++)
-				orca_velocities[i] = OrcaStyle::avoid(robot, obstacles, i, time, tau_orca_style);
+				orca_velocities[i] = OrcaStyle::avoid(robot, obstacles, i, time, tau_orca_style, static_obstacles);
 		}
 
 		// set RDS parameters
@@ -102,7 +102,7 @@ namespace RDS
 		float ryy = rxx;
 
 		std::vector<CollisionPoint>& cps = *collision_points;
-		cps.resize(obstacles.size()*robot.shape.size());
+		cps.resize((obstacles.size() + static_obstacles.size())*robot.shape.size());
 		std::vector<CollisionPoint>::size_type i = 0;
 		int j = 0;
 		for (auto& ob : obstacles)
@@ -125,6 +125,17 @@ namespace RDS
 				i++;
 			}
 			j++;
+		}
+		for (auto& ob : static_obstacles)
+		{
+			for (auto& rs : robot.shape)
+			{
+				Vec2 ob_position_diff = ob.position - robot.position;
+				Vec2 ob_center_local = Vec2(rxx*ob_position_diff.x + ryx*ob_position_diff.y,
+					rxy*ob_position_diff.x + ryy*ob_position_diff.y);
+				cps[i] = CollisionPoint(rs, Circle(ob_center_local, ob.radius), Vec2(0.f, 0.f));
+				i++;
+			}
 		}
 	}
 }
