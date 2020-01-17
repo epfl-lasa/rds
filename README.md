@@ -20,6 +20,22 @@ make demo_geo
 ./build/demo_geo
 ```
 
+## Install and run on ROS
+```
+sudo apt install ros-kinetic-velodyne-msgs ros-kinetic-velodyne-pointcloud
+cd [THIS_REPOSITORY_ROOT_FOLDER]/rds
+make demo_rds # this creates the necessary library files inside build/
+cd [YOUR_CATKIN_WORKSPACE]
+catkin build rds_ros
+```
+
+To run the rds node
+
+```
+rosrun rds_ros rds_ros_node
+```
+rds_ros_node listens to the topic /laserscan (sensor_msgs/LaserScan)
+
 ## Unit Test Setup
 
 The implemented unit tests for individual library functions use the gtest library. The following steps install it on Ubuntu 16.04.
