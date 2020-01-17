@@ -9,20 +9,13 @@ The Restrained Dynamical System (RDS) is a control method that avoids collisions
 
 The visualization depends on the game library SDL 2.0. To install it and set it up (on Ubuntu), use the following commands in a terminal.
 ```
-hg clone https://hg.libsdl.org/SDL SDL
-cd SDL
-mkdir build
-cd build
-../configure
-make -j10
-sudo make install
-echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib" >> ~/.bashrc
-``` 
+sudo apt install libsdl2-dev
+```
 
 ## Demo
 The demo uses the visualization and therefore requires to setup SDL as described above. To build and run the demo, run the following commands in a terminal.
 ```
-cd path/to/rds
+cd [THIS_REPOSITORY_ROOT_FOLDER]/rds
 make demo_geo
 ./build/demo_geo
 ```
