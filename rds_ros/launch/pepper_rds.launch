@@ -1,0 +1,9 @@
+<launch>
+  <node name="rds_ros" pkg="rds_ros" type="rds_ros_node" >
+    <remap from="/laserscan" to="/combined_scan" />
+  </node>
+  <node name="rds_gui_ros_node" pkg="rds_gui_ros" type="rds_gui_ros_node" />
+  <node name="rds_pepper_client" pkg="rds_ros" type="rds_pepper_client" />
+  <!--<node name="two_lidar_to_lrf_node" pkg="rds_ros" type="rds_ros_two_lidar_to_lrf_node" /> -->
+  <!--<node name="nominal_command_node" pkg="rds_ros" type="rds_ros_nominal_command_node" />/-->
+</launch>
