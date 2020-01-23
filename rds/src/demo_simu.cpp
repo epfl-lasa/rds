@@ -1193,5 +1193,78 @@ int main(int argc, char** argv)
 			if (argc > 2)
 				break;
 		}
+		case 31:
+		{
+			RDS::Simulator simu_x(
+				[](float time, const Vec2& position, float orientation) { 
+					float orientation_ref = 0.f;
+					return VelocityCommand(1.5f, orientationReferenceTracking(orientation, orientation_ref, 4.f));}, // nominal control law
+				robot_shape,
+				Vec2(-1.1f, -3.1f), // initial position
+				0.f, // initial orientation
+				VelocityCommand(0.f, 0.f), // previous command
+				1.f); // rds_tau
+
+			simu_x.use_orca_style = true;
+			simu_x.tau_orca_style = 1.f;
+
+			//simu_x.y_coordinate_of_reference_biasing_point = 0.2f;
+			//simu_x.weight_of_reference_biasing_point = 1.f;
+
+			for (int i = -6; i < 7; i++)
+			{
+				for (int j = 3; j < 6; j++)
+				{
+					{
+						simu_x.obstacles.push_back(RDS::Simulator::Obstacle(
+							[](float time, const Vec2& position) {return Vec2();},
+							Vec2(-5.f + i*11.f/6 + 11.f/12.f*(j%2), -5.f + j*11.f/9 + 2.3f),
+							0.25f,
+							true,
+							Vec2(1.f, 0.f)));
+					}
+				}
+			}
+
+			
+			for (int i = 0; i < 30; i++)
+			{
+				if ((i > 8) && (i < 18))
+					continue;
+				simu_x.static_obstacles.push_back(RDS::Simulator::Obstacle(
+					[](float time, const Vec2& position) {return Vec2(0.f,0.f);},
+					Vec2(-7.f + i*0.5, 0.f),
+					0.25f,
+					true,
+					Vec2(0.f, 0.f)));
+				simu_x.static_obstacles.push_back(RDS::Simulator::Obstacle(
+					[](float time, const Vec2& position) {return Vec2(0.f,0.f);},
+					Vec2(-7.f + i*0.5, 4.f),
+					0.25f,
+					true,
+					Vec2(0.f, 0.f)));
+			}
+			for (int i = 0; i < 30; i++)
+			{
+				if ((i > 10) && (i < 18))
+					continue;
+				simu_x.static_obstacles.push_back(RDS::Simulator::Obstacle(
+					[](float time, const Vec2& position) {return Vec2(0.f,0.f);},
+					Vec2(-2.f - 1.f, -4.f + i*0.5 - 1.f),
+					0.25f,
+					true,
+					Vec2(0.f, 0.f)));
+				simu_x.static_obstacles.push_back(RDS::Simulator::Obstacle(
+					[](float time, const Vec2& position) {return Vec2(0.f,0.f);},
+					Vec2(3.f - 1.f, -4.f + i*0.5 - 1.f),
+					0.25f,
+					true,
+					Vec2(0.f, 0.f)));
+			}
+
+			simulate_while_displaying(&simu_x, "Robot with orientation control moving through crowd with smaller taus.");
+			if (argc > 2)
+				break;
+		}
 	}
 }
