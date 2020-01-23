@@ -9,23 +9,32 @@ The Restrained Dynamical System (RDS) is a control method that avoids collisions
 
 The visualization depends on the game library SDL 2.0. To install it and set it up (on Ubuntu), use the following commands in a terminal.
 ```
-hg clone https://hg.libsdl.org/SDL SDL
-cd SDL
-mkdir build
-cd build
-../configure
-make -j10
-sudo make install
-echo "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib" >> ~/.bashrc
-``` 
+sudo apt install libsdl2-dev
+```
 
 ## Demo
 The demo uses the visualization and therefore requires to setup SDL as described above. To build and run the demo, run the following commands in a terminal.
 ```
-cd path/to/rds
+cd [THIS_REPOSITORY_ROOT_FOLDER]/rds
 make demo_geo
 ./build/demo_geo
 ```
+
+## Install and run on ROS
+```
+sudo apt install ros-kinetic-velodyne-msgs ros-kinetic-velodyne-pointcloud
+cd [THIS_REPOSITORY_ROOT_FOLDER]/rds
+make demo_rds # this creates the necessary library files inside build/
+cd [YOUR_CATKIN_WORKSPACE]
+catkin build rds_ros
+```
+
+To run the rds node
+
+```
+rosrun rds_ros rds_ros_node
+```
+rds_ros_node listens to the topic /laserscan (sensor_msgs/LaserScan)
 
 ## Unit Test Setup
 
