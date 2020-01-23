@@ -17,7 +17,8 @@ namespace RDS
 			float y_coordinate_of_reference_point_for_command_limits,
 			float tau,
 			float delta,
-			bool unilateral_velocity_shift);
+			bool unilateral_velocity_shift,
+			bool holonomic);
 
 		const std::vector<PointVelocityConstraint>& getBoxLimitConstraints() const
 		{
@@ -48,7 +49,8 @@ namespace RDS
 			float y_coordinate_of_reference_biasing_point,
 			float weight_of_reference_biasing_point,
 			const PointVelocityConstraintGenerator& pvcg,
-			bool use_exponential_weighting = false);
+			bool use_exponential_weighting,
+			bool holonomic);
 
 		const Geometry2D::Vec2& getReferencePoint() const
 		{
@@ -62,7 +64,8 @@ namespace RDS
 	struct ReferencePointVelocityConstraintCompiler
 	{
 		ReferencePointVelocityConstraintCompiler(const ReferencePointGenerator& rpg,
-			const PointVelocityConstraintGenerator& pvcg);
+			const PointVelocityConstraintGenerator& pvcg,
+			bool holonomic);
 
 		const std::vector<Geometry2D::HalfPlane2>& getConstraints() const
 		{
@@ -78,7 +81,8 @@ namespace RDS
 		ReferencePointVelocityOptimization(const VelocityCommand& nominal_command,
 			const VelocityCommandHexagonLimits& hexagon_limits,
 			const ReferencePointVelocityConstraintCompiler& rpvcc,
-			const ReferencePointGenerator& rpg);
+			const ReferencePointGenerator& rpg,
+			bool holonomic);
 
 		const VelocityCommand& getCommandSolution() const
 		{
@@ -110,7 +114,8 @@ namespace RDS
 	private:
 		void computeAndSetShiftAndScaling(const VelocityCommand& nominal_command,
 			const VelocityCommandHexagonLimits& hexagon_limits,
-			const ReferencePointGenerator& rpg);
+			const ReferencePointGenerator& rpg,
+			bool holonomic);
 		
 		Geometry2D::Vec2 shift;
 		float scaling;
