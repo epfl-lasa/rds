@@ -137,6 +137,7 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(${PROJECT_NAME}_node src/rds_gui_ros_node.cpp)
+add_executable(rds_holonomic_gui_ros_node src/rds_holonomic_gui_ros_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -148,9 +149,15 @@ add_executable(${PROJECT_NAME}_node src/rds_gui_ros_node.cpp)
 ## same as for the library above
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(${PROJECT_NAME}_node rds_network_ros_generate_messages_cpp)
+add_dependencies(rds_holonomic_gui_ros_node rds_network_ros_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_node
+  ${CMAKE_CURRENT_SOURCE_DIR}/../rds/build/libgui.a
+  ${SDL2_LIBRARIES}
+  ${catkin_LIBRARIES}
+)
+target_link_libraries(rds_holonomic_gui_ros_node
   ${CMAKE_CURRENT_SOURCE_DIR}/../rds/build/libgui.a
   ${SDL2_LIBRARIES}
   ${catkin_LIBRARIES}

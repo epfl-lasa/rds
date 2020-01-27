@@ -77,7 +77,8 @@ struct RDSWrap
 		bool unilateral_velocity_shift = false,
 		float y_coordinate_of_reference_biasing_point = 1.f,
 		float weight_of_reference_biasing_point = 0.f,
-		bool use_exponential_weighting = false);
+		bool use_exponential_weighting = false,
+		bool holonomic = false);
 
 	const RDS::VelocityCommand& getCommandSolution() const
 	{
