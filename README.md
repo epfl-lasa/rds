@@ -45,7 +45,7 @@ rosrun rds_gui_ros rds_gui_ros_node
 
 The two ros nodes to use for holonomic robots are "rds_holonomic_ros_node" and "rds_holonomic_gui_ros_node".
 
-When calling the service from the holonomic node, one therefore needs to follow the convention that the linear velocity is treated as the cartesian forward velocity (y) and the angular velocity is treated as the cartesian lateral velocity (x, in robot fixed coordinates).
+When calling the service from the holonomic node, one needs to follow the convention that the linear velocity is treated as the cartesian forward velocity (y) and the angular velocity is treated as the cartesian lateral velocity (x, in robot fixed coordinates).
 
 ## Velocity limits
 When calling the service there is also the need to specify the velocity and acceleration limits.
