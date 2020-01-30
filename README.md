@@ -12,12 +12,13 @@ The visualization depends on the game library SDL 2.0. To install it and set it 
 sudo apt install libsdl2-dev
 ```
 
-## Demo
-The demo uses the visualization and therefore requires to setup SDL as described above. To build and run the demo, run the following commands in a terminal.
+## Demos
+The demos use the visualization and therefore requires to setup SDL as described above. To build and run the demos, run the following commands in a terminal.
 ```
 cd [THIS_REPOSITORY_ROOT_FOLDER]/rds
-make demo_geo
+make
 ./build/demo_geo
+./build/demo_simu 3 s
 ```
 
 ## Install and run on ROS
@@ -30,36 +31,25 @@ catkin build rds_ros
 ```
 
 To run the rds node
-
 ```
 rosrun rds_ros rds_ros_node
 ```
-rds_ros_node listens to the topic /laserscan (sensor_msgs/LaserScan)
+rds_ros_node listens to the topic /laserscan (sensor_msgs/LaserScan).
 
-## Unit Test Setup
+To run the gui node
+```
+rosrun rds_gui_ros rds_gui_ros_node
+```
 
-The implemented unit tests for individual library functions use the gtest library. The following steps install it on Ubuntu 16.04.
-```
-# Prerequisite: CMake
-dpkg -s libgtest-dev
-# if the result says it is not installed, install with: sudo apt-get install libgtest-dev
-dpkg -L libgtest-dev
-# this list includes for me: /usr/src/gtest 
-# I heard that on newer Ubuntu versions the equivalent is: /usr/src/googletest/googletest
-cd /usr/src/gtest #if this is among the listed directories, otherwise go to equivalent
-sudo mkdir build
-cd build
-sudo cmake ..
-sudo make
-sudo cp libgtest* /usr/lib/
-cd ..
-sudo rm -rf build
-sudo mkdir /usr/local/lib/gtest
-sudo ln -s /usr/lib/libgtest.a /usr/local/lib/gtest/libgtest.a
-sudo ln -s /usr/lib/libgtest_main.a /usr/local/lib/gtest/libgtest_main.a
-```
-To build and execute one of the unit tests, run for example the following commands.
-```
-make test_geometry
-./build/test_geometry
-```
+## Holonomic mode
+
+The two ros nodes to use for holonomic robots are "rds_holonomic_ros_node" and "rds_holonomic_gui_ros_node".
+
+When calling the service from the holonomic node, one therefore needs to follow the convention that the linear velocity is treated as the cartesian forward velocity (y) and the angular velocity is treated as the cartesian lateral velocity (x, in robot fixed coordinates).
+
+## Velocity limits
+When calling the service there is also the need to specify the velocity and acceleration limits.
+The hexagon limits for the velocity are explained by the sketch here:
+https://github.com/epfl-lasa/rds/blob/master/docs/hexagon_limits.pdf
+
+In the holonomic case, the omega axis is interpreted as the x-axis, i.e. the lateral component of the velocity in m/s. One can set a rectangular limitation by setting all the omega limits to the same value. The acceleration limits will be interpreted similarly (angular=x, linear=y) and the command_cycle_time value is used to generate velocity limits out of the acceleration limits (setting a very high value effectively disables the acceleration limits).
