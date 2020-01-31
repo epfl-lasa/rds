@@ -12,8 +12,8 @@ The visualization depends on the game library SDL 2.0. To install it and set it 
 sudo apt install libsdl2-dev
 ```
 
-## Demos
-The demos use the visualization and therefore requires to setup SDL as described above. To build and run the demos, run the following commands in a terminal.
+## Demos for the Basic Library
+The demos use the visualization and therefore require to setup SDL as described above. To build and run the demos, run the following commands in a terminal.
 ```
 cd [THIS_REPOSITORY_ROOT_FOLDER]/rds
 make
@@ -27,7 +27,7 @@ sudo apt install ros-kinetic-velodyne-msgs ros-kinetic-velodyne-pointcloud
 cd [THIS_REPOSITORY_ROOT_FOLDER]/rds
 make demo_rds # this creates the necessary library files inside build/
 cd [YOUR_CATKIN_WORKSPACE]
-catkin build rds_ros
+catkin build
 ```
 
 To run the rds node
@@ -53,3 +53,12 @@ The hexagon limits for the velocity are explained by the sketch here:
 https://github.com/epfl-lasa/rds/blob/master/docs/hexagon_limits.pdf
 
 In the holonomic case, the omega axis is interpreted as the x-axis, i.e. the lateral component of the velocity in m/s. One can set a rectangular limitation by setting all the omega limits to the same value. The acceleration limits will be interpreted similarly (angular=x, linear=y) and the command_cycle_time value is used to generate velocity limits out of the acceleration limits (setting a very high value effectively disables the acceleration limits).
+
+## Demos for the ROS nodes
+```
+roscore
+rosbag play -l [THIS_REPOSITORY_ROOT_FOLDER]/data/ethz_lrf_snippet.bag /sick_laser_front/cropped_scan:=/laserscan
+rosrun rds_gui_ros rds_gui_ros_node
+rosrun rds_ros rds_ros_node
+python [THIS_REPOSITORY_ROOT_FOLDER]/rds_ros/scripts/rds_client_ros_node.py
+```
