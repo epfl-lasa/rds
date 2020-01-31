@@ -1,0 +1,111 @@
+#!/usr/bin/env python
+import rospy
+from rds_network_ros.srv import *
+import time
+import numpy as np
+
+# robot params
+MaxSpeed = 0.5
+MinSpeed = 0.5
+MaxAngular = 0.5
+
+# Setting for the RDS service
+max_linear = MaxSpeed;
+min_linear = -MinSpeed;
+absolute_angular_at_min_linear = MaxAngular/2.;
+absolute_angular_at_max_linear = MaxAngular/2.;
+absolute_angular_at_zero_linear = MaxAngular;
+linear_acceleration_limit = 1.
+angular_acceleration_limit = 1.
+feasible = 0
+Output_V = 0.;
+Output_W = 0.;
+last_v = 1.;
+last_w = 0.1;
+cycle=0.
+y_coordinate_of_reference_point_for_command_limits = 0.5;
+weight_scaling_of_reference_point_for_command_limits = 0.;
+tau = 2.;
+delta = 0.10;
+clearance_from_axle_of_final_reference_point = 0.15;
+
+
+
+
+
+def rds_service(event=None):
+    # inputs
+    User_V = 1.
+    User_W = 0.1
+    User_norm = np.sqrt(User_V ** 2 + User_W ** 2)
+    global last_v
+    global last_w
+    global cycle
+    # print "Waiting for RDS Service"
+
+    rospy.wait_for_service('rds_velocity_command_correction')
+    # try:
+    RDS = rospy.ServiceProxy('rds_velocity_command_correction',VelocityCommandCorrectionRDS)
+
+    request = VelocityCommandCorrectionRDSRequest()
+
+    request.nominal_command.linear = User_V;
+    request.nominal_command.angular = User_W;
+
+    request.velocity_limits.max_linear = max_linear;
+    request.velocity_limits.min_linear = min_linear;
+    request.velocity_limits.abs_angular_at_min_linear = absolute_angular_at_min_linear;
+    request.velocity_limits.abs_angular_at_max_linear = absolute_angular_at_max_linear;
+    request.velocity_limits.abs_angular_at_zero_linear = absolute_angular_at_zero_linear;
+    request.abs_linear_acceleration_limit = linear_acceleration_limit;
+    request.abs_angular_acceleration_limit = angular_acceleration_limit;
+
+    request.y_coordinate_of_reference_point_for_command_limits = y_coordinate_of_reference_point_for_command_limits;
+    request.weight_scaling_of_reference_point_for_command_limits = weight_scaling_of_reference_point_for_command_limits;
+    request.clearance_from_axle_of_final_reference_point = clearance_from_axle_of_final_reference_point;
+    request.delta = delta;
+    request.tau = tau;
+    request.y_coordinate_of_reference_biasing_point = 1.;
+    request.weight_of_reference_biasing_point = 0.;
+
+    request.last_actual_command.linear = last_v;
+    request.last_actual_command.angular = last_w;
+
+    if cycle==0:
+        delta_time = 0.005;
+    else:
+        delta_time = time.clock() - cycle;
+
+    request.command_cycle_time = delta_time
+    request.abs_linear_acceleration_limit = 4;
+    request.abs_angular_acceleration_limit = 2;
+
+    print("calling service")
+    response = RDS(request)
+    print("response")
+    print(response)
+    v_out = response.corrected_command.linear
+    w_out = response.corrected_command.angular
+    if np.sqrt(v_out ** 2 + w_out ** 2) < 0.1:
+        v_out = 0.1 * User_V / User_norm
+        w_out = 0.1 * User_W / User_norm
+    from geometry_msgs.msg import Twist
+    pub = rospy.Publisher("/cmd_vel", Twist, queue_size=1)
+    cmd_vel = Twist()
+    cmd_vel.linear.x = v_out
+    cmd_vel.linear.y = w_out
+    cmd_vel.angular.z = 0
+#     from numpy import random
+#     cmd_vel.angular.z = random.rand() - 0.5
+    pub.publish(cmd_vel)
+    Output_V = round(response.corrected_command.linear,4)
+    Output_W = round(response.corrected_command.angular,4)
+    feasible = response.feasible
+
+    last_v = Output_V
+    last_w = Output_W
+    cycle = time.clock()
+
+rospy.init_node("rds_client")
+rospy.Timer(rospy.Duration(0.1), rds_service)
+rospy.spin()

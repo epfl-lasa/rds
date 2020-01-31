@@ -1,97 +1,275 @@
 #!/usr/bin/env python
-import rospy
-from rds_network_ros.srv import *
 import time
+from copy import deepcopy
+from costmap_converter.msg import ObstacleArrayMsg, ObstacleMsg
+from frame_msgs.msg import TrackedPersons
+from geometry_msgs.msg import Twist, Quaternion
+from geometry_msgs.msg import Point, Point32, Twist, PoseStamped
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+from map2d_ros_tools import ReferenceMapAndLocalizationManager
+import numpy as np
+from nav_msgs.msg import Odometry, Path
+from pose2d import Pose2D, apply_tf, apply_tf_to_pose, inverse_pose2d, apply_tf_to_vel
+import rospy
+from sensor_msgs.msg import LaserScan
+from std_srvs.srv import Trigger, TriggerResponse
+import signal
+import sys
+import tf
+from tf2_ros import TransformException
+import threading
+from timeit import default_timer as timer
+from visualization_msgs.msg import Marker, MarkerArray
+from CMap2D import CMap2D
 
-# robot params
-MaxSpeed = 0.5
-MinSpeed = 0.5
-MaxAngular = 0.5
-W_ratio = 1.
+from rds_network_ros.srv import *
 
-# Setting for the RDS service
-max_linear = MaxSpeed;
-min_linear = -MinSpeed;
-absolute_angular_at_min_linear = 0.;
-absolute_angular_at_max_linear = 0.;
-absolute_angular_at_zero_linear = MaxAngular/W_ratio;
-linear_acceleration_limit = 1.1
-angular_acceleration_limit = 1.5
-feasible = 0
-Output_V = 0.;
-Output_W = 0.;
-last_v = 0.;
-last_w = 0.;
-cycle=0.
-y_coordinate_of_reference_point_for_command_limits = 0.5;
-weight_scaling_of_reference_point_for_command_limits = 0.;
-tau = 2.;
-delta = 0.10;
-clearance_from_axle_of_final_reference_point = 0.15;
-
-
-
+N_PAST_POS = 100
+HUMAN_RADIUS = 0.3 # according to Kenneth
 
 
-def rds_service(event=None):
-    # inputs
-    User_V = 1.
-    User_W = 0.1
-    global last_v
-    global last_w
-    last_v = User_V # TODO
-    last_w = User_W # TODO
-    global cycle
-    # print "Waiting for RDS Service"
 
-    rospy.wait_for_service('rds_velocity_command_correction')
-    # try:
-    RDS = rospy.ServiceProxy('rds_velocity_command_correction',VelocityCommandCorrectionRDS)
+class Planning(object):
+    def __init__(self, args):
+        self.args = args
+        # consts
+        self.kRobotRadius = rospy.get_param("~robot_radius", 0.4)
+        self.kIdealVelocity = rospy.get_param("~ideal_velocity", 0.3)
+        self.kFixedFrameTopic = "/pepper_robot/odom"
+        self.kCmdVelTopic = "/cmd_vel"
+        self.kWaypointTopic = "/global_planner/current_waypoint"
+        self.kFixedFrame = rospy.get_param("~fixed_frame", "odom") # ideally something truly fixed, like /map
+        self.kRobotFrame = "base_footprint"
+        # vars
+        self.tf_rob_in_fix = None
+        self.tf_wpt_in_fix = None
+        self.lock = threading.Lock() # for avoiding race conditions
+        self.STOP = True
+        self.last_u = 1.;
+        self.last_v = 0.1;
+        self.cycle=0.
+        # ROS
+        rospy.init_node('rds_client', anonymous=True)
+        rospy.Subscriber(self.kWaypointTopic, Marker, self.waypoint_callback, queue_size=1)
+        self.cmd_vel_pub = rospy.Publisher(self.kCmdVelTopic, Twist, queue_size=1)
+        # tf
+        self.tf_listener = tf.TransformListener()
+        self.tf_br = tf.TransformBroadcaster()
+        # Timers
+        rospy.Timer(rospy.Duration(0.001), self.tf_callback)
+        rospy.Timer(rospy.Duration(0.1), self.planner_routine)
+        # Services
+        rospy.Service('stop_autonomous_motion', Trigger, 
+                self.stop_autonomous_motion_service_call)
+        rospy.Service('resume_autonomous_motion', Trigger, 
+                self.resume_autonomous_motion_service_call)
+        # spin
+        try:
+            rospy.spin()
+        except KeyboardInterrupt:
+            print("Keyboard interrupt - shutting down.")
+            rospy.signal_shutdown('KeyboardInterrupt')
 
-    request = VelocityCommandCorrectionRDSRequest()
+    def stop_autonomous_motion_service_call(self, req):
+        with self.lock:
+            if not self.STOP:
+                print("Surrendering robot control")
+                cmd_vel_msg = Twist()
+                self.cmd_vel_pub.publish(cmd_vel_msg)
+            self.STOP = True
+        return TriggerResponse(True, "")
 
-    request.nominal_command.linear = User_V;
-    request.nominal_command.angular = User_W;
+    def resume_autonomous_motion_service_call(self, req):
+        with self.lock:
+            if self.STOP:
+                print("Assuming robot control")
+                # re set goal
+                if self.tf_rob_in_fix is None:
+                    print("couldn't reset goal: tf_rob_in_fix not found yet")
+                else:
+                    self.tf_goal_in_fix = self.tf_rob_in_fix
+                    print("responsive: waypoint set to current position (assumed control)")
+            self.STOP = False
+        return TriggerResponse(True, "")
 
-    request.velocity_limits.max_linear = max_linear;
-    request.velocity_limits.min_linear = min_linear;
-    request.velocity_limits.abs_angular_at_min_linear = absolute_angular_at_min_linear;
-    request.velocity_limits.abs_angular_at_max_linear = absolute_angular_at_max_linear;
-    request.velocity_limits.abs_angular_at_zero_linear = absolute_angular_at_zero_linear;
-    request.abs_linear_acceleration_limit = linear_acceleration_limit;
-    request.abs_angular_acceleration_limit = angular_acceleration_limit;
+    def tf_callback(self, event=None):
+        try:
+             self.tf_rob_in_fix = self.tf_listener.lookupTransform(self.kFixedFrame, self.kRobotFrame, rospy.Time(0))
+        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
+            return
 
-    request.y_coordinate_of_reference_point_for_command_limits = y_coordinate_of_reference_point_for_command_limits;
-    request.weight_scaling_of_reference_point_for_command_limits = weight_scaling_of_reference_point_for_command_limits;
-    request.clearance_from_axle_of_final_reference_point = clearance_from_axle_of_final_reference_point;
-    request.delta = delta;
-    request.tau = tau;
-    request.y_coordinate_of_reference_biasing_point = 1.;
-    request.weight_of_reference_biasing_point = 0.;
+    def planner_routine(self, event=None):
+        nowstamp = rospy.Time.now()
+        if self.tf_wpt_in_fix is None:
+            rospy.logwarn_throttle(10., "Waypoint not available yet")
+            return
+        if self.tf_rob_in_fix is None:
+            rospy.logwarn_throttle(10., "tf_rob_in_fix not available yet")
+            return
 
-    request.last_actual_command.linear = last_v;
-    request.last_actual_command.angular = last_w;
+        wpt_in_rob = apply_tf_to_pose(
+            Pose2D(self.tf_wpt_in_fix),
+            inverse_pose2d(Pose2D(self.tf_rob_in_fix))
+        )[:2]
+        self.kIdealVelocity = 0.5
+        desired_vel = self.kIdealVelocity * wpt_in_rob / np.linalg.norm(wpt_in_rob)
 
-    if cycle==0:
-        delta_time = 0.005;
-    else:
-        delta_time = time.clock() - cycle;
+        # Planner ----------------------------
 
-    request.command_cycle_time = delta_time
-    request.abs_linear_acceleration_limit = 4;
-    request.abs_angular_acceleration_limit = 2;
+        # robot params
+        MaxSpeed = 0.5
+        MinSpeed = 0.5
+        MaxAngular = 0.5
 
-    print("calling service")
-    response = RDS(request)
-    print("response")
-    Output_V = round(response.corrected_command.linear,4)
-    Output_W = round(response.corrected_command.angular,4)
-    feasible = response.feasible
+        # Setting for the RDS service
+        max_linear = MaxSpeed;
+        min_linear = -MinSpeed;
+        absolute_angular_at_min_linear = MaxAngular/2.;
+        absolute_angular_at_max_linear = MaxAngular/2.;
+        absolute_angular_at_zero_linear = MaxAngular;
+        linear_acceleration_limit = 1.
+        angular_acceleration_limit = 1.
+        feasible = 0
+        Output_U = 0.;
+        Output_V = 0.;
+        y_coordinate_of_reference_point_for_command_limits = 0.5;
+        weight_scaling_of_reference_point_for_command_limits = 0.;
+        tau = 2.;
+        delta = 0.10;
+        clearance_from_axle_of_final_reference_point = 0.15;
 
-    last_v = Output_V
-    last_w = Output_W
-    cycle = time.clock()
+        # inputs
+        User_U = desired_vel[0]
+        User_V = desired_vel[1]
+        User_norm = np.sqrt(User_U ** 2 + User_V ** 2)
+        # print "Waiting for RDS Service"
 
-rospy.init_node("rds_client")
-rospy.Timer(rospy.Duration(0.1), rds_service)
-rospy.spin()
+        rospy.wait_for_service('rds_velocity_command_correction')
+        # try:
+        RDS = rospy.ServiceProxy('rds_velocity_command_correction',VelocityCommandCorrectionRDS)
+
+        request = VelocityCommandCorrectionRDSRequest()
+
+        request.nominal_command.linear = User_U;
+        request.nominal_command.angular = User_V;
+
+        request.velocity_limits.max_linear = max_linear;
+        request.velocity_limits.min_linear = min_linear;
+        request.velocity_limits.abs_angular_at_min_linear = absolute_angular_at_min_linear;
+        request.velocity_limits.abs_angular_at_max_linear = absolute_angular_at_max_linear;
+        request.velocity_limits.abs_angular_at_zero_linear = absolute_angular_at_zero_linear;
+        request.abs_linear_acceleration_limit = linear_acceleration_limit;
+        request.abs_angular_acceleration_limit = angular_acceleration_limit;
+
+        request.y_coordinate_of_reference_point_for_command_limits = y_coordinate_of_reference_point_for_command_limits;
+        request.weight_scaling_of_reference_point_for_command_limits = weight_scaling_of_reference_point_for_command_limits;
+        request.clearance_from_axle_of_final_reference_point = clearance_from_axle_of_final_reference_point;
+        request.delta = delta;
+        request.tau = tau;
+        request.y_coordinate_of_reference_biasing_point = 1.;
+        request.weight_of_reference_biasing_point = 0.;
+
+        request.last_actual_command.linear = self.last_u;
+        request.last_actual_command.angular = self.last_v;
+
+        if self.cycle==0:
+            delta_time = 0.005;
+        else:
+            delta_time = time.clock() - self.cycle;
+
+        request.command_cycle_time = delta_time
+        request.abs_linear_acceleration_limit = 4;
+        request.abs_angular_acceleration_limit = 2;
+
+        if self.args.hz:
+            rospy.loginfo("calling service")
+        response = RDS(request)
+        if self.args.hz:
+            rospy.loginfo("response")
+            rospy.loginfo(response)
+        u_out = response.corrected_command.linear
+        v_out = response.corrected_command.angular
+        if np.sqrt(u_out ** 2 + v_out ** 2) < 0.1:
+            u_out = 0.1 * User_U / User_norm
+            v_out = 0.1 * User_V / User_norm
+        Output_U = round(response.corrected_command.linear,4)
+        Output_V = round(response.corrected_command.angular,4)
+        feasible = response.feasible
+
+        self.last_u = Output_U
+        self.last_v = Output_V
+        self.cycle = time.clock()
+        # ---------------------------------------
+
+        # check if goal is reached
+        if np.linalg.norm(wpt_in_rob) < self.kRobotRadius:
+            u_out, v_out = (0, 0)
+
+
+        # Slow turn towards goal
+        w_out = 0
+        WMAX = 0.5
+        gx, gy = wpt_in_rob
+        angle_to_goal = np.arctan2(gy, gx) # [-pi, pi]
+        if np.sqrt(gx * gx + gy * gy) > 0.5: # turn only if goal is far away
+            if np.abs(angle_to_goal) > (np.pi / 4/ 10): # deadzone
+                w_out = np.clip(angle_to_goal, -WMAX, WMAX) # linear ramp
+
+
+        if not self.STOP:
+            # publish cmd_vel
+            if self.args.hz:
+                rospy.loginfo("publishing cmd vel.")
+            cmd_vel_msg = Twist()
+            cmd_vel_msg.linear.x = u_out
+            cmd_vel_msg.linear.y = v_out
+            cmd_vel_msg.angular.z = w_out
+            self.cmd_vel_pub.publish(cmd_vel_msg)
+
+    def waypoint_callback(self, msg):
+        self.tf_timeout = rospy.Duration(0.1)
+        """ If a global path is received (in map frame), try to track it """
+        with self.lock:
+            ref_frame = msg.header.frame_id
+            wpt_ref_xy = [msg.pose.position.x, msg.pose.position.y]
+            try:
+                time = rospy.Time.now()
+                tf_info = [self.kFixedFrame, msg.header.frame_id, time]
+                self.tf_listener.waitForTransform(*(tf_info + [self.tf_timeout]))
+                tf_ref_in_fix = self.tf_listener.lookupTransform(*tf_info)
+            except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException,
+                    TransformException) as e:
+                rospy.logwarn("[{}.{}] tf to refmap frame for time {}.{} not found: {}".format(
+                    rospy.Time.now().secs, rospy.Time.now().nsecs, time.secs, time.nsecs, e))
+                return
+            wpt_fix_xy = apply_tf(np.array(wpt_ref_xy), Pose2D(tf_ref_in_fix))
+            self.tf_wpt_in_fix = (np.array([wpt_fix_xy[0], wpt_fix_xy[1], 0.]), # trans
+                                   tf.transformations.quaternion_from_euler(0,0,0)) # quat
+
+
+def parse_args():
+    import argparse
+    ## Arguments
+    parser = argparse.ArgumentParser(description='ROS node for clustering 2d lidar')
+    parser.add_argument('--hz',
+            action='store_true',
+            help='if set, prints planner frequency to script output',
+            )
+    parser.add_argument('--scan-topic', default="/combined_scan")
+    ARGS, unknown_args = parser.parse_known_args()
+
+    # deal with unknown arguments
+    # ROS appends some weird args, ignore those, but not the rest
+    if unknown_args:
+        non_ros_unknown_args = rospy.myargv(unknown_args)
+        if non_ros_unknown_args:
+            print("unknown arguments:")
+            print(non_ros_unknown_args)
+            parser.parse_args(args=["--help"])
+            raise ValueError
+    return ARGS
+
+if __name__=="__main__":
+    args = parse_args()
+    clustering = Planning(args)
