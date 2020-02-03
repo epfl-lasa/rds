@@ -1,8 +1,9 @@
 <launch>
+  <arg name="script_args" default="--hz" />
   <node name="rds_ros" pkg="rds_ros" type="rds_holonomic_ros_node" >
     <remap from="/laserscan" to="/combined_scan" />
   </node>
   <node name="rds_gui_ros_node" pkg="rds_gui_ros" type="rds_holonomic_gui_ros_node" />
   <node name="rds_pepper_client" pkg="rds_ros" type="rds_pepper_client" output="screen"
-    args="--hz"/>
+    args="$(arg script_args)"/>
 </launch>

@@ -1,0 +1,8 @@
+<launch>
+  <include file="$(find asl_pepper_2d_simulator)/launch/pepper_2d_simulator.launch" />
+  <include file="$(find asl_pepper_motion_planning)/launch/global_planner.launch" />
+  <include file="$(find rds_ros)/launch/pepper_rds.launch">
+    <arg name="script_args" value="--hz --no-stop"/>
+  </include>
+  <node pkg="rviz" type="rviz" name="rviz" args="-d $(env HOME)/.rviz/rds.rviz" output="log" />
+</launch>

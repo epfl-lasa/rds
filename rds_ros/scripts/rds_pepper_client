@@ -28,6 +28,8 @@ from rds_network_ros.srv import *
 N_PAST_POS = 100
 HUMAN_RADIUS = 0.3 # according to Kenneth
 
+PUSH_THROUGH = True
+ROTATE_TO_WPT = True
 
 
 class Planning(object):
@@ -46,6 +48,8 @@ class Planning(object):
         self.tf_wpt_in_fix = None
         self.lock = threading.Lock() # for avoiding race conditions
         self.STOP = True
+        if self.args.no_stop:
+            self.STOP = False
         self.last_u = 1.;
         self.last_v = 0.1;
         self.cycle=0.
@@ -152,7 +156,7 @@ class Planning(object):
         request = VelocityCommandCorrectionRDSRequest()
 
         request.nominal_command.linear = User_U;
-        request.nominal_command.angular = User_V;
+        request.nominal_command.angular = -User_V;
 
         request.velocity_limits.max_linear = max_linear;
         request.velocity_limits.min_linear = min_linear;
@@ -189,10 +193,11 @@ class Planning(object):
             rospy.loginfo("response")
             rospy.loginfo(response)
         u_out = response.corrected_command.linear
-        v_out = response.corrected_command.angular
-        if np.sqrt(u_out ** 2 + v_out ** 2) < 0.1:
-            u_out = 0.1 * User_U / User_norm
-            v_out = 0.1 * User_V / User_norm
+        v_out = -response.corrected_command.angular
+        if PUSH_THROUGH:
+            if np.sqrt(u_out ** 2 + v_out ** 2) < 0.1:
+                u_out = 0.1 * User_U / User_norm
+                v_out = 0.1 * User_V / User_norm
         Output_U = round(response.corrected_command.linear,4)
         Output_V = round(response.corrected_command.angular,4)
         feasible = response.feasible
@@ -209,12 +214,13 @@ class Planning(object):
 
         # Slow turn towards goal
         w_out = 0
-        WMAX = 0.5
-        gx, gy = wpt_in_rob
-        angle_to_goal = np.arctan2(gy, gx) # [-pi, pi]
-        if np.sqrt(gx * gx + gy * gy) > 0.5: # turn only if goal is far away
-            if np.abs(angle_to_goal) > (np.pi / 4/ 10): # deadzone
-                w_out = np.clip(angle_to_goal, -WMAX, WMAX) # linear ramp
+        if ROTATE_TO_WPT:
+            WMAX = 0.5
+            gx, gy = wpt_in_rob
+            angle_to_goal = np.arctan2(gy, gx) # [-pi, pi]
+            if np.sqrt(gx * gx + gy * gy) > 0.5: # turn only if goal is far away
+                if np.abs(angle_to_goal) > (np.pi / 4/ 10): # deadzone
+                    w_out = np.clip(angle_to_goal, -WMAX, WMAX) # linear ramp
 
 
         if not self.STOP:
@@ -255,6 +261,10 @@ def parse_args():
     parser.add_argument('--hz',
             action='store_true',
             help='if set, prints planner frequency to script output',
+            )
+    parser.add_argument('--no-stop',
+            action='store_true',
+            help='DANGER: starts the planner hot, instead of waiting for control handover',
             )
     parser.add_argument('--scan-topic', default="/combined_scan")
     ARGS, unknown_args = parser.parse_known_args()
