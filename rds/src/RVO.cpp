@@ -22,19 +22,19 @@ void RVO::computeCoordinativeVelocityObstacles(const Circle& o_1, const Circle& 
 	Vec2 shift_1(-1.f*shift_2);
 
 	*vo_1 = HalfPlane2(convex_rvo).shift(shift_1 + vpref_2);
-	*vo_2 = HalfPlane2(convex_rvo).rescale(-1.f).shift(shift_2 + vpref_1);
+	*vo_2 = HalfPlane2(-1.f*convex_rvo.getNormal(), convex_rvo.getOffset()).shift(shift_2 + vpref_1);
 
 	if (vo_1->getOffset() < 0.f)
 	{
 		Vec2 shift_to_free_origin(-1.f*vo_1->getNormal()*vo_1->getOffset());
 		vo_1->shift(shift_to_free_origin);
-		vo_2->shift(-1.f*shift_to_free_origin);
+		vo_2->shift(shift_to_free_origin);
 	}
 	else if (vo_2->getOffset() < 0.f)
 	{
 		Vec2 shift_to_free_origin(-1.f*vo_2->getNormal()*vo_2->getOffset());
 		vo_2->shift(shift_to_free_origin);
-		vo_1->shift(-1.f*shift_to_free_origin);
+		vo_1->shift(shift_to_free_origin);
 	}
 }
 
@@ -76,8 +76,10 @@ void RVO::computeConvexRVO(const Vec2& relative_position, const Vec2& relative_v
 	HalfPlane2 h_plus(p_tangent_plus - c_cone_cap, 0.f);
 
 	// check if v_pref is outside RVO
-	HalfPlane2 h_minus_shifted(h_minus).shift(-1.f*h_minus.getNormal()*v_r);
-	HalfPlane2 h_plus_shifted(h_plus).shift(-1.f*h_plus.getNormal()*v_r);
+	HalfPlane2 h_minus_shifted(h_minus);
+	h_minus_shifted.shift(-1.f*h_minus.getNormal()*v_r);
+	HalfPlane2 h_plus_shifted(h_plus);
+	h_plus_shifted.shift(-1.f*h_plus.getNormal()*v_r);
 	Boundary candidates_boundary;
 	Vec2 candidate;
 	if (h_minus_shifted.signedDistance(relative_velocity_pref) <= 0.f)
@@ -123,7 +125,47 @@ void RVO::computeConvexRVO(const Vec2& relative_position, const Vec2& relative_v
 
 	// v_pref is inside the RVO
 	// -> intersect the ray through the origin and v_pref with the cap
+	float v_tol = 1e-10f;
+	Vec2 tangent_point(0.f, 0.f);
+	if (v_tol < relative_velocity_pref.norm())
+	{
+		float discriminant = 4.f*(relative_velocity_pref.dot(c_cone_cap)*relative_velocity_pref.dot(c_cone_cap) -
+			relative_velocity_pref.dot(relative_velocity_pref)*(c_cone_cap.dot(c_cone_cap) - v_r*v_r));
+		if (discriminant > 0.f)
+		{
+			float scaling = (2.f*relative_velocity_pref.dot(c_cone_cap) - std::sqrt(discriminant))/
+				2.f/relative_velocity_pref.dot(relative_velocity_pref);
+			tangent_point = relative_velocity_pref*scaling;
+		}
+		else
+		{
+			float scaling = 2.f*relative_velocity_pref.dot(c_cone_cap)/
+				relative_velocity_pref.dot(relative_velocity_pref);
+			tangent_point = relative_velocity_pref*scaling;
+		}
+	}
+	// compute the tangent halfplane
+	*crvo = HalfPlane2(c_cone_cap - tangent_point, 0.f);
+	crvo->shift(crvo->getNormal()*crvo->signedDistance(tangent_point));
+	return;
 
+
+/*
+	float c_cone_cap_1st_coord = v_c + v_r; //e_basis_1.dot(c_cone_cap);
+	float v_pref_1st_coord = e_basis_1.dot(relative_velocity_pref);
+	float v_pref_2nd_coord = e_basis_2.dot(relative_velocity_pref);
+	float summand_b = 0.f;
+
+
+	float denominator_b = v_pref_2nd_coord*v_pref_2nd_coord/v_pref_1st_coord/v_pref_1st_coord + 1.f;
+	if ((c_cone_cap_1st_coord*c_cone_cap_1st_coord - v_r*v_r) > denominator_b*v_tol*v_tol)
+
+	{
+	float numerator_b = (c_cone_cap_1st_coord*c_cone_cap_1st_coord - v_r*v_r)*v_pref_1st_coord*v_pref_1st_coord;
+	float denominator_b = (v_pref_2nd_coord*v_pref_2nd_coord + v_pref_1st_coord*v_pref_1st_coord);
+	if (numerator_b > denominator_b*v_tol*v_tol)
+	}
+*/
 
 
 	/*
@@ -141,7 +183,4 @@ void RVO::computeConvexRVO(const Vec2& relative_position, const Vec2& relative_v
 			//check if within the cone ...
 		}
 	}*/
-
-
-
 }

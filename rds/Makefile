@@ -5,6 +5,11 @@ FLAGS = -std=c++11 -g -Wall
 
 # DEMOS
 
+demo_rvo: build/demo_rvo
+
+build/demo_rvo: src/demo_rvo.cpp src/simulation.hpp src/simulation.cpp src/RVO.hpp src/RVO.cpp build/libgui.a build/libgeometry.a
+	g++ $(FLAGS) src/demo_rvo.cpp src/simulation.cpp src/RVO.cpp -Lbuild -lgeometry -lgui -lSDL2 -o build/demo_rvo
+
 demo_simu: build/demo_simu
 
 build/demo_simu: src/demo_simu.cpp src/simulator.cpp src/simulator.hpp src/orca_style.cpp src/orca_style.hpp build/librds_wrap.a
