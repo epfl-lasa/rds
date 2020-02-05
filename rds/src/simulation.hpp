@@ -26,7 +26,7 @@ struct Agent
 		AdditionalPrimitives2D::Circle* circle, Geometry2D::Vec2* velocity);
 	void addGlobalCircleVelocityConstraint(int circle_index, const Geometry2D::HalfPlane2& constraint);
 	void getConstrainedOptimizedVelocity(float time, Geometry2D::Vec2* linear_velocity,
-		float* angular_velocity);
+		float* angular_velocity, float v_max);
 
 	Geometry2D::Vec2 position;
 	float orientation;
@@ -79,13 +79,14 @@ private:
 
 struct Simulation
 {
-	Simulation(const RVO& rvo) : time(0.f), rvo(rvo) { }
+	Simulation(const RVO& rvo) : time(0.f), rvo(rvo), v_max(0.35f) { }
 
 	void stepEuler(float dt);
 
 	float time;
 	std::vector<Agent*> agents;
 	RVO rvo;
+	float v_max;
 };
 
 #endif

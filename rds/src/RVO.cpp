@@ -14,7 +14,7 @@ void RVO::computeCoordinativeVelocityObstacles(const Circle& o_1, const Circle& 
 {
 	Vec2 relative_position(o_2.center - o_1.center);
 	Vec2 relative_velocity_pref(vpref_1 - vpref_2);
-	float radius_sum = o_1.radius + o_2.radius;
+	float radius_sum = o_1.radius + o_2.radius + delta;
 	HalfPlane2 convex_rvo;
 	computeConvexRVO(relative_position, relative_velocity_pref, radius_sum, &convex_rvo);
 
@@ -29,12 +29,16 @@ void RVO::computeCoordinativeVelocityObstacles(const Circle& o_1, const Circle& 
 		Vec2 shift_to_free_origin(-1.f*vo_1->getNormal()*vo_1->getOffset());
 		vo_1->shift(shift_to_free_origin);
 		vo_2->shift(shift_to_free_origin);
+		if (vo_2->getOffset() < 0.f)
+			vo_2->shift(-1.f*vo_2->getNormal()*vo_2->getOffset());
 	}
 	else if (vo_2->getOffset() < 0.f)
 	{
 		Vec2 shift_to_free_origin(-1.f*vo_2->getNormal()*vo_2->getOffset());
 		vo_2->shift(shift_to_free_origin);
 		vo_1->shift(shift_to_free_origin);
+		if (vo_1->getOffset() < 0.f)
+			vo_1->shift(-1.f*vo_1->getNormal()*vo_1->getOffset());
 	}
 }
 

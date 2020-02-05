@@ -1,4 +1,4 @@
-all: geometry gui demo_geo rds_core rds_wrap demo_rds demo_simu # list only what is ready to build
+all: geometry gui demo_geo rds_core rds_wrap demo_rds demo_simu demo_rvo# list only what is ready to build
 	@echo "\033[92mDone with building RDS.\033[0m"
 
 FLAGS = -std=c++11 -g -Wall
@@ -7,8 +7,8 @@ FLAGS = -std=c++11 -g -Wall
 
 demo_rvo: build/demo_rvo
 
-build/demo_rvo: src/demo_rvo.cpp src/simulation.hpp src/simulation.cpp src/RVO.hpp src/RVO.cpp build/libgui.a build/libgeometry.a
-	g++ $(FLAGS) src/demo_rvo.cpp src/simulation.cpp src/RVO.cpp -Lbuild -lgeometry -lgui -lSDL2 -o build/demo_rvo
+build/demo_rvo: src/demo_rvo.cpp src/simulation.hpp src/simulation.cpp src/RVO.hpp src/RVO.cpp src/simulate_rvo_rds.hpp src/simulate_rvo_rds.cpp build/libgui.a build/libgeometry.a build/librds_wrap.a
+	g++ $(FLAGS) src/demo_rvo.cpp src/simulation.cpp src/RVO.cpp src/simulate_rvo_rds.cpp -Lbuild -lrds_wrap -lgeometry -lgui -lSDL2 -o build/demo_rvo
 
 demo_simu: build/demo_simu
 

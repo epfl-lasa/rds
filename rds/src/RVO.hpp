@@ -12,6 +12,11 @@ struct RVO
 		const Geometry2D::Vec2& vpref_1, const Geometry2D::Vec2& vpref_2,
 		Geometry2D::HalfPlane2* vo_1, Geometry2D::HalfPlane2* vo_2);
 
+	float getTau() const
+	{
+		return tau;
+	}
+	
 private:
 	void computeConvexRVO(const Geometry2D::Vec2& relative_position,
 		const Geometry2D::Vec2& relative_velocity_pref, float radius_sum,

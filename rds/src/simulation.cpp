@@ -4,6 +4,11 @@
 #include <cmath>
 #include <iostream>
 
+#include <algorithm>
+#include <random>
+
+auto rng = std::default_random_engine {};
+
 using Geometry2D::Vec2;
 using Geometry2D::HalfPlane2;
 using AdditionalPrimitives2D::Circle;
@@ -25,6 +30,13 @@ void Simulation::stepEuler(float dt)
 					Vec2 v_pref_ik, v_pref_jl;
 					agents[i]->getCircleAndNominalVelocityGlobal(k, time, &o_ik, &v_pref_ik);
 					agents[j]->getCircleAndNominalVelocityGlobal(l, time, &o_jl, &v_pref_jl);
+					float separation = (o_ik.center - o_jl.center).norm() - o_ik.radius - o_jl.radius;
+					if (separation/rvo.getTau() > std::sqrt(2.f)*2.f*v_max + 0.02f)
+						continue;
+					if (v_pref_ik.norm() > std::sqrt(2.f)*v_max)
+						v_pref_ik = v_pref_ik*std::sqrt(2.f)*v_max/v_pref_ik.norm();
+					if (v_pref_jl.norm() > std::sqrt(2.f)*v_max)
+						v_pref_jl = v_pref_jl*std::sqrt(2.f)*v_max/v_pref_jl.norm();
 					HalfPlane2 vo_ik, vo_jl;
 					rvo.computeCoordinativeVelocityObstacles(o_ik, o_jl, v_pref_ik, v_pref_jl, &vo_ik, &vo_jl);
 					agents[i]->addGlobalCircleVelocityConstraint(k, vo_ik);
@@ -38,7 +50,18 @@ void Simulation::stepEuler(float dt)
 	{
 		Vec2 v;
 		float w;
-		a->getConstrainedOptimizedVelocity(time, &v, &w);
+		if (a->environment->speed != 0.f)
+		{
+			std::shuffle(std::begin(a->constraints), std::end(a->constraints), rng);
+			a->getConstrainedOptimizedVelocity(time, &v, &w, v_max);
+		}
+
+		else
+		{
+			v = Vec2(0.f, 0.f);
+			w = 0.f;
+		}
+
 		a->position = a->position + dt*v;
 		a->orientation += dt*w;
 	}
@@ -92,7 +115,7 @@ void Agent::addGlobalCircleVelocityConstraint(int circle_index, const HalfPlane2
 	constraints.push_back(constraint_ref);
 }
 
-void Agent::getConstrainedOptimizedVelocity(float time, Vec2* linear_velocity, float* angular_velocity)
+void Agent::getConstrainedOptimizedVelocity(float time, Vec2* linear_velocity, float* angular_velocity, float v_max)
 {
 	Vec2 v_ref;
 	environment->getReferenceVelocity(time, position, &v_ref);
@@ -101,7 +124,6 @@ void Agent::getConstrainedOptimizedVelocity(float time, Vec2* linear_velocity, f
 	Vec2 v_reference_point_ref_local;
 	this->transformReferenceVelocityToPointVelocity(v_ref_local, reference_point, &v_reference_point_ref_local);
 	// shift and scale constraints
-	float v_max = 5.f;
 	constraints.push_back(HalfPlane2(Vec2(1.f, 0.f), v_max));
 	constraints.push_back(HalfPlane2(Vec2(-1.f, 0.f), v_max));
 	constraints.push_back(HalfPlane2(Vec2(0.f, 1.f), v_max));
@@ -150,15 +172,15 @@ float orientationReferenceTracking(float orientation, float orientation_referenc
 void DifferentialDriveAgent::transformReferenceVelocityToPointVelocity(const Geometry2D::Vec2& v_ref,
 	const Geometry2D::Vec2& point, Geometry2D::Vec2* v_point_ref)
 {
-	/*
+	
 	float orientation_ref = std::atan2(v_ref.y, v_ref.x);
-	float gain = 0.1f;
-	float angular_v_ref = orientationReferenceTracking(orientation + M_PI/2.f, orientation_ref, gain);
-	float linear_v_ref = v_ref.norm();//v_ref.y;
-	*/
+	float gain = 0.2f;
+	float angular_v_ref = orientationReferenceTracking(M_PI/2.f, orientation_ref, gain);
+	float linear_v_ref = v_ref.y;
+	
 
-	float linear_v_ref = reference_point.x/reference_point.y*v_ref.x + v_ref.y;
-	float angular_v_ref = -v_ref.x/reference_point.y;
+	//float linear_v_ref = reference_point.x/reference_point.y*v_ref.x + v_ref.y;
+	//float angular_v_ref = -v_ref.x/reference_point.y;
 
 	*v_point_ref = Vec2(-angular_v_ref*point.y, linear_v_ref + angular_v_ref*point.x);
 }
