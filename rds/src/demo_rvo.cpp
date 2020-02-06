@@ -31,14 +31,14 @@ void simulate_while_displaying(Simulation* s, const char* title = "RVO", float w
 	{
 		if (!rds)
 		{
-			for (int i = 0; i < 25; i++)
-				s->stepEuler(0.002);
+			for (int i = 0; i < 5; i++)
+				s->stepEuler(0.01);
 		}
 		else
 		{
 			SimulateRvoRds s_rvo_rds(s);
-			for (int i = 0; i < 25; i++)
-				s_rvo_rds.stepEuler(0.002);
+			for (int i = 0; i < 5; i++)
+				s_rvo_rds.stepEuler(0.01);
 		}
 		// transfer the positions to the gui variables
 		{
@@ -129,7 +129,7 @@ int main(int argc, char** argv)
 
 			a1.position = Vec2(-1.5f, 0.f);
 			a3.position = Vec2(2.5f, 1.75f);
-			d.position = Vec2(0.f, -2.2f);
+			d.position = Vec2(0.f, -1.8f);
 			d.orientation = 0.f;
 
 			a1.circles.push_back(Circle(Vec2(0.f, 0.f), 0.25));
@@ -460,7 +460,7 @@ int main(int argc, char** argv)
 			//static_agent.position = Vec2(0.1f, 2.f);
 			//s.agents.push_back(&static_agent);
 			
-			simulate_while_displaying(&s, "RVO robot and dense pedestrians on both axes", 12.f, true);
+			simulate_while_displaying(&s, "RVO robot and dense pedestrians on both axes", 12.f, false);
 			if (argc > 2)
 				break;
 		}
@@ -563,6 +563,35 @@ int main(int argc, char** argv)
 
 			s.agents.push_back(&robot);
 
+			std::vector<Agent> walls;
+			Agent static_agent;
+			Environment e_static_agent;
+			e_static_agent.orientation = 0.f;
+			e_static_agent.speed = 0.f;
+			static_agent.environment = &e_static_agent;
+			static_agent.circles.push_back(Circle(Vec2(0.f, 0.f), 0.25f));
+			for (int i = 0; i < 30; i++)
+			{
+				if ((i > 7) && (i < 19))
+					continue;
+				static_agent.position = Vec2(-7.f + i*0.5, 0.f);
+				walls.push_back(static_agent);
+				static_agent.position = Vec2(-7.f + i*0.5, 4.f);
+				walls.push_back(static_agent);
+			}
+			for (int i = 0; i < 30; i++)
+			{
+				if ((i > 9) && (i < 19))
+					continue;
+				static_agent.position = Vec2(-2.f - 1.f, -4.f + i*0.5 - 1.f);
+				walls.push_back(static_agent);
+				static_agent.position = Vec2(3.f - 1.f, -4.f + i*0.5 - 1.f);
+				walls.push_back(static_agent);
+			}
+
+			for (auto& a : walls)
+				s.agents.push_back(&a);
+
 			std::vector<Agent> crowd;
 			Agent pedestrian;
 			Environment e_pedestrian;
@@ -589,7 +618,38 @@ int main(int argc, char** argv)
 			//static_agent.position = Vec2(0.1f, 2.f);
 			//s.agents.push_back(&static_agent);
 			
-			simulate_while_displaying(&s, "RVO robot and dense pedestrians on both axes", 12.f, true);
+			simulate_while_displaying(&s, "RVO robot and dense pedestrians 1D flow", 12.f, true);
+			if (argc > 2)
+				break;
+		}
+		case 8:
+		{
+			Simulation s(RVO(1.f, 0.05f));
+
+			Agent a, b, c;
+
+			float angle = 0.f;//M_PI/2.f + 10.f*M_PI/8.f;
+
+			Environment e_a;
+			e_a.orientation = angle;
+			e_a.speed = 0.2f;
+			a.environment = &e_a;
+			a.circles.push_back(Circle(Vec2(0.f, 0.f), 0.25f));
+			a.position = Vec2(std::cos(angle + M_PI), std::sin(angle + M_PI));
+			//s.agents.push_back(&a);
+
+			Environment e_b;
+			e_b.orientation = angle + M_PI;
+			e_b.speed = 0.2f;
+			b.environment = &e_b;
+			b.circles.push_back(Circle(Vec2(0.f, 0.f), 0.25f));
+			b.position = Vec2(std::cos(angle), std::sin(angle));
+			s.agents.push_back(&b); s.agents.push_back(&a);
+
+			//static_agent.position = Vec2(0.1f, 2.f);
+			//s.agents.push_back(&static_agent);
+			
+			simulate_while_displaying(&s, "RVO collision test", 12.f, false);
 			if (argc > 2)
 				break;
 		}

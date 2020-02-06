@@ -21,25 +21,32 @@ void RVO::computeCoordinativeVelocityObstacles(const Circle& o_1, const Circle& 
 	Vec2 shift_2(0.5*convex_rvo.signedDistance(relative_velocity_pref)*convex_rvo.getNormal());
 	Vec2 shift_1(-1.f*shift_2);
 
-	*vo_1 = HalfPlane2(convex_rvo).shift(shift_1 + vpref_2);
-	*vo_2 = HalfPlane2(-1.f*convex_rvo.getNormal(), convex_rvo.getOffset()).shift(shift_2 + vpref_1);
+	//*vo_1 = HalfPlane2(convex_rvo).shift(shift_1 + vpref_2);
+	//*vo_2 = HalfPlane2(-1.f*convex_rvo.getNormal(), convex_rvo.getOffset()).shift(shift_2 + vpref_1);
+
+	*vo_1 = HalfPlane2(convex_rvo.getNormal(), 0.f);
+	vo_1->shift(vpref_1 + (-1.f)*vo_1->getNormal()*0.5f*convex_rvo.signedDistance(relative_velocity_pref));
+
+	*vo_2 = HalfPlane2((-1.f)*convex_rvo.getNormal(), 0.f);
+	vo_2->shift(vpref_2 + (-1.f)*vo_2->getNormal()*0.5f*convex_rvo.signedDistance(relative_velocity_pref));
 
 	if (vo_1->getOffset() < 0.f)
 	{
 		Vec2 shift_to_free_origin(-1.f*vo_1->getNormal()*vo_1->getOffset());
 		vo_1->shift(shift_to_free_origin);
 		vo_2->shift(shift_to_free_origin);
-		if (vo_2->getOffset() < 0.f)
-			vo_2->shift(-1.f*vo_2->getNormal()*vo_2->getOffset());
+		//if (vo_2->getOffset() < 0.f)
+		//	vo_2->shift(-1.f*vo_2->getNormal()*vo_2->getOffset());
 	}
 	else if (vo_2->getOffset() < 0.f)
 	{
 		Vec2 shift_to_free_origin(-1.f*vo_2->getNormal()*vo_2->getOffset());
 		vo_2->shift(shift_to_free_origin);
 		vo_1->shift(shift_to_free_origin);
-		if (vo_1->getOffset() < 0.f)
-			vo_1->shift(-1.f*vo_1->getNormal()*vo_1->getOffset());
+		//if (vo_1->getOffset() < 0.f)
+		//	vo_1->shift(-1.f*vo_1->getNormal()*vo_1->getOffset());
 	}
+	m_convex_rvo = convex_rvo;
 }
 
 void RVO::computeConvexRVO(const Vec2& relative_position, const Vec2& relative_velocity_pref,
