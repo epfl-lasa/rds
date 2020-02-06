@@ -9,8 +9,9 @@
 struct Environment
 {
 	Environment() : orientation(0.f), speed(0.5f) { }
+	virtual ~Environment() { }
 
-	void getReferenceVelocity(float time, const Geometry2D::Vec2& position, Geometry2D::Vec2* velocity) const;
+	virtual void getReferenceVelocity(float time, const Geometry2D::Vec2& position, Geometry2D::Vec2* velocity) const;
 
 	float orientation;
 	float speed;

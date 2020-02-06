@@ -6,13 +6,14 @@
 
 struct SimulateRvoRds
 {
-	SimulateRvoRds(Simulation* s_rvo) : s_rvo(s_rvo) { };
+	SimulateRvoRds(Simulation* s_rvo) : s_rvo(s_rvo), tau(1.f), delta(0.05f) { };
 
 	void stepEuler(float dt);
 
 	void createCollisionPointsInRobotFrame(std::vector<RDS::CollisionPoint>* collision_points);
 
 	Simulation* s_rvo;
+	float tau, delta;
 };
 
 #endif

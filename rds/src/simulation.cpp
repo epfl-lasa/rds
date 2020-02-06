@@ -173,8 +173,15 @@ void DifferentialDriveAgent::transformReferenceVelocityToPointVelocity(const Geo
 	const Geometry2D::Vec2& point, Geometry2D::Vec2* v_point_ref)
 {
 	
-	float orientation_ref = std::atan2(v_ref.y, v_ref.x);
-	float gain = 0.2f;
+	float orientation_ref = M_PI/2.f;
+	if (v_ref.norm() > 0.05f)
+		orientation_ref = std::atan2(v_ref.y, v_ref.x);
+	else if (v_ref.norm() > 0.002f)
+	{
+		float weight = (v_ref.norm() - 0.002f)/(0.05f - 0.002f);
+		orientation_ref = std::atan2(v_ref.y, v_ref.x)*weight + (1.f - weight)*M_PI/2.f;
+	}
+	float gain = v_ref.norm();
 	float angular_v_ref = orientationReferenceTracking(M_PI/2.f, orientation_ref, gain);
 	float linear_v_ref = v_ref.y;
 	

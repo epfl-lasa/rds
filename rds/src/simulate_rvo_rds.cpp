@@ -54,8 +54,8 @@ void SimulateRvoRds::stepEuler(float dt)
 
 	float y_coordinate_of_reference_point_for_command_limits = 0.5f;
 	float weight_scaling_of_reference_point_for_command_limits = 1.f;
-	float tau = 5.f; 
-	float delta = 0.05f;
+	//float tau = 5.f; 
+	//float delta = 0.05f;
 	float clearance_from_axle_of_final_reference_point = 0.15f;
 
 	// compute RDS command correction
