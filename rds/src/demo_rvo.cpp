@@ -13,6 +13,7 @@
 #include <random>
 
 #include <iostream>
+#include <stdio.h>
 
 using Geometry2D::Vec2;
 using Geometry2D::HalfPlane2;
@@ -31,7 +32,20 @@ struct GoalEnvironment : public Environment
 	Vec2 goal;
 };
 
-void simulate_while_displaying(Simulation* s, const char* title = "RVO", float window_size = 6.f, bool rds = false, bool show_trajectory = false, const Vec2* goal = 0)
+struct CircularEnvironment : public Environment
+{
+	CircularEnvironment(float omega, float pull_gain, float pull_activation_radius)
+		: Environment(), omega(omega), pull_gain(pull_gain), pull_activation_radius(pull_activation_radius) { }
+	virtual void getReferenceVelocity(float time, const Geometry2D::Vec2& position, Geometry2D::Vec2* velocity) const
+	{
+		*velocity = omega*Vec2(-position.y, position.x) + (-pull_gain)*position*std::max(0.f,
+			position.norm() - pull_activation_radius)/position.norm();
+	}
+	float omega, pull_gain, pull_activation_radius;
+};
+
+void simulate_while_displaying(Simulation* s, const char* title = "RVO", float window_size = 6.f, bool rds = false,
+	bool show_trajectory = false, const Vec2* goal = 0, bool terminate_at_goal = false)
 {
 	GUI gui_constraints(title, 6.f);
 	std::vector<HalfPlane2> ref_p_constraints;
@@ -61,8 +75,8 @@ void simulate_while_displaying(Simulation* s, const char* title = "RVO", float w
 	std::chrono::milliseconds gui_cycle_time(50);
 	std::chrono::high_resolution_clock::time_point t1, t2;
 	t1 = std::chrono::high_resolution_clock::now();
-	int n_iterations = 5;
-	double dt = 0.01;
+	int n_iterations = 2;
+	double dt = 0.025;
 	while ((gui_work_space.update() == 0) | (gui_constraints.update() == 0))
 	{
 		if (!rds)
@@ -109,6 +123,9 @@ void simulate_while_displaying(Simulation* s, const char* title = "RVO", float w
 				robot_trajectory.push_back(s->agents[0]->position);
 		}
 
+		if (terminate_at_goal && ((s->agents[0]->position - *goal).norm() < 0.5f))
+			break;
+
 		t2 = std::chrono::high_resolution_clock::now();
 		std::this_thread::sleep_for(gui_cycle_time - std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1));
 		t1 = t2;
@@ -128,6 +145,7 @@ void simulate_while_displaying(Simulation* s, const char* title = "RVO", float w
 	}
 	std::cout << "Robot average speed = " << average_speed << std::endl;
 	std::cout << "Robot average acceleration = " << average_acceleration << std::endl;
+	std::cout << "Time to reach the goal = " << robot_trajectory.size()*n_iterations*dt << std::endl;
 }
 
 int main(int argc, char** argv)
@@ -1020,6 +1038,180 @@ int main(int argc, char** argv)
 				a->position = a->position + Vec2(-5.f, 0.f);
 			
 			simulate_while_displaying(&s, "Goal-driven traversing dense 1D flow with individual speed values", 18.f, true, true, &goal);
+			if (argc > 2)
+				break;
+		}
+		case 15:
+		{
+			std::default_random_engine generator(1);
+			std::normal_distribution<double> normal_distribution (0.0,1.0);
+			std::uniform_real_distribution<double> uniform_distribution (-1.0,1.0);
+
+			float delta = 0.05f;
+			Simulation s(RVO(0.75f, delta)); // tau = 1.f, 0.5f
+			s.v_max = 1.8f;
+
+			float r_roundabout = 10.f;
+
+			DifferentialDriveAgent robot;
+			//robot.reference_point.y = 1.35f;
+			robot.position = Vec2(r_roundabout + 2.5f, 0.f);
+			robot.orientation = std::atan2(robot.position.y, robot.position.x);
+			robot.circles.push_back(Circle(Vec2(0.f, 0.15f), 0.25));
+			robot.circles.push_back(Circle(Vec2(0.f, -0.2f), 0.2));
+			CircularEnvironment e_robot(1.5f/r_roundabout, 0.5f/r_roundabout, 0.f);
+			robot.environment = &e_robot;
+			s.agents.push_back(&robot);
+
+			Agent static_agent;
+			static_agent.position = Vec2(0.f, 0.f);
+			Environment e_static_agent;
+			e_static_agent.orientation = 0.f;
+			e_static_agent.speed = 0.f;
+			static_agent.environment = &e_static_agent;
+			static_agent.circles.push_back(Circle(Vec2(0.f, 0.f), r_roundabout));
+			s.agents.push_back(&static_agent);
+
+			std::vector<Agent> crowd;
+			Agent pedestrian;
+			float pedestrian_radius = 0.25f;
+			pedestrian.circles.push_back(Circle(Vec2(0.f, 0.f), pedestrian_radius));
+			float density = 1.f;
+			float outer_radius = 1.5f*r_roundabout;
+			float ring_surface = M_PI*(outer_radius*outer_radius - r_roundabout*r_roundabout);
+			int n_pedestrians = int(ring_surface*density) - 1;
+
+			std::vector<CircularEnvironment> e_crowd;
+			CircularEnvironment e_pedestrian(0.f, 0.f, outer_radius);
+			for (int i = 0; i < n_pedestrians; i++)
+			{	
+				e_pedestrian.omega = (1.2f + 0.5f*std::max(-1.f, std::min(1.f,
+					float(normal_distribution(generator)))))/r_roundabout;
+				e_pedestrian.pull_gain = e_pedestrian.omega/1.5f*5.f;
+				e_crowd.push_back(e_pedestrian);
+			}
+
+			for (int i = 0; i < n_pedestrians; i++)
+			{
+				while (true)
+				{
+					Vec2 position_candidate(uniform_distribution(generator), uniform_distribution(generator));
+					position_candidate = outer_radius*position_candidate;
+					bool valid = true;
+					if (position_candidate.norm() > outer_radius)
+						valid = false;
+					for (auto& a : s.agents)
+					{
+						if (!valid)
+							break;
+						for (std::vector<Circle>::size_type j = 0; j != a->circles.size(); j++)
+						{
+							Circle c;
+							Vec2 v;
+							a->getCircleAndNominalVelocityGlobal(j, 0.f, &c, &v);
+							if ((c.center - position_candidate).norm() < c.radius + pedestrian_radius + delta)
+							{
+								valid = false;
+								break;
+							}
+						}
+					}
+					for (auto& a : crowd)
+					{
+						if (!valid)
+							break;
+						for (std::vector<Circle>::size_type j = 0; j != a.circles.size(); j++)
+						{
+							Circle c;
+							Vec2 v;
+							a.getCircleAndNominalVelocityGlobal(j, 0.f, &c, &v);
+							if ((c.center - position_candidate).norm() < c.radius + pedestrian_radius + delta)
+							{
+								valid = false;
+								break;
+							}
+						}
+					}
+
+					if (valid)
+					{
+						pedestrian.position = position_candidate;
+						pedestrian.environment = &e_crowd[i];
+						crowd.push_back(pedestrian);
+						break;
+					}
+				}
+			}
+			for (auto& a : crowd)
+				s.agents.push_back(&a);
+			
+			simulate_while_displaying(&s, "Circular 1D flow with individual speed values", r_roundabout*3.f, false);
+			if (argc > 2)
+				break;
+		}
+		case 16:
+		{
+			std::vector<float> crowd_average_speed = {0.8f, 1.2f, 1.6f};
+			std::vector<float> robot_speed = {0.8f, 1.2f, 1.6f};
+			for (auto& v_crowd : crowd_average_speed)
+			{
+				for (auto& v_robot : robot_speed)
+				{
+					std::default_random_engine generator(1);
+					std::normal_distribution<double> distribution (0.0,1.0);
+
+					Simulation s(RVO(0.5f, 0.05f)); // tau = 1.f, 0.5f
+					s.v_max = std::max(v_crowd + 0.5f, v_robot);
+
+					Vec2 goal(7.f, 0.f);
+
+					DifferentialDriveAgent robot;
+					//robot.reference_point.y = 1.35f;
+					robot.position = 1.2*0.5/0.75*Vec2(-3.8f, 1.6f);
+					robot.orientation = -M_PI/2.f;
+					robot.circles.push_back(Circle(Vec2(0.f, 0.15f), 0.25));
+					robot.circles.push_back(Circle(Vec2(0.f, -0.2f), 0.2));
+					GoalEnvironment e_robot(goal, v_robot);
+					robot.environment = &e_robot;
+					s.agents.push_back(&robot);
+
+					std::vector<Agent> crowd;
+					std::vector<Environment> e_crowd;
+					Agent pedestrian;
+					Environment e_pedestrian;
+					e_pedestrian.orientation = 0.f;
+					pedestrian.environment = &e_pedestrian;
+					pedestrian.circles.push_back(Circle(Vec2(0.f, 0.f), 0.25f));
+
+					for (int i = -9; i < 7; i++)
+					{
+						for (int j = -5; j < 9; j++)
+						{
+							if ((j == 4) && (i == 0))
+								continue;
+							pedestrian.position = 1.2*0.5*Vec2(-5.f + i*11.f/6 + 11.f/12.f*(j%2),
+								-5.f + j*11.f/9 + 2.3f);
+							e_pedestrian.speed = v_crowd + 0.5f*std::max(-1.f, std::min(1.f, float(distribution(generator))));
+							e_crowd.push_back(e_pedestrian);
+							crowd.push_back(pedestrian);
+						}
+					}
+					int i = 0;
+					for (auto& a : crowd)
+					{
+						a.environment = &e_crowd[i];
+						i++;
+						s.agents.push_back(&a);
+					}
+
+					for (auto& a : s.agents)
+						a->position = a->position + Vec2(-5.f, 0.f);
+					
+					char title[100];
+					sprintf(title, "Case 16: crowd-speed = %f, robot-speed = %f.", v_crowd ,v_robot);
+					simulate_while_displaying(&s, title, 18.f, true, true, &goal, true);
+				}
+			}
 			if (argc > 2)
 				break;
 		}
