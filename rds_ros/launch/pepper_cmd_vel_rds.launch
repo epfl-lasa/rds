@@ -1,0 +1,13 @@
+<launch>
+  <!-- Launches the pepper command velocity interface client for rds-->
+  <arg name="script_args" default="--hz" />
+  <arg name="holonomic" default="holonomic_" />
+
+  <node name="rds_ros" pkg="rds_ros" type="rds_$(arg holonomic)ros_node" >
+    <remap from="/laserscan" to="/combined_scan" />
+  </node>
+  <node name="rds_gui_ros_node" pkg="rds_gui_ros" type="rds_$(arg holonomic)gui_ros_node" />
+  <node name="rds_pepper_cmd_vel_interface_client" pkg="rds_ros"
+    type="rds_pepper_cmd_vel_interface_client" output="screen"
+    args="$(arg script_args)"/>
+</launch>

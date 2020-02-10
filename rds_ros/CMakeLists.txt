@@ -188,7 +188,7 @@ target_link_libraries(rds_holonomic_ros_node
 ## in contrast to setup.py, you can choose the destination
 install(PROGRAMS
   scripts/rds_pepper_client
-  scripts/rds_pepper_client_old
+  scripts/rds_pepper_cmd_vel_interface_client
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

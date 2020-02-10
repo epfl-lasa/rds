@@ -28,7 +28,6 @@ from rds_network_ros.srv import *
 N_PAST_POS = 100
 HUMAN_RADIUS = 0.3 # according to Kenneth
 
-PUSH_THROUGH = True
 ROTATE_TO_WPT = True
 
 
@@ -43,6 +42,7 @@ class Planning(object):
         self.kWaypointTopic = "/global_planner/current_waypoint"
         self.kFixedFrame = rospy.get_param("~fixed_frame", "odom") # ideally something truly fixed, like /map
         self.kRobotFrame = "base_footprint"
+        self.PUSH_THROUGH = rospy.get_param("/rds_client/push_through", False)
         # vars
         self.tf_rob_in_fix = None
         self.tf_wpt_in_fix = None
@@ -194,7 +194,7 @@ class Planning(object):
             rospy.loginfo(response)
         u_out = response.corrected_command.linear
         v_out = -response.corrected_command.angular
-        if PUSH_THROUGH:
+        if self.PUSH_THROUGH:
             if np.sqrt(u_out ** 2 + v_out ** 2) < 0.1:
                 u_out = 0.1 * User_U / User_norm
                 v_out = 0.1 * User_V / User_norm

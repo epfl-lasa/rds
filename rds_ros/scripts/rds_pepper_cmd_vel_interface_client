@@ -1,0 +1,142 @@
+#!/usr/bin/env python
+import time
+from geometry_msgs.msg import Twist
+import numpy as np
+import rospy
+
+from rds_network_ros.srv import VelocityCommandCorrectionRDS, VelocityCommandCorrectionRDSRequest
+
+
+INVERSE_LEFT_RIGHT = True
+
+
+class RDSPepperNode(object):
+    def __init__(self):
+        rospy.init_node('rds_cmd_vel_client', anonymous=True)
+        # consts
+        self.kDesiredCmdVelTopic = "/rds_cmd_vel"
+        self.kCmdVelTopic = "/cmd_vel"
+        self.PUSH_THROUGH = rospy.get_param("/rds_client/push_through", False)
+        # vars
+        self.last_u = 1.
+        self.last_v = 0.1
+        self.cycle = 0.
+        # ROS
+        rospy.Subscriber(self.kDesiredCmdVelTopic, Twist, self.cmd_vel_callback, queue_size=1)
+        self.cmd_vel_pub = rospy.Publisher(self.kCmdVelTopic, Twist, queue_size=1)
+        # spin
+        try:
+            rospy.spin()
+        except KeyboardInterrupt:
+            print("Keyboard interrupt - shutting down.")
+            rospy.signal_shutdown('KeyboardInterrupt')
+
+    def cmd_vel_callback(self, msg):
+        u_desired = msg.linear.x
+        v_desired = msg.linear.y
+        w_desired = msg.angular.z
+
+        v_inversion = 1.
+        if INVERSE_LEFT_RIGHT:
+            v_inversion = -1.
+
+        # Planner ----------------------------
+
+        # robot params
+        MaxSpeed = 0.5
+        MinSpeed = 0.5
+        MaxAngular = 0.5
+
+        # Setting for the RDS service
+        max_linear = MaxSpeed
+        min_linear = -MinSpeed
+        absolute_angular_at_min_linear = MaxAngular / 2.
+        absolute_angular_at_max_linear = MaxAngular / 2.
+        absolute_angular_at_zero_linear = MaxAngular
+        linear_acceleration_limit = 1000.
+        angular_acceleration_limit = 1000.
+        feasible = 0
+        Output_U = 0.
+        Output_V = 0.
+        y_coordinate_of_reference_point_for_command_limits = 0.5
+        weight_scaling_of_reference_point_for_command_limits = 0.
+        tau = 2.
+        delta = 0.10
+        clearance_from_axle_of_final_reference_point = 0.15
+
+        # inputs
+        User_U = u_desired
+        User_V = v_desired
+        User_norm = np.sqrt(User_U ** 2 + User_V ** 2)
+        # print "Waiting for RDS Service"
+
+        rospy.wait_for_service('rds_velocity_command_correction')
+        # try:
+        RDS = rospy.ServiceProxy('rds_velocity_command_correction', VelocityCommandCorrectionRDS)
+
+        request = VelocityCommandCorrectionRDSRequest()
+
+        request.nominal_command.linear = User_U
+        request.nominal_command.angular = v_inversion * User_V
+
+        request.velocity_limits.max_linear = max_linear
+        request.velocity_limits.min_linear = min_linear
+        request.velocity_limits.abs_angular_at_min_linear = absolute_angular_at_min_linear
+        request.velocity_limits.abs_angular_at_max_linear = absolute_angular_at_max_linear
+        request.velocity_limits.abs_angular_at_zero_linear = absolute_angular_at_zero_linear
+        request.abs_linear_acceleration_limit = linear_acceleration_limit
+        request.abs_angular_acceleration_limit = angular_acceleration_limit
+
+        request.y_coordinate_of_reference_point_for_command_limits = \
+            y_coordinate_of_reference_point_for_command_limits
+        request.weight_scaling_of_reference_point_for_command_limits = \
+            weight_scaling_of_reference_point_for_command_limits
+        request.clearance_from_axle_of_final_reference_point = clearance_from_axle_of_final_reference_point
+        request.delta = delta
+        request.tau = tau
+        request.y_coordinate_of_reference_biasing_point = 1.
+        request.weight_of_reference_biasing_point = 0.
+
+        request.last_actual_command.linear = self.last_u
+        request.last_actual_command.angular = self.last_v
+
+        if self.cycle == 0:
+            delta_time = 0.1
+        else:
+            delta_time = time.clock() - self.cycle
+        delta_time = 0.1  # oh well
+
+        request.command_cycle_time = delta_time
+        request.abs_linear_acceleration_limit = 4
+        request.abs_angular_acceleration_limit = 2
+
+        response = RDS(request)
+        u_out = response.corrected_command.linear
+        v_out = v_inversion * response.corrected_command.angular
+        if self.PUSH_THROUGH:
+            if np.sqrt(u_out ** 2 + v_out ** 2) < 0.1 and User_norm != 0.:
+                u_out = 0.1 * User_U / User_norm
+                v_out = 0.1 * User_V / User_norm
+        Output_U = round(response.corrected_command.linear, 4)
+        Output_V = round(response.corrected_command.angular, 4)
+        feasible = response.feasible
+        if feasible:
+            pass
+
+        self.last_u = Output_U
+        self.last_v = Output_V
+        self.cycle = time.clock()
+        # ---------------------------------------
+
+        w_out = w_desired
+
+        # publish cmd_vel
+        cmd_vel_msg = Twist()
+        cmd_vel_msg.linear.x = u_out
+        cmd_vel_msg.linear.y = v_out
+        cmd_vel_msg.angular.z = w_out
+        self.cmd_vel_pub.publish(cmd_vel_msg)
+
+
+if __name__ == "__main__":
+    rds_pepper_node = RDSPepperNode()
