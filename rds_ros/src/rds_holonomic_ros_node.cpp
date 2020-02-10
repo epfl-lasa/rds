@@ -14,7 +14,7 @@
 MyCollisionPointGenerator::MyCollisionPointGenerator()
 	: front_lrf_location(Geometry2D::Vec2(0.f, 0.056f))
 	, front_lrf_orientation(M_PI/2.f)
-	, front_angle_cutoff_from_forward_direction(3.f*M_PI/4.f)
+	, front_angle_cutoff_from_forward_direction(M_PI)
 	, front_range_cutoff_lower(0.05f)
 {
 	defineMyShape();

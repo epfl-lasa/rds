@@ -1,0 +1,12 @@
+<launch>
+  <arg name="holonomic" default="holonomic_"/>
+
+  <include file="$(find asl_pepper_2d_simulator)/launch/pepper_2d_simulator.launch" />
+  <include file="$(find asl_pepper_joystick)/launch/joystick_control.launch" >
+    <arg name="cmd_vel_topic" value="/rds_cmd_vel" />
+  </include>
+  <include file="$(find rds_ros)/launch/pepper_cmd_vel_rds.launch">
+    <arg name="holonomic" value="$(arg holonomic)"/>
+  </include>
+  <node pkg="rviz" type="rviz" name="rviz" args="-d $(env HOME)/.rviz/rds.rviz" output="log" />
+</launch>
