@@ -5,6 +5,9 @@ FLAGS = -std=c++11 -g -Wall
 
 # DEMOS
 
+build/blocks: src/Blocks.cpp src/geometry.hpp build/libgui.a
+	g++ $(FLAGS) src/Blocks.cpp -Lbuild -lgui -lSDL2 -lRVO -o build/blocks
+
 check_rvo: build/check_rvo
 
 build/check_rvo: src/check_rvo.cpp src/RVO.hpp src/RVO.cpp src/geometry.hpp build/libgui.a
@@ -12,8 +15,8 @@ build/check_rvo: src/check_rvo.cpp src/RVO.hpp src/RVO.cpp src/geometry.hpp buil
 
 demo_rvo: build/demo_rvo
 
-build/demo_rvo: src/demo_rvo.cpp src/simulation.hpp src/simulation.cpp src/RVO.hpp src/RVO.cpp src/simulate_rvo_rds.hpp src/simulate_rvo_rds.cpp build/libgui.a build/libgeometry.a build/librds_wrap.a
-	g++ $(FLAGS) src/demo_rvo.cpp src/simulation.cpp src/RVO.cpp src/simulate_rvo_rds.cpp -Lbuild -lrds_wrap -lgeometry -lgui -lSDL2 -o build/demo_rvo
+build/demo_rvo: src/demo_rvo.cpp src/simulation.hpp src/simulation.cpp src/RVO.hpp src/RVO.cpp src/simulate_rvo_rds.hpp src/simulate_rvo_rds.cpp src/rds_2.cpp src/rds_2.hpp build/libgui.a build/libgeometry.a build/librds_wrap.a
+	g++ $(FLAGS) src/demo_rvo.cpp src/simulation.cpp src/RVO.cpp src/simulate_rvo_rds.cpp src/rds_2.cpp -Lbuild -lrds_wrap -lgeometry -lgui -lSDL2 -o build/demo_rvo
 
 demo_simu: build/demo_simu
 
@@ -73,9 +76,10 @@ build/libgui.a: build/rds/.hi src/geometry.hpp src/gui.cpp src/gui.hpp src/windo
 
 geometry: build/libgeometry.a # target just for convenience
 
-build/libgeometry.a: build/.hi src/geometry.hpp src/distance_minimizer.cpp src/distance_minimizer.hpp
+build/libgeometry.a: build/.hi src/geometry.hpp src/distance_minimizer.cpp src/distance_minimizer.hpp src/capsule.hpp src/capsule.cpp
 	g++ $(FLAGS) -c src/distance_minimizer.cpp -o build/distance_minimizer.o
-	ar rvs build/libgeometry.a build/distance_minimizer.o
+	g++ $(FLAGS) -c src/capsule.cpp -o build/capsule.o
+	ar rvs build/libgeometry.a build/distance_minimizer.o build/capsule.o
 
 # HOUSE KEEPING
 

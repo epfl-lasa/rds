@@ -31,7 +31,8 @@ public:
 		const std::vector<AdditionalPrimitives2D::Circle>* circles,
 		const std::vector<AdditionalPrimitives2D::Arrow>* arrows,
 		const std::vector<Window::sdlColor>& arrows_colors,
-		const std::vector<Window::sdlColor>& = std::vector<Window::sdlColor>(0));
+		const std::vector<Window::sdlColor>& circles_colors = std::vector<Window::sdlColor>(0),
+		const std::vector<AdditionalPrimitives2D::Polygon>* polygons_ptr = 0);
 
 	const float screenSizeInDistanceUnits;
 	const int screenSizeInPixels;
@@ -67,6 +68,8 @@ private:
 	void renderBoundaryLine(const Geometry2D::HalfPlane2& half_plane, int pixel_shift = 0);
 	void renderArrows(const std::vector<AdditionalPrimitives2D::Arrow>& arrows,
 		const std::vector<Window::sdlColor>& arrows_colors);
+
+	void renderPolygons(const std::vector<AdditionalPrimitives2D::Polygon>& polygons);
 
 	static void killSdlWindow(int window_creation_number);
 	struct SDLPointers

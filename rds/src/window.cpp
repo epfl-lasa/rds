@@ -141,7 +141,8 @@ bool Window::render(const std::vector<Geometry2D::HalfPlane2>* half_planes_ptr,
 		const std::vector<AdditionalPrimitives2D::Circle>* circles_ptr,
 		const std::vector<AdditionalPrimitives2D::Arrow>* arrows_ptr,
 		const std::vector<Window::sdlColor>& arrows_colors,
-		const std::vector<Window::sdlColor>& circles_colors)
+		const std::vector<Window::sdlColor>& circles_colors,
+		const std::vector<AdditionalPrimitives2D::Polygon>* polygons_ptr)
 {
 	n_frames++;
 	if (sdlCheck())
@@ -197,6 +198,10 @@ bool Window::render(const std::vector<Geometry2D::HalfPlane2>* half_planes_ptr,
 	t2 = std::chrono::high_resolution_clock::now();
 	arrows_time = arrows_time*(n_frames-1)/n_frames +
 		(std::chrono::duration_cast<std::chrono::duration<float> >(t2 - t1)).count()/n_frames;
+	
+	if (polygons_ptr)
+		renderPolygons(*polygons_ptr);
+
 	// bring it to the screen
 	SDL_RenderPresent(renderer);
 	return false;
@@ -351,6 +356,24 @@ void Window::renderArrows(const std::vector<AdditionalPrimitives2D::Arrow>& arro
 			}
 		}
 		renderCircle(arrows[i].head, 0.009*screenSizeInDistanceUnits, 0.0);
+	}
+}
+
+void Window::renderPolygons(const std::vector<AdditionalPrimitives2D::Polygon>& polygons)
+{
+	SDL_Renderer* renderer = allSdlPointers[sdlWindowCreationNumber].renderer; // for convenience
+	for (auto& pg : polygons)
+	{
+		for (int i = 1; i < pg.size(); i++)
+		{
+			SDL_RenderDrawLine(renderer, pointToPixel(pg[i]).i, pointToPixel(pg[i]).j,
+				pointToPixel(pg[i - 1]).i, pointToPixel(pg[i - 1]).j);
+		}
+		if (pg.size() > 1)
+		{
+			SDL_RenderDrawLine(renderer, pointToPixel(pg[0]).i, pointToPixel(pg[0]).j,
+				pointToPixel(pg.back()).i, pointToPixel(pg.back()).j);
+		}
 	}
 }
 

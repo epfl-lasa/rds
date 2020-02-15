@@ -2,6 +2,7 @@
 #define  GEOMETRY_HPP
 
 #include <cmath>
+#include <vector>
 
 namespace Geometry2D
 {
@@ -175,6 +176,8 @@ namespace AdditionalPrimitives2D
 		{ }
 		Geometry2D::Vec2 tail, head;
 	};
+
+	typedef std::vector<Geometry2D::Vec2> Polygon;
 }
 
 #endif

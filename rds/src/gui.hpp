@@ -41,6 +41,7 @@ public:
 	const std::vector<AdditionalPrimitives2D::Arrow>* arrows;
 	std::vector<GuiColor> arrows_colors;
 	std::vector<Window::sdlColor> circles_colors;
+	const std::vector<AdditionalPrimitives2D::Polygon>* polygons;
 
 	void activateHalfplaneAreaRendering()
 	{
