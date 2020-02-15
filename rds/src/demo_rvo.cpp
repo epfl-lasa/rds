@@ -3,6 +3,7 @@
 #include "geometry.hpp"
 
 #include "simulate_rvo_rds.hpp"
+#include "capsule.hpp"
 
 #define _USE_MATH_DEFINES
 #include <cmath>
@@ -45,7 +46,7 @@ struct CircularEnvironment : public Environment
 };
 
 void simulate_while_displaying(Simulation* s, const char* title = "RVO", float window_size = 6.f, bool rds = false,
-	bool show_trajectory = false, const Vec2* goal = 0, bool terminate_at_goal = false)
+	bool show_trajectory = false, const Vec2* goal = 0, bool terminate_at_goal = false, RDS2Configuration* rds_2_config = 0)
 {
 	GUI gui_constraints(title, 6.f);
 	std::vector<HalfPlane2> ref_p_constraints;
@@ -79,6 +80,7 @@ void simulate_while_displaying(Simulation* s, const char* title = "RVO", float w
 	double dt = 0.025;
 	while ((gui_work_space.update() == 0) | (gui_constraints.update() == 0))
 	{
+		SimulateRvoRds s_rvo_rds(s);
 		if (!rds)
 		{
 			for (int i = 0; i < n_iterations; i++)
@@ -86,11 +88,18 @@ void simulate_while_displaying(Simulation* s, const char* title = "RVO", float w
 		}
 		else
 		{
-			SimulateRvoRds s_rvo_rds(s);
-			s_rvo_rds.tau = s->rvo.getTau();
-			s_rvo_rds.delta = s->rvo.getDelta();
-			for (int i = 0; i < n_iterations; i++)
-				s_rvo_rds.stepEuler(dt);
+			if (!rds_2_config)
+			{
+				s_rvo_rds.tau = s->rvo.getTau();
+				s_rvo_rds.delta = s->rvo.getDelta();
+				for (int i = 0; i < n_iterations; i++)
+					s_rvo_rds.stepEuler(dt);			
+			}
+			else
+			{
+				for (int i = 0; i < n_iterations; i++)
+					s_rvo_rds.stepEulerRDS2(dt, *rds_2_config);
+			}
 		}
 		// transfer the positions to the gui variables
 		{
@@ -112,8 +121,33 @@ void simulate_while_displaying(Simulation* s, const char* title = "RVO", float w
 			ref_p_constraints.resize(0);
 			if (s->agents.size() > 0)
 			{
-				for(auto& h : s->agents[0]->constraints)
-					ref_p_constraints.push_back(h);
+				if (!rds)
+				{
+					for(auto& h : s->agents[0]->constraints)
+						ref_p_constraints.push_back(h);			
+				}
+				else if (rds_2_config)
+				{
+					for(auto& h : s_rvo_rds.rds_constraints)
+						ref_p_constraints.push_back(h);
+
+					/*Circle c_a, c_b;
+					Vec2 v;
+					s->agents[0]->getCircleAndNominalVelocityGlobal(0, 0.f, &c_a, &v);
+					s->agents[0]->getCircleAndNominalVelocityGlobal(1, 0.f, &c_b, &v);
+					Vec2 centers_diff = c_a.center - c_b.center;
+					Vec2 normal(-centers_diff.normalized().y, centers_diff.normalized().x);
+					Vec2 a1 = c_a.center + s->agents[0]->circles[0].radius*normal;
+					Vec2 a2 = c_a.center - s->agents[0]->circles[0].radius*normal;
+					Vec2 b1 = c_b.center + s->agents[0]->circles[0].radius*normal;
+					Vec2 b2 = c_b.center - s->agents[0]->circles[0].radius*normal;
+					for (int i = 0; i < 10; i++)
+					{
+						work_space_points.push_back((9 - i)/float(9)*a1 + i/float(9)*b1);
+						work_space_points.push_back((9 - i)/float(9)*a2 + i/float(9)*b2);
+					}*/
+				}
+
 			}
 
 			if (show_trajectory)
@@ -990,17 +1024,18 @@ int main(int argc, char** argv)
 			std::default_random_engine generator(1);
 			std::normal_distribution<double> distribution (0.0,1.0);
 
-			Simulation s(RVO(0.75f, 0.05f)); // tau = 1.f, 0.5f
+			Simulation s(RVO(1.25f, 0.05f)); // tau = 1.f, 0.5f
 			s.v_max = 1.8f;
 
 			Vec2 goal(0.f, 7.f);
 
 			DifferentialDriveAgent robot;
-			//robot.reference_point.y = 1.35f;
+			robot.reference_point.y = -0.05f;
 			robot.position = Vec2(2.f, -8.f);
 			robot.orientation = -0.f;
 			robot.circles.push_back(Circle(Vec2(0.f, 0.15f), 0.25));
 			robot.circles.push_back(Circle(Vec2(0.f, -0.2f), 0.2));
+			robot.circles.push_back(Circle(Vec2(0.f, -0.05f), 0.45));
 			GoalEnvironment e_robot(goal, 1.5f);
 			robot.environment = &e_robot;
 			s.agents.push_back(&robot);
@@ -1013,7 +1048,7 @@ int main(int argc, char** argv)
 			pedestrian.environment = &e_pedestrian;
 			pedestrian.circles.push_back(Circle(Vec2(0.f, 0.f), 0.25f));
 
-			for (int i = -6; i < 7; i++)
+			for (int i = -12; i < 7; i++)
 			{
 				for (int j = -5; j < 9; j++)
 				{
@@ -1037,7 +1072,8 @@ int main(int argc, char** argv)
 			for (auto& a : s.agents)
 				a->position = a->position + Vec2(-5.f, 0.f);
 			
-			simulate_while_displaying(&s, "Goal-driven traversing dense 1D flow with individual speed values", 18.f, true, true, &goal);
+			simulate_while_displaying(&s, "Goal-driven traversing dense 1D flow with individual speed values",
+				18.f, true, true, &goal);
 			if (argc > 2)
 				break;
 		}
@@ -1212,6 +1248,81 @@ int main(int argc, char** argv)
 					simulate_while_displaying(&s, title, 18.f, true, true, &goal, true);
 				}
 			}
+			if (argc > 2)
+				break;
+		}
+		case 17:
+		{
+			std::default_random_engine generator(1);
+			std::normal_distribution<double> distribution (0.0,1.0);
+
+			Simulation s(RVO(1.25f, 0.05f)); // tau = 1.f, 0.5f
+			s.v_max = 1.8f;
+
+			Vec2 goal(0.f, 7.f);
+
+			DifferentialDriveAgent robot;
+			robot.reference_point.y = -0.05f;
+			robot.position = Vec2(2.f, -8.75f);
+			robot.orientation = -0.f;
+			GoalEnvironment e_robot(goal, 1.5f);
+			robot.environment = &e_robot;
+			s.agents.push_back(&robot);
+
+			RDS2Configuration rds_2_config;
+			rds_2_config.D = 1.f;
+			rds_2_config.delta = 0.05f;
+			rds_2_config.T = 2.f;
+			rds_2_config.v_max = 1.5f;
+			rds_2_config.robot_shape = Geometry2D::Capsule(0.4, Vec2(0.f, 0.1f), Vec2(0.f, -0.4f));
+			rds_2_config.p_ref = Vec2(0.f, 0.25f);
+
+			robot.circles.push_back(Circle(rds_2_config.robot_shape.center_a, rds_2_config.robot_shape.radius));
+			robot.circles.push_back(Circle(rds_2_config.robot_shape.center_b, rds_2_config.robot_shape.radius));
+
+			std::vector<Agent> crowd;
+			std::vector<Environment> e_crowd;
+			Agent pedestrian;
+			Environment e_pedestrian;
+			e_pedestrian.orientation = 0.f;
+			pedestrian.environment = &e_pedestrian;
+			pedestrian.circles.push_back(Circle(Vec2(0.f, 0.f), 0.25f));
+
+			for (int i = -12; i < 7; i++)
+			{
+				for (int j = -5; j < 9; j++)
+				{
+					if ((j == 4) && (i == 0))
+						continue;
+					pedestrian.position = 0.5*Vec2(-5.f + i*11.f/6 + 11.f/12.f*(j%2),
+						-5.f + j*11.f/9 + 2.3f);
+					e_pedestrian.speed = 1.2f + 0.5f*std::max(-1.f, std::min(1.f, float(distribution(generator))));
+					e_crowd.push_back(e_pedestrian);
+					crowd.push_back(pedestrian);
+				}
+			}
+			/*int i = 0;
+			for (auto& a : crowd)
+			{
+				a.environment = &e_crowd[i];
+				i++;
+				s.agents.push_back(&a);
+			}*/
+
+			Agent static_agent;
+			static_agent.position = Vec2(1.f, -4.f);
+			Environment e_static_agent;
+			e_static_agent.orientation = 0.f;
+			e_static_agent.speed = 0.f;
+			static_agent.environment = &e_static_agent;
+			static_agent.circles.push_back(Circle(Vec2(0.f, 0.f), 0.5f));
+			s.agents.push_back(&static_agent);
+
+			//for (auto& a : s.agents)
+			//	a->position = a->position + Vec2(-5.f, 0.f);
+			
+			simulate_while_displaying(&s, "Goal-driven traversing dense 1D flow with individual speed values",
+				18.f, true, true, &goal, false, &rds_2_config);
 			if (argc > 2)
 				break;
 		}

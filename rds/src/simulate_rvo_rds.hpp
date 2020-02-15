@@ -3,6 +3,17 @@
 
 #include "simulation.hpp"
 #include "collision_point.hpp"
+#include "geometry.hpp"
+#include "capsule.hpp"
+
+#include <vector>
+
+struct RDS2Configuration
+{
+	float T, D, delta, v_max;
+	Geometry2D::Capsule robot_shape;
+	Geometry2D::Vec2 p_ref;
+};
 
 struct SimulateRvoRds
 {
@@ -14,6 +25,12 @@ struct SimulateRvoRds
 
 	Simulation* s_rvo;
 	float tau, delta;
+
+	std::vector<Geometry2D::HalfPlane2> rds_constraints;
+
+	void stepEulerRDS2(float dt, const RDS2Configuration& rds_2_config);
+
+	void getObjectsInLocalFrame(std::vector<AdditionalPrimitives2D::Circle>* objects);
 };
 
 #endif

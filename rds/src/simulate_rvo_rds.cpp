@@ -4,6 +4,8 @@
 
 #include "rds_wrap.hpp"
 
+#include "rds_2.hpp"
+
 #include <cmath>
 
 using Geometry2D::Vec2;
@@ -33,13 +35,13 @@ void SimulateRvoRds::stepEuler(float dt)
 	Vec2 v_ref_local(rxx*v_ref_global.x - ryx*v_ref_global.y,
 		-rxy*v_ref_global.x + ryy*v_ref_global.y);
 
-	float orientation_ref = std::atan2(v_ref_global.y, v_ref_global.x);
+	/*float orientation_ref = std::atan2(v_ref_global.y, v_ref_global.x);
 	float gain = 0.1f;
 	float angular_v_ref = orientationReferenceTracking(s_rvo->agents[0]->orientation + M_PI/2.f, orientation_ref, gain);
-	float linear_v_ref = v_ref_local.y;
+	float linear_v_ref = v_ref_local.y;*/
 
-	//float linear_v_ref = s_rvo->agents[0]->reference_point.x/s_rvo->agents[0]->reference_point.y*v_ref_local.x + v_ref_local.y;
-	//float angular_v_ref = -v_ref_local.x/s_rvo->agents[0]->reference_point.y;
+	float linear_v_ref = s_rvo->agents[0]->reference_point.x/s_rvo->agents[0]->reference_point.y*v_ref_local.x + v_ref_local.y;
+	float angular_v_ref = -v_ref_local.x/s_rvo->agents[0]->reference_point.y;
 
 	// set RDS parameters
 	float abs_linear_acceleration_limit = 1000.f;
@@ -133,46 +135,70 @@ void SimulateRvoRds::createCollisionPointsInRobotFrame(std::vector<RDS::Collisio
 
 
 
-/*
-	float rxx = std::cos(-robot.orientation);
-	float rxy = std::sin(-robot.orientation);
+void SimulateRvoRds::stepEulerRDS2(float dt, const RDS2Configuration& rds_2_config)
+{
+	float rxx = std::cos(s_rvo->agents[0]->orientation);
+	float rxy = std::sin(s_rvo->agents[0]->orientation);
 	float ryx = -rxy;
 	float ryy = rxx;
 
-	std::vector<CollisionPoint>& cps = *collision_points;
-	cps.resize((obstacles.size() + static_obstacles.size())*robot.shape.size());
-	std::vector<CollisionPoint>::size_type i = 0;
-	int j = 0;
-	for (auto& ob : obstacles)
+	Vec2 v_ref_global;
+	s_rvo->agents[0]->environment->getReferenceVelocity(s_rvo->time,
+		s_rvo->agents[0]->position, &v_ref_global);
+
+	Vec2 v_ref_local(rxx*v_ref_global.x - ryx*v_ref_global.y,
+		-rxy*v_ref_global.x + ryy*v_ref_global.y);
+
+
+	std::vector<Circle> objects;
+	getObjectsInLocalFrame(&objects);
+
+	Geometry2D::RDS2 rds_2(rds_2_config.T, rds_2_config.D, rds_2_config.delta, rds_2_config.v_max);
+	Vec2 v_corrected_p_ref;
+	rds_2.computeCorrectedVelocity(rds_2_config.robot_shape, rds_2_config.p_ref,
+		v_ref_local, objects, &v_corrected_p_ref);
+
+	rds_constraints = rds_2.constraints;
+
+	float v_linear = v_corrected_p_ref.x*rds_2_config.p_ref.x/rds_2_config.p_ref.y + v_corrected_p_ref.y;
+	float v_angular = -v_corrected_p_ref.x/rds_2_config.p_ref.y;
+
+	// perform the Euler integration step
+	Vec2 robot_local_velocity = Vec2(0.f, v_linear);
+	Vec2 robot_global_velocity(rxx*robot_local_velocity.x + ryx*robot_local_velocity.y,
+		rxy*robot_local_velocity.x + ryy*robot_local_velocity.y);
+	
+	float current_robot_orientation = s_rvo->agents[0]->orientation;
+	Vec2 current_robot_position = s_rvo->agents[0]->position;
+
+	float new_robot_orientation = current_robot_orientation + dt*v_angular;
+	Vec2 new_robot_position = current_robot_position + dt*robot_global_velocity;
+
+	s_rvo->stepEuler(dt);
+	s_rvo->agents[0]->orientation = new_robot_orientation; // overwrite the result for the robot
+	s_rvo->agents[0]->position = new_robot_position;
+}
+
+void SimulateRvoRds::getObjectsInLocalFrame(std::vector<Circle>* objects)
+{
+	objects->resize(0);
+	float rxx = std::cos(-s_rvo->agents[0]->orientation);
+	float rxy = std::sin(-s_rvo->agents[0]->orientation);
+	float ryx = -rxy;
+	float ryy = rxx;
+	Vec2 rob_pos = s_rvo->agents[0]->position;
+	for (std::vector<Agent*>::size_type i = 1; i != s_rvo->agents.size(); i++)
 	{
-		for (auto& rs : robot.shape)
+		for (std::vector<Circle>::size_type k = 0; k != s_rvo->agents[i]->circles.size(); k++)
 		{
-			Vec2 ob_velocity_global(ob.motion_law(time, ob.position));
-			if (use_orca_style)
-				ob_velocity_global = orca_velocities[j];
-			else if (ob.use_constant_motion_law)
-				ob_velocity_global = ob.constant_motion_law;
-			Vec2 ob_velocity_local(rxx*ob_velocity_global.x + ryx*ob_velocity_global.y,
-				rxy*ob_velocity_global.x + ryy*ob_velocity_global.y);
-			if (!use_velocities)
-				ob_velocity_local = Vec2(0.f, 0.f);
-			Vec2 ob_position_diff = ob.position - robot.position;
-			Vec2 ob_center_local = Vec2(rxx*ob_position_diff.x + ryx*ob_position_diff.y,
-				rxy*ob_position_diff.x + ryy*ob_position_diff.y);
-			cps[i] = CollisionPoint(rs, Circle(ob_center_local, ob.radius), ob_velocity_local);
-			i++;
-		}
-		j++;
-	}
-	for (auto& ob : static_obstacles)
-	{
-		for (auto& rs : robot.shape)
-		{
-			Vec2 ob_position_diff = ob.position - robot.position;
-			Vec2 ob_center_local = Vec2(rxx*ob_position_diff.x + ryx*ob_position_diff.y,
-				rxy*ob_position_diff.x + ryy*ob_position_diff.y);
-			cps[i] = CollisionPoint(rs, Circle(ob_center_local, ob.radius), Vec2(0.f, 0.f));
-			i++;
+			Circle o_ik;
+			Vec2 v_pref_ik;
+			s_rvo->agents[i]->getCircleAndNominalVelocityGlobal(k, 0.f, &o_ik, &v_pref_ik);
+			Circle o_ik_local;
+			o_ik_local.radius = o_ik.radius;
+			o_ik_local.center = Vec2(rxx*(o_ik.center - rob_pos).x + ryx*(o_ik.center - rob_pos).y,
+				rxy*(o_ik.center - rob_pos).x + ryy*(o_ik.center - rob_pos).y);
+			objects->push_back(o_ik_local);
 		}
 	}
-}*/
+}
