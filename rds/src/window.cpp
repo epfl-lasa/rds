@@ -142,7 +142,8 @@ bool Window::render(const std::vector<Geometry2D::HalfPlane2>* half_planes_ptr,
 		const std::vector<AdditionalPrimitives2D::Arrow>* arrows_ptr,
 		const std::vector<Window::sdlColor>& arrows_colors,
 		const std::vector<Window::sdlColor>& circles_colors,
-		const std::vector<AdditionalPrimitives2D::Polygon>* polygons_ptr)
+		const std::vector<AdditionalPrimitives2D::Polygon>* polygons_ptr,
+		const std::vector<Geometry2D::Capsule>* capsules_ptr)
 {
 	n_frames++;
 	if (sdlCheck())
@@ -201,6 +202,9 @@ bool Window::render(const std::vector<Geometry2D::HalfPlane2>* half_planes_ptr,
 	
 	if (polygons_ptr)
 		renderPolygons(*polygons_ptr);
+
+	if (capsules_ptr)
+		renderCapsules(*capsules_ptr);
 
 	// bring it to the screen
 	SDL_RenderPresent(renderer);
@@ -265,8 +269,29 @@ void Window::renderCircle(const Geometry2D::Vec2& center, float r_outer, float r
 			distance = std::sqrt((point - center).dot(point - center));
 			if (distance <= r_outer && distance >= r_inner)
 				SDL_RenderDrawPoint(renderer, i, j);
-			//else
-			//	std::cout << "x=" << point.x << ", y=" << point.y << std::endl;
+		}
+	}
+}
+
+void Window::renderCutCircle(const Geometry2D::Vec2& center, float r_outer, float r_inner,
+	const Geometry2D::HalfPlane2& h_cut, const Window::sdlColor& color)
+{
+	// for convenience
+	SDL_Renderer* renderer = allSdlPointers[sdlWindowCreationNumber].renderer;
+
+	SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, 255);
+
+	BoundingBox bb = circleToBoundingBox(center, r_outer);
+	Geometry2D::Vec2 point;
+	float distance;
+	for (int i = bb.lower_bounds.i; i <= bb.upper_bounds.i; i++)
+	{
+		for (int j = bb.lower_bounds.j; j <= bb.upper_bounds.j; j++)
+		{
+			point = pixelToPoint(Pixel(i, j));
+			distance = std::sqrt((point - center).dot(point - center));
+			if ((distance <= r_outer && distance >= r_inner) && h_cut.signedDistance(point) > 0.f)
+				SDL_RenderDrawPoint(renderer, i, j);
 		}
 	}
 }
@@ -374,6 +399,32 @@ void Window::renderPolygons(const std::vector<AdditionalPrimitives2D::Polygon>& 
 			SDL_RenderDrawLine(renderer, pointToPixel(pg[0]).i, pointToPixel(pg[0]).j,
 				pointToPixel(pg.back()).i, pointToPixel(pg.back()).j);
 		}
+	}
+}
+
+void Window::renderCapsules(const std::vector<Geometry2D::Capsule>& capsules)
+{
+	SDL_Renderer* renderer = allSdlPointers[sdlWindowCreationNumber].renderer; // for convenience
+	SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255); // render capsules in green
+	for (auto& c : capsules)
+	{
+		Geometry2D::Vec2 centers_diff = c.center_a - c.center_b;
+		Geometry2D::Vec2 normal(-centers_diff.normalized().y, centers_diff.normalized().x);
+		Geometry2D::Vec2 a1 = c.center_a + c.radius*normal;
+		Geometry2D::Vec2 a2 = c.center_a - c.radius*normal;
+		Geometry2D::Vec2 b1 = c.center_b + c.radius*normal;
+		Geometry2D::Vec2 b2 = c.center_b - c.radius*normal;
+		SDL_RenderDrawLine(renderer, pointToPixel(a1).i, pointToPixel(a1).j,
+			pointToPixel(b1).i, pointToPixel(b1).j);
+		SDL_RenderDrawLine(renderer, pointToPixel(a2).i, pointToPixel(a2).j,
+			pointToPixel(b2).i, pointToPixel(b2).j);
+		
+		float thickness = 0.0025*screenSizeInDistanceUnits;
+		Window::sdlColor green;
+		green.r = green.b = 0;
+		green.g = 255;
+		renderCutCircle(c.center_a, c.radius, c.radius - thickness, c.bound_a, green);
+		renderCutCircle(c.center_b, c.radius, c.radius - thickness, c.bound_b, green);
 	}
 }
 

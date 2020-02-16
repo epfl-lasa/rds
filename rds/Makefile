@@ -5,8 +5,8 @@ FLAGS = -std=c++11 -g -Wall
 
 # DEMOS
 
-build/blocks: src/Blocks.cpp src/geometry.hpp build/libgui.a
-	g++ $(FLAGS) src/Blocks.cpp -Lbuild -lgui -lSDL2 -lRVO -o build/blocks
+build/blocks: src/Blocks.cpp src/geometry.hpp src/rds_2.cpp src/rds_2.hpp src/rds_2_agent.cpp src/rds_2_agent.hpp build/libgui.a build/libgeometry.a
+	g++ $(FLAGS) src/Blocks.cpp src/rds_2.cpp src/rds_2_agent.cpp -Lbuild -lgui -lSDL2 -lRVO -lgeometry -o build/blocks
 
 check_rvo: build/check_rvo
 

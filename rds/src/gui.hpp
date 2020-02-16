@@ -2,24 +2,9 @@
 #define GUI_HPP
 
 #include "geometry.hpp"
+#include "capsule.hpp"
 #include "window.hpp"
 #include <vector>
-
-/*
-class GUI
-{
-public:
-	// if minutes_to_run > 0, the GUI will display things for 
-	// at least minutes_to_run [minutes] (generally a bit longer),
-	// or if minutes_to_run <= 0 until one closes the window.
-	GUI(float minutes_to_run,
-		const std::vector<Geometry2D::HalfPlane2>& half_planes,
-		const std::vector<Geometry2D::Vec2>& points);
-	~GUI();
-
-private:
-	Window* window;
-};*/
 
 typedef Window::sdlColor GuiColor;
 
@@ -42,6 +27,8 @@ public:
 	std::vector<GuiColor> arrows_colors;
 	std::vector<Window::sdlColor> circles_colors;
 	const std::vector<AdditionalPrimitives2D::Polygon>* polygons;
+	const std::vector<Geometry2D::Capsule>* capsules;
+
 
 	void activateHalfplaneAreaRendering()
 	{

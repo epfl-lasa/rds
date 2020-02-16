@@ -2,6 +2,7 @@
 #define  WINDOW_HPP
 
 #include "geometry.hpp"
+#include "capsule.hpp"
 #include <SDL2/SDL.h>
 #include <vector>
 
@@ -32,7 +33,8 @@ public:
 		const std::vector<AdditionalPrimitives2D::Arrow>* arrows,
 		const std::vector<Window::sdlColor>& arrows_colors,
 		const std::vector<Window::sdlColor>& circles_colors = std::vector<Window::sdlColor>(0),
-		const std::vector<AdditionalPrimitives2D::Polygon>* polygons_ptr = 0);
+		const std::vector<AdditionalPrimitives2D::Polygon>* polygons_ptr = 0,
+		const std::vector<Geometry2D::Capsule>* capsules_ptr = 0);
 
 	const float screenSizeInDistanceUnits;
 	const int screenSizeInPixels;
@@ -70,6 +72,9 @@ private:
 		const std::vector<Window::sdlColor>& arrows_colors);
 
 	void renderPolygons(const std::vector<AdditionalPrimitives2D::Polygon>& polygons);
+	void renderCutCircle(const Geometry2D::Vec2& center, float r_outer, float r_inner,
+		const Geometry2D::HalfPlane2& h_cut, const Window::sdlColor& color);
+	void renderCapsules(const std::vector<Geometry2D::Capsule>& capsules);
 
 	static void killSdlWindow(int window_creation_number);
 	struct SDLPointers
