@@ -92,7 +92,7 @@ std::vector<Circle> gui_circles;
 std::vector<Polygon> gui_polygons;
 std::vector<Capsule> gui_capsules;
 
-RDS2Agent rds_2_agent(Vec2(0.f, -110.f), 0.f, RDS2Configuration(1.f,1.f,0.1f,3.f, Capsule(
+RDS2CapsuleAgent rds_2_agent(Vec2(0.f, -110.f), 0.f, RDS2CapsuleConfiguration(1.f,1.f,0.1f,3.f, Capsule(
 	2.f, Vec2(0.f, 2.f), Vec2(0.f, -2.f)), Vec2(0.f, 1.f)));
 
 void getRDS2AgentRefP(float* x, float* y)
@@ -301,6 +301,8 @@ int main()
 			objects[i - 1].center.y = sim->getAgentPosition(i).y();
 			objects[i - 1].radius = sim->getAgentRadius(i);
 		}
+		
+		Vec2 robot_v_preferred(sim->getAgentPrefVelocity(0).x(), sim->getAgentPrefVelocity(0).y());
 
 		sim->doStep();
 
@@ -310,7 +312,8 @@ int main()
 		float robot_v_x_sim = (robot_x_sim_new - robot_x_sim)/sim->getTimeStep();
 		float robot_v_y_sim = (robot_y_sim_new - robot_y_sim)/sim->getTimeStep();
 
-		rds_2_agent.stepEuler(sim->getTimeStep(), Vec2(robot_v_x_sim, robot_v_y_sim), objects);
+		//rds_2_agent.stepEuler(sim->getTimeStep(), Vec2(robot_v_x_sim, robot_v_y_sim), objects);
+		rds_2_agent.stepEuler(sim->getTimeStep(), robot_v_preferred, objects);
 
 		float p_ref_x, p_ref_y;
 		getRDS2AgentRefP(&p_ref_x, &p_ref_y);

@@ -8,26 +8,27 @@ using Geometry2D::Vec2;
 using AdditionalPrimitives2D::Circle;
 //using AdditionalPrimitives2D::Polygon;
 using Geometry2D::HalfPlane2;
+using Geometry2D::Capsule;
 
-void RDS2Agent::stepEuler(float dt,
+void RDS2CapsuleAgent::stepEuler(float dt,
 	const Vec2& v_nominal_p_ref,
 	const std::vector<Circle>& circle_objects)
 	//, const std::vector<Polygon>& convex_polygon_objects)
 {
-	std::vector<Circle> objects_tmp(circle_objects);
+	std::vector<Circle> objects_local;
 	/*for (auto& pg : convex_polygon_objects)
 	{
 		Circle c_pg(Vec2(0.f, 0.f), 0.f);
 		getClosestPointOfConvexPolygon(pg, position, )
 	}*/
-	getCircleObjectsInLocalFrame(&objects_tmp);
+	getCircleObjectsInLocalFrame(circle_objects, &objects_local);
 	Vec2 v_nominal_p_ref_local;
 	transformVectorGlobalToLocal(v_nominal_p_ref, &v_nominal_p_ref_local);
 	Geometry2D::RDS2 rds_2(rds_2_configuration.T, rds_2_configuration.D,
 		rds_2_configuration.delta, rds_2_configuration.v_max);
 	Vec2 v_corrected_p_ref_local;
 	rds_2.computeCorrectedVelocity(rds_2_configuration.robot_shape, rds_2_configuration.p_ref,
-		v_nominal_p_ref_local, objects_tmp, &v_corrected_p_ref_local);
+		v_nominal_p_ref_local, objects_local, &v_corrected_p_ref_local);
 	
 	float v_linear = v_corrected_p_ref_local.x*rds_2_configuration.p_ref.x/
 		rds_2_configuration.p_ref.y + v_corrected_p_ref_local.y;
@@ -85,27 +86,108 @@ void RDS2Agent::getClosestPointOfConvexPolygon(const Polygon& convex_polygon,
 }
 */
 
-void RDS2Agent::getCircleObjectsInLocalFrame(std::vector<Circle>* objects)
+void RDS2CapsuleAgent::getCircleObjectsInLocalFrame(const std::vector<Circle>& objects,
+		std::vector<Circle>* objects_local)
 {
 	float rxx = std::cos(-orientation);
 	float rxy = std::sin(-orientation);
 	float ryx = -rxy;
 	float ryy = rxx;
-
-	for (auto& c : *objects)
+	objects_local->resize(0);
+	for (auto& c : objects)
 	{
-		c.center = Vec2(rxx*(c.center - position).x + ryx*(c.center - position).y,
-			rxy*(c.center - position).x + ryy*(c.center - position).y);
+		objects_local->push_back(Circle(Vec2(rxx*(c.center - position).x + ryx*(c.center - position).y,
+			rxy*(c.center - position).x + ryy*(c.center - position).y), c.radius));
 	}
 }
 
-void RDS2Agent::transformVectorGlobalToLocal(const Vec2& v_global, Vec2* v_local)
+void RDS2CapsuleAgent::transformVectorGlobalToLocal(const Vec2& v_global, Vec2* v_local)
 {
 	*v_local = Vec2(std::cos(orientation)*v_global.x + std::sin(orientation)*v_global.y,
 		-std::sin(orientation)*v_global.x + std::cos(orientation)*v_global.y);
 }
 
-void RDS2Agent::transformVectorLocalToGlobal(const Vec2& v_local, Vec2* v_global)
+void RDS2CapsuleAgent::transformVectorLocalToGlobal(const Vec2& v_local, Vec2* v_global)
+{
+	*v_global = Vec2(std::cos(orientation)*v_local.x - std::sin(orientation)*v_local.y,
+		+std::sin(orientation)*v_local.x + std::cos(orientation)*v_local.y);
+}
+
+void RDS2CircleAgent::stepEuler(float dt, const Vec2& v_nominal_p_ref,
+	const std::vector<Circle>& circle_objects,
+	const std::vector<Capsule>& capsule_objects,
+	std::vector<Circle>::size_type circle_index_to_skip)
+{
+	std::vector<Circle> circle_objects_local;
+	getCircleObjectsInLocalFrame(circle_objects, &circle_objects_local, circle_index_to_skip);
+	std::vector<Capsule> capsule_objects_local;
+	getCapsuleObjectsInLocalFrame(capsule_objects, &capsule_objects_local);
+
+	Vec2 v_nominal_p_ref_local;
+	transformVectorGlobalToLocal(v_nominal_p_ref, &v_nominal_p_ref_local);
+	Geometry2D::RDS2 rds_2(rds_2_configuration.T, rds_2_configuration.D,
+		rds_2_configuration.delta, rds_2_configuration.v_max);
+	Vec2 v_corrected_p_ref_local;
+	rds_2.computeCorrectedVelocity(rds_2_configuration.robot_shape, rds_2_configuration.p_ref,
+		v_nominal_p_ref_local, circle_objects_local, capsule_objects_local, &v_corrected_p_ref_local);
+	
+	float v_linear = v_corrected_p_ref_local.x*rds_2_configuration.p_ref.x/
+		rds_2_configuration.p_ref.y + v_corrected_p_ref_local.y;
+	float v_angular = -v_corrected_p_ref_local.x/rds_2_configuration.p_ref.y;
+
+	Vec2 robot_local_velocity = Vec2(0.f, v_linear);
+	Vec2 robot_global_velocity;
+	transformVectorLocalToGlobal(robot_local_velocity, &robot_global_velocity);
+
+	position = position + dt*robot_global_velocity;
+	orientation = orientation + dt*v_angular;
+}
+
+void RDS2CircleAgent::getCircleObjectsInLocalFrame(const std::vector<Circle>& circle_objects,
+	std::vector<Circle>* circle_objects_local,
+	std::vector<Circle>::size_type circle_index_to_skip)
+{
+	float rxx = std::cos(-orientation);
+	float rxy = std::sin(-orientation);
+	float ryx = -rxy;
+	float ryy = rxx;
+	circle_objects_local->resize(0);
+	for (std::vector<Circle>::size_type i = 0; i != circle_objects.size(); i++)
+	{
+		if (i != circle_index_to_skip)
+		{
+			const Circle& c(circle_objects[i]);
+			circle_objects_local->push_back(Circle(Vec2(rxx*(c.center - position).x + ryx*(c.center - position).y,
+				rxy*(c.center - position).x + ryy*(c.center - position).y), c.radius));
+		}
+	}
+}
+
+void RDS2CircleAgent::getCapsuleObjectsInLocalFrame(const std::vector<Capsule>& capsule_objects,
+	std::vector<Capsule>* capsule_objects_local)
+{
+	float rxx = std::cos(-orientation);
+	float rxy = std::sin(-orientation);
+	float ryx = -rxy;
+	float ryy = rxx;
+	capsule_objects_local->resize(0);
+	for (auto& c : capsule_objects)
+	{
+		capsule_objects_local->push_back(Capsule(c.radius,
+			Vec2(rxx*(c.center_a - position).x + ryx*(c.center_a - position).y,
+				rxy*(c.center_a - position).x + ryy*(c.center_a - position).y),
+			Vec2(rxx*(c.center_b - position).x + ryx*(c.center_b - position).y,
+				rxy*(c.center_b - position).x + ryy*(c.center_b - position).y)));
+	}
+}
+
+void RDS2CircleAgent::transformVectorGlobalToLocal(const Vec2& v_global, Vec2* v_local)
+{
+	*v_local = Vec2(std::cos(orientation)*v_global.x + std::sin(orientation)*v_global.y,
+		-std::sin(orientation)*v_global.x + std::cos(orientation)*v_global.y);
+}
+
+void RDS2CircleAgent::transformVectorLocalToGlobal(const Vec2& v_local, Vec2* v_global)
 {
 	*v_global = Vec2(std::cos(orientation)*v_local.x - std::sin(orientation)*v_local.y,
 		+std::sin(orientation)*v_local.x + std::cos(orientation)*v_local.y);

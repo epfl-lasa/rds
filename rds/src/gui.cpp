@@ -8,6 +8,8 @@ GUI::GUI(const char* title, float window_size_in_distance_units)
 	points = 0;
 	circles = 0;
 	arrows = 0;
+	capsules = 0;
+	polygons = 0;
 
 	bool window_is_good;
 	window = new Window(title, window_size_in_distance_units, 1000, 10.0, &window_is_good);
