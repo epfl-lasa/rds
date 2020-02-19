@@ -19,13 +19,14 @@ struct RDS2CapsuleConfiguration
 struct RDS2CapsuleAgent
 {
 	RDS2CapsuleAgent(Geometry2D::Vec2 position, float orientation, const RDS2CapsuleConfiguration& config)
-	: position(position), orientation(orientation), rds_2_configuration(config) { }
+	: position(position), orientation(orientation), rds_2_configuration(config), last_step_p_ref_velocity(0.f, 0.f)
+	{ }
 
 	void stepEuler(float dt, const Geometry2D::Vec2& v_nominal_p_ref,
 		const std::vector<AdditionalPrimitives2D::Circle>& circle_objects);
 		//, const std::vector<AdditionalPrimitives2D::Polygon>& convex_polygon_objects);
 
-	Geometry2D::Vec2 position;
+	Geometry2D::Vec2 position, last_step_p_ref_velocity;
 	float orientation;
 	const RDS2CapsuleConfiguration rds_2_configuration;
 
@@ -55,14 +56,15 @@ struct RDS2CircleConfiguration
 struct RDS2CircleAgent
 {
 	RDS2CircleAgent(Geometry2D::Vec2 position, float orientation, const RDS2CircleConfiguration& config)
-	: position(position), orientation(orientation), rds_2_configuration(config) { }
+	: position(position), orientation(orientation), rds_2_configuration(config), last_step_p_ref_velocity(0.f, 0.f)
+	{ }
 
 	void stepEuler(float dt, const Geometry2D::Vec2& v_nominal_p_ref,
 		const std::vector<AdditionalPrimitives2D::Circle>& circle_objects,
 		const std::vector<Geometry2D::Capsule>& capsule_objects,
 		std::vector<AdditionalPrimitives2D::Circle>::size_type circle_index_to_skip = -1);
 
-	Geometry2D::Vec2 position;
+	Geometry2D::Vec2 position, last_step_p_ref_velocity;
 	float orientation;
 	const RDS2CircleConfiguration rds_2_configuration;
 

@@ -40,6 +40,7 @@ void RDS2CapsuleAgent::stepEuler(float dt,
 
 	position = position + dt*robot_global_velocity;
 	orientation = orientation + dt*v_angular;
+	transformVectorLocalToGlobal(v_corrected_p_ref_local, &(this->last_step_p_ref_velocity));
 }
 /*
 void RDS2Agent::getClosestPointOfConvexPolygon(const Polygon& convex_polygon,
@@ -141,6 +142,7 @@ void RDS2CircleAgent::stepEuler(float dt, const Vec2& v_nominal_p_ref,
 
 	position = position + dt*robot_global_velocity;
 	orientation = orientation + dt*v_angular;
+	transformVectorLocalToGlobal(v_corrected_p_ref_local, &(this->last_step_p_ref_velocity));
 }
 
 void RDS2CircleAgent::getCircleObjectsInLocalFrame(const std::vector<Circle>& circle_objects,
