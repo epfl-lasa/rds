@@ -30,7 +30,8 @@ TwoLidarToLRFNode::TwoLidarToLRFNode(ros::NodeHandle* n)
 	, lrf_number_of_bins(720)
 	, lrf_angle_step(2.f*M_PI/lrf_number_of_bins)
 {
-	received_one_velodyne_scan = false;
+	received_front_velodyne_scan = false;
+	received_rear_velodyne_scan = false;
 	lrf_scan.header.frame_id = "velodyne";
 	lrf_scan.angle_increment = lrf_angle_step;
 	lrf_scan.angle_min = 0.f;
@@ -58,25 +59,25 @@ void TwoLidarToLRFNode::frontVelodyneMessageCallback(const velodyne_msgs::Velody
 	float rzy = -ryz;
 	float rzz = ryy;
 	float y_new, z_new;
-	for (auto& p : point_cloud.points)
-	{
-		y_new = ryy*p.y + rzy*p.z;
-		z_new = ryz*p.y + rzz*p.z;
-		p.y = y_new;
-		p.z = z_new;
-	}
+	//for (auto& p : point_cloud.points)
+	//{}
 
 	// fill the 2D laserscan message (skip ground scans)
-	if (!received_one_velodyne_scan)
+	if (!(received_rear_velodyne_scan || received_front_velodyne_scan))
 	{
 		lrf_scan.header.stamp = v_scan->header.stamp;
 		lrf_scan.ranges = std::vector<float>(lrf_number_of_bins, 100000.f);
 	}
+	received_front_velodyne_scan = true;
 	for (auto& p : point_cloud.points)
 	{
-		if (p.z > -front_lidar_mount_height)
-		//if ((p.z > -0.04f) && (p.z < 0.04f))
+		//if (p.z > -front_lidar_mount_height)
+		if ((p.z > -0.04f) && (p.z < 0.04f))
 		{
+		y_new = ryy*p.y + rzy*p.z;
+		z_new = ryz*p.y + rzz*p.z;
+		p.y = y_new;
+		p.z = z_new;
 			float p_y_lrf = p.y + front_lidar_y_coordinate - lrf_y_coordinate;
 			float phi = std::atan2(p_y_lrf, p.x);
 			float r = std::sqrt(p.x*p.x + p_y_lrf*p_y_lrf);
@@ -85,10 +86,12 @@ void TwoLidarToLRFNode::frontVelodyneMessageCallback(const velodyne_msgs::Velody
 				lrf_scan.ranges[lrf_bin_index] = r;
 		}
 	}
-	if (!received_one_velodyne_scan)
-		received_one_velodyne_scan = true;
-	else
+	if (received_rear_velodyne_scan)
+	{
 		lrf_publisher.publish(lrf_scan);
+		received_front_velodyne_scan = false;
+		received_rear_velodyne_scan = false;
+	}
 }
 
 void TwoLidarToLRFNode::rearVelodyneMessageCallback(const velodyne_msgs::VelodyneScan::ConstPtr& v_scan)
@@ -121,32 +124,30 @@ void TwoLidarToLRFNode::rearVelodyneMessageCallback(const velodyne_msgs::Velodyn
 	}
 
 	// rotate around x-axis to compensate forward tilting
-	{
 		float ryy = std::cos(-rear_lidar_tilt_angle);
 		float ryz = std::sin(-rear_lidar_tilt_angle);
 		float rzy = -ryz;
 		float rzz = ryy;
 		float y_new, z_new;
-		for (auto& p : point_cloud.points)
+		//for (auto& p : point_cloud.points)
+		//{}
+
+	// fill the 2D laserscan message (skip ground scans)
+	if (!(received_rear_velodyne_scan || received_front_velodyne_scan))
+	{
+		lrf_scan.header.stamp = v_scan->header.stamp;
+		lrf_scan.ranges = std::vector<float>(lrf_number_of_bins, 100000.f);
+	}
+	received_rear_velodyne_scan = true;
+	for (auto& p : point_cloud.points)
+	{
+		//if (p.z > -rear_lidar_mount_height)
+		if ((p.z > -0.04f) && (p.z < 0.04f))
 		{
 			y_new = ryy*p.y + rzy*p.z;
 			z_new = ryz*p.y + rzz*p.z;
 			p.y = y_new;
 			p.z = z_new;
-		}
-	}
-
-	// fill the 2D laserscan message (skip ground scans)
-	if (!received_one_velodyne_scan)
-	{
-		lrf_scan.header.stamp = v_scan->header.stamp;
-		lrf_scan.ranges = std::vector<float>(lrf_number_of_bins, 100000.f);
-	}
-	for (auto& p : point_cloud.points)
-	{
-		if (p.z > -rear_lidar_mount_height)
-		//if ((p.z > -0.04f) && (p.z < 0.04f))
-		{
 			float p_y_lrf = p.y + rear_lidar_y_coordinate - lrf_y_coordinate;
 			float phi = std::atan2(p_y_lrf, p.x);
 			float r = std::sqrt(p.x*p.x + p_y_lrf*p_y_lrf);
@@ -155,10 +156,12 @@ void TwoLidarToLRFNode::rearVelodyneMessageCallback(const velodyne_msgs::Velodyn
 				lrf_scan.ranges[lrf_bin_index] = r;
 		}
 	}
-	if (!received_one_velodyne_scan)
-		received_one_velodyne_scan = true;
-	else
+	if (received_front_velodyne_scan)
+	{
 		lrf_publisher.publish(lrf_scan);
+		received_front_velodyne_scan = false;
+		received_rear_velodyne_scan = false;
+	}
 }
 
 int main(int argc, char** argv)
