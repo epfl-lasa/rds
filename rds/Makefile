@@ -1,9 +1,12 @@
-all: geometry gui demo_geo rds_core rds_wrap demo_rds demo_simu demo_rvo build/demo_hierarchy build/demo_hierarchy_rds_3 build/blocks# list only what is ready to build
+all: geometry gui demo_geo rds_core rds_wrap demo_rds demo_simu demo_rvo build/demo_hierarchy build/demo_hierarchy_rds_3 build/demo_rds_3 build/blocks# list only what is ready to build
 	@echo "\033[92mDone with building RDS.\033[0m"
 
 FLAGS = -std=c++11 -g -Wall
 
 # DEMOS
+
+build/demo_rds_3: build/libgeometry.a build/libgui.a src/demo_rds_3.cpp src/rds_3_agent.cpp src/rds_3_agent.hpp src/rds_3.cpp src/rds_3.hpp src/RVO.hpp src/RVO.cpp
+	g++ $(FLAGS) src/demo_rds_3.cpp src/rds_3_agent.cpp src/rds_3.cpp src/RVO.cpp -Lbuild -lgui -lSDL2 -lRVO -lgeometry -o build/demo_rds_3
 
 build/demo_hierarchy_rds_3: build/libgeometry.a build/libgui.a src/demo_hierarchy_rds_3.cpp src/rds_3_agent.cpp src/rds_3_agent.hpp src/rds_3.cpp src/rds_3.hpp src/RVO.hpp src/RVO.cpp
 	g++ $(FLAGS) src/demo_hierarchy_rds_3.cpp src/rds_3_agent.cpp src/rds_3.cpp src/RVO.cpp -Lbuild -lgui -lSDL2 -lRVO -lgeometry -o build/demo_hierarchy_rds_3

@@ -178,22 +178,51 @@ void update_speed_measurements(RVO::RVOSimulator* sim, RVO::RVOSimulator* sim_rv
 		print_speed_measurements();
 }
 
-void generate_all_v_preferred()
+void generate_all_v_preferred(int simu_index)
 {
-	std::normal_distribution<float> normal_distribution (0.0,2.0);
-	for (auto& cap : capsule_agents)
+	switch (simu_index)
 	{
-		RVO::Vector2 v_preferred(1.2f, 0.f);
-		all_v_preferred.push_back(v_preferred);
-	}
-	for (auto& cir : circle_agents)
-	{	
-		float sign = 1.f;
-		if (normal_distribution(generator) > 0.f)
-			sign = -1.f;
-		RVO::Vector2 v_preferred(-1.2f + std::min(0.4f, std::max(-0.4f, 
-			float(normal_distribution(generator)))), 0.f);
-		all_v_preferred.push_back(v_preferred*sign);
+		case 0:
+		{
+			return;
+		}
+		case 1:
+		{
+			return;
+		}
+		case 2:
+		{
+			std::normal_distribution<float> normal_distribution (0.0,2.0);
+			for (auto& cap : capsule_agents)
+			{
+				RVO::Vector2 v_preferred(1.2f, 0.f);
+				all_v_preferred.push_back(v_preferred);
+			}
+			for (auto& cir : circle_agents)
+			{	
+				float sign = 1.f;
+				if (normal_distribution(generator) > 0.f)
+					sign = -1.f;
+				RVO::Vector2 v_preferred(-1.2f + std::min(0.4f, std::max(-0.4f, 
+					float(normal_distribution(generator)))), 0.f);
+				all_v_preferred.push_back(v_preferred*sign);
+			}
+		}
+		case 3:
+		{
+			std::normal_distribution<float> normal_distribution (0.0,2.0);
+			for (auto& cap : capsule_agents)
+			{
+				RVO::Vector2 v_preferred(1.2f, 0.f);
+				all_v_preferred.push_back(v_preferred);
+			}
+			for (auto& cir : circle_agents)
+			{	
+				RVO::Vector2 v_preferred(1.2f + std::min(0.4f, std::max(-0.4f, 
+					float(normal_distribution(generator)))), 0.f);
+				all_v_preferred.push_back(v_preferred);
+			}
+		}
 	}
 }
 
@@ -392,6 +421,38 @@ void simulate(const char* title, float screen_size, int simu_index, float corrid
 
 	GUI gui_rvo_only((std::string("RVO only: ") + std::string(title)).c_str(), screen_size);
 	gui_rvo_only.circles = &circle_objects_global_rvo_only;
+	GuiColor green;
+	green.g = 255;
+	green.r = green.b = 0;
+	gui_rvo_only.circles_colors.push_back(green);
+
+	if (all_v_preferred.size() != 0)
+	{
+		GuiColor yellow, red, white;
+		red.r = 255;
+		red.g = red.b = 0;
+		yellow.r = yellow.g = 255;
+		yellow.b = 0;
+		white.r = white.g = white.b = 255;
+		for (unsigned long int i = 1; i != all_v_preferred.size(); i++)
+		{
+			if (circle_agents[i-1].rds_3_configuration.v_max == 0.f)
+			{
+				gui_rvo_only.circles_colors.push_back(white);
+				gui.circles_colors.push_back(white);
+			}
+			else if (all_v_preferred[i].x() < 0.f)
+			{
+				gui_rvo_only.circles_colors.push_back(red);
+				gui.circles_colors.push_back(red);
+			}
+			else
+			{
+				gui_rvo_only.circles_colors.push_back(yellow);
+				gui.circles_colors.push_back(yellow);
+			}
+		}
+	}
 
 	update_objects_global();
 	RVO::RVOSimulator sim_rvo_only;
@@ -414,7 +475,7 @@ void simulate(const char* title, float screen_size, int simu_index, float corrid
 			15.0f, 10, 5.0f, 5.0f, r, circle_agents[i].rds_3_configuration.v_max);
 		circle_objects_global_rvo_only.push_back(Circle(Vec2(0.f, 0.f), r));
 	}
-	
+
 	int n_iterations = 5;
 	float dt = gui_cycle_time.count()*0.001f/n_iterations;
 	sim_rvo_only.setTimeStep(dt*n_iterations);
@@ -607,7 +668,7 @@ int main(int argc, char** argv)
 			//	Vec2(window_size/2.f*0.75, 0.f) - p_ref,
 			//	0.f, RDS3CircleConfiguration(1.f,0.05f, 0.f, Circle(p_ref, 5.f), p_ref)));
 
-			generate_all_v_preferred();
+			generate_all_v_preferred(simu_index+1);
 			simulate("Hierarchical RVO-RDS control", window_size, simu_index, corridor_width);
 
 			print_speed_measurements();
