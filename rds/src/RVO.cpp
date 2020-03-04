@@ -34,7 +34,7 @@ void RVO::computeCoordinativeVelocityObstacles(const Circle& o_1, const Circle& 
 	{
 		Vec2 shift_to_free_origin(-1.f*vo_1->getNormal()*vo_1->getOffset());
 		vo_1->shift(shift_to_free_origin);
-		vo_2->shift(shift_to_free_origin*1.f/(1.f + 0.5f*convex_rvo.getOffset()));
+		vo_2->shift(shift_to_free_origin);//*1.f/(1.f + 0.5f*convex_rvo.getOffset()));
 		//if (vo_2->getOffset() < 0.f)
 		//	vo_2->shift(-1.f*vo_2->getNormal()*vo_2->getOffset());
 	}
@@ -42,7 +42,7 @@ void RVO::computeCoordinativeVelocityObstacles(const Circle& o_1, const Circle& 
 	{
 		Vec2 shift_to_free_origin(-1.f*vo_2->getNormal()*vo_2->getOffset());
 		vo_2->shift(shift_to_free_origin);
-		vo_1->shift(shift_to_free_origin*1.f/(1.f + 0.5f*convex_rvo.getOffset()));
+		vo_1->shift(shift_to_free_origin);//*1.f/(1.f + 0.5f*convex_rvo.getOffset()));
 		//if (vo_1->getOffset() < 0.f)
 		//	vo_1->shift(-1.f*vo_1->getNormal()*vo_1->getOffset());
 	}
