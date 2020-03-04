@@ -17,7 +17,8 @@ struct TwoLidarToLRFNode
 
 	ros::Publisher lrf_publisher;
 	sensor_msgs::LaserScan lrf_scan;
-	bool received_one_velodyne_scan;
+	bool received_front_velodyne_scan;
+	bool received_rear_velodyne_scan;
 	ros::Subscriber front_velodyne_subscriber;
 	ros::Subscriber rear_velodyne_subscriber;
 
