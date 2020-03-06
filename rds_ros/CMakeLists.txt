@@ -137,7 +137,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(${PROJECT_NAME}_node src/rds_ros_node.cpp)
+add_executable(${PROJECT_NAME}_node src/rds_ros_node.cpp src/aggregate_two_lrf.cpp)
 add_executable(${PROJECT_NAME}_lidar_to_lrf_node src/lidar_to_lrf_node.cpp)
 add_executable(${PROJECT_NAME}_two_lidar_to_lrf_node src/two_lidar_to_lrf_node.cpp)
 add_executable(${PROJECT_NAME}_nominal_command_node src/nominal_command_node.cpp)

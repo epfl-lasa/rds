@@ -11,7 +11,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
-QoloCollisionPointGenerator::QoloCollisionPointGenerator()
+/*QoloCollisionPointGenerator::QoloCollisionPointGenerator()
 	: front_lrf_location(Geometry2D::Vec2(0.f, 0.056f))
 	, front_lrf_orientation(M_PI/2.f)
 	, front_angle_cutoff_from_forward_direction(3.f*M_PI/4.f)
@@ -19,13 +19,19 @@ QoloCollisionPointGenerator::QoloCollisionPointGenerator()
 	, rear_lrf_location(0.f, -0.517)
 {
 	defineQoloShape();
+}*/
+
+QoloCollisionPointGenerator::QoloCollisionPointGenerator(const AggregatorTwoLRF& aggregator_two_lrf)
+: aggregator_two_lrf(aggregator_two_lrf)
+{
+	defineQoloShape();
 }
 
 void QoloCollisionPointGenerator::defineQoloShape()
 {
 	// create a shape containing the two LIDAR blind zones (it contains Qolo as well)
-	robot_shape_circles.push_back(AdditionalPrimitives2D::Circle(front_lrf_location, 0.4f));
-	robot_shape_circles.push_back(AdditionalPrimitives2D::Circle(rear_lrf_location, 0.3f));
+	robot_shape_circles.push_back(AdditionalPrimitives2D::Circle(aggregator_two_lrf.position_lrf_front, 0.4f));
+	robot_shape_circles.push_back(AdditionalPrimitives2D::Circle(aggregator_two_lrf.position_lrf_rear, 0.3f));
 	return;
 
 	// create a Qolo-like shape using 8 circles
@@ -75,25 +81,18 @@ float angleToPlus270Minus90(float angle)
 	return angle;
 }
 
-void QoloCollisionPointGenerator::obstacleMessageCallback(const sensor_msgs::LaserScan::ConstPtr& lrf_msg)
+const CollisionPointGenerator<sensor_msgs::LaserScan::ConstPtr>& QoloCollisionPointGenerator::generateCollisionPoints()
 {
-	obstacle_circles.resize(0);//lrf_msg->ranges.size());
-	obstacle_velocities.resize(0);//lrf_msg->ranges.size());
-	for (std::vector<float>::size_type i = 0; i != lrf_msg->ranges.size(); i++)
+	obstacle_circles.resize(0);
+	obstacle_velocities.resize(0);
+	for (unsigned int i = 0; i != aggregator_two_lrf.size(); i++)
 	{
-		//obstacle_velocities[i] = Geometry2D::Vec2(0.f, 0.f);
-		float phi = front_lrf_orientation + lrf_msg->angle_min + i*lrf_msg->angle_increment;
-		Geometry2D::Vec2 center(front_lrf_location + lrf_msg->ranges[i]*Geometry2D::Vec2(std::cos(phi),
-			std::sin(phi)));
-		//if (lrf_msg->ranges[i] > 1.f)
-		//obstacle_circles[i] = AdditionalPrimitives2D::Circle(center, 0.f);
-		if ((std::abs(angleToPlus270Minus90(phi) - M_PI/2.f) < front_angle_cutoff_from_forward_direction) &&
-			(lrf_msg->ranges[i] > front_range_cutoff_lower))
-		{
-			obstacle_circles.push_back(AdditionalPrimitives2D::Circle(center, 0.f));
-			obstacle_velocities.push_back(Geometry2D::Vec2(0.f, 0.f));
-		}
+		Geometry2D::Vec2 center(aggregator_two_lrf.getPoint(i));
+		obstacle_circles.push_back(AdditionalPrimitives2D::Circle(center, 0.f));
+		obstacle_velocities.push_back(Geometry2D::Vec2(0.f, 0.f));
 	}
+	
+	return CollisionPointGenerator<sensor_msgs::LaserScan::ConstPtr>::generateCollisionPoints();
 }
 
 bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectionRDS::Request& request,
@@ -207,10 +206,12 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 	//return false;
 }
 
-RDSNode::RDSNode(ros::NodeHandle* n)
-	: qolo_cpg()
-	, laserscan_subscriber(n->subscribe<sensor_msgs::LaserScan>("laserscan", 1,
-		&QoloCollisionPointGenerator::obstacleMessageCallback, &qolo_cpg))
+RDSNode::RDSNode(ros::NodeHandle* n, const AggregatorTwoLRF& aggregator_two_lrf)
+	: qolo_cpg(aggregator_two_lrf)
+	, subscriber_lrf_front(n->subscribe<sensor_msgs::LaserScan>("laserscan_front", 1,
+		&AggregatorTwoLRF::callbackLRFFront, &qolo_cpg.aggregator_two_lrf))
+	, subscriber_lrf_rear(n->subscribe<sensor_msgs::LaserScan>("laserscan_rear", 1,
+		&AggregatorTwoLRF::callbackLRFRear, &qolo_cpg.aggregator_two_lrf))
 	, publisher_for_gui(n->advertise<rds_network_ros::ToGui>("rds_to_gui", 1)) 
 	, command_correction_server(n->advertiseService("rds_velocity_command_correction",
 		&RDSNode::commandCorrectionService, this))
@@ -220,8 +221,19 @@ RDSNode::RDSNode(ros::NodeHandle* n)
 
 int main(int argc, char** argv)
 {
+	AggregatorTwoLRF aggregator_two_lrf(Geometry2D::Vec2(0.f, 0.03f),
+		M_PI/2.f,
+		M_PI/2.f,
+		3.f*M_PI/4.f,
+		0.05,
+		Geometry2D::Vec2(0.f, -0.52),
+		3*M_PI/2.f,
+		M_PI,
+		3.f*M_PI/4.f,
+		0.05);
+
 	ros::init(argc, argv, "rds_ros_node");
 	ros::NodeHandle n;
-	RDSNode rds_node(&n);
+	RDSNode rds_node(&n, aggregator_two_lrf);
 	return 0;
 }

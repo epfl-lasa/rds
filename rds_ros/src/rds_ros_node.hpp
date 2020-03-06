@@ -1,6 +1,7 @@
 #ifndef RDS_ROS_NODE_HPP
 #define RDS_ROS_NODE_HPP
 
+#include "aggregate_two_lrf.hpp"
 #include <rds/rds_wrap.hpp>
 #include <rds/geometry.hpp>
 
@@ -11,20 +12,14 @@
 
 struct QoloCollisionPointGenerator : public CollisionPointGenerator<sensor_msgs::LaserScan::ConstPtr>
 {
-	QoloCollisionPointGenerator();
+	QoloCollisionPointGenerator(const AggregatorTwoLRF& aggregator_two_lrf);
 
-	void obstacleMessageCallback(const sensor_msgs::LaserScan::ConstPtr& obstacle_sensor_msg);
+	void obstacleMessageCallback(const sensor_msgs::LaserScan::ConstPtr& obstacle_sensor_msg) { }
 	//void frontLRFMessageCallback(const sensor_msgs::LaserScan::ConstPtr& obstacle_sensor_msg);
 
-	Geometry2D::Vec2 front_lrf_location;
-	float front_lrf_orientation;
-	float front_angle_cutoff_from_forward_direction;
-	float front_range_cutoff_lower;
+	const CollisionPointGenerator<sensor_msgs::LaserScan::ConstPtr>& generateCollisionPoints();
 
-	Geometry2D::Vec2 rear_lrf_location;
-	//float rear_lrf_orientation;
-	//float rear_angle_cutoff_from_forward_direction;
-	//float rear_range_cutoff_lower;
+	AggregatorTwoLRF aggregator_two_lrf;
 
 private:
 	void defineQoloShape();
@@ -32,13 +27,14 @@ private:
 
 struct RDSNode
 {
-	RDSNode(ros::NodeHandle* n);
+	RDSNode(ros::NodeHandle* n, const AggregatorTwoLRF& aggregator_two_lrf);
 
 	bool commandCorrectionService(rds_network_ros::VelocityCommandCorrectionRDS::Request& request,
 		rds_network_ros::VelocityCommandCorrectionRDS::Response& response);
 
 	QoloCollisionPointGenerator qolo_cpg;
-	ros::Subscriber laserscan_subscriber;
+	ros::Subscriber subscriber_lrf_front;
+	ros::Subscriber subscriber_lrf_rear;
 	ros::Publisher publisher_for_gui;
 	ros::ServiceServer command_correction_server;
 };
