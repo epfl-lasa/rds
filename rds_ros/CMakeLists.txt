@@ -142,6 +142,7 @@ add_executable(${PROJECT_NAME}_lidar_to_lrf_node src/lidar_to_lrf_node.cpp)
 add_executable(${PROJECT_NAME}_two_lidar_to_lrf_node src/two_lidar_to_lrf_node.cpp)
 add_executable(${PROJECT_NAME}_nominal_command_node src/nominal_command_node.cpp)
 add_executable(rds_holonomic_ros_node src/rds_holonomic_ros_node.cpp)
+add_executable(lidar_channels_to_lrf_node src/lidar_channels_to_lrf_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -174,6 +175,9 @@ target_link_libraries(${PROJECT_NAME}_nominal_command_node
 )
 target_link_libraries(rds_holonomic_ros_node
   ${CMAKE_CURRENT_SOURCE_DIR}/../rds/build/librds_wrap.a
+  ${catkin_LIBRARIES}
+)
+target_link_libraries(lidar_channels_to_lrf_node
   ${catkin_LIBRARIES}
 )
 

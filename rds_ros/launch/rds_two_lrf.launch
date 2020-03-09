@@ -1,0 +1,4 @@
+<launch>
+  <include file="$(find rds_ros)/launch/two_lrf.launch"/>
+  <node name="rds_ros" pkg="rds_ros" type="rds_ros_node" />
+</launch>

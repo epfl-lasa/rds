@@ -208,9 +208,9 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 
 RDSNode::RDSNode(ros::NodeHandle* n, const AggregatorTwoLRF& aggregator_two_lrf)
 	: qolo_cpg(aggregator_two_lrf)
-	, subscriber_lrf_front(n->subscribe<sensor_msgs::LaserScan>("laserscan_front", 1,
+	, subscriber_lrf_front(n->subscribe<sensor_msgs::LaserScan>("front_lidar/laserscan", 1,
 		&AggregatorTwoLRF::callbackLRFFront, &qolo_cpg.aggregator_two_lrf))
-	, subscriber_lrf_rear(n->subscribe<sensor_msgs::LaserScan>("laserscan_rear", 1,
+	, subscriber_lrf_rear(n->subscribe<sensor_msgs::LaserScan>("rear_lidar/laserscan", 1,
 		&AggregatorTwoLRF::callbackLRFRear, &qolo_cpg.aggregator_two_lrf))
 	, publisher_for_gui(n->advertise<rds_network_ros::ToGui>("rds_to_gui", 1)) 
 	, command_correction_server(n->advertiseService("rds_velocity_command_correction",
