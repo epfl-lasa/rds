@@ -228,7 +228,7 @@ int main(int argc, char** argv)
 		0.05,
 		Geometry2D::Vec2(0.f, -0.52),
 		3*M_PI/2.f,
-		M_PI,
+		3.f*M_PI/2.f,
 		3.f*M_PI/4.f,
 		0.05);
 
