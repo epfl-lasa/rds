@@ -54,6 +54,13 @@ namespace Geometry2D
 			return (norm() > 0.0000001f) ? *this/norm() : throw NormalizationException();
 		}
 
+		Vec2& operator+= (const Vec2& v)
+		{
+			x += v.x;
+			y += v.y;
+			return *this;
+		}
+
 		class NormalizationException { };
 
 		float x, y;

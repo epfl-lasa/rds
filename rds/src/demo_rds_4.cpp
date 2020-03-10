@@ -14,6 +14,8 @@
 #include <thread>
 #include <random>
 #include <iostream>
+#include <iomanip>
+#include <fstream>
 
 using Geometry2D::Vec2;
 using AdditionalPrimitives2D::Circle;
@@ -340,30 +342,32 @@ void simulate(float screen_size, float corridor_width, bool quick_measurement_mo
 		update_speed_measurements(&sim_rvo_only);
 		update_distance_measurements(&sim_rvo_only);
 	}
-	while (update_gui(&gui, &gui_rvo_only, quick_measurement_mode));
+	while (update_gui(&gui, &gui_rvo_only, quick_measurement_mode) && (n_steps < (unsigned long int)(40.0/dt)));
 }
 
 int main(int argc, char** argv)
 {
-	double v_robot, v_crowd;
-	if (argc > 2)
+	double v_robot, v_crowd, density;
+	if (argc > 3)
 	{
 		v_robot = std::stod(argv[1]);
 		v_crowd = std::stod(argv[2]);
+		density = std::stod(argv[3]);
 	}
 	else
 	{
-		std::cout << "Provide two arguments to define the robot and crowd speed respectively." << std::endl;
+		std::cout << "Provide 3 arguments to define the robot speed, the crowd speed, and the density, respectively." << std::endl;
 		return 0;
 	}
 
 	float delta = 0.05f;
+	float tau = 1.f/2.f/density;
 	collision_delta = 0.f;
 	float v_max_robot = 1.8f;
-	float capsule_radius = 0.5f;
+	float capsule_radius = 0.25f;
 	float reference_point_y = 0.2f;
 	float capsule_segment_length = 0.5f;
-	robot = RDS4CapsuleAgent(Vec2(0.f, 0.f), -M_PI/2.f, RDSCapsuleConfiguration(1.f, delta, v_max_robot,
+	robot = RDS4CapsuleAgent(Vec2(0.f, 0.f), -M_PI/2.f, RDSCapsuleConfiguration(tau, delta, v_max_robot,
 		Capsule(capsule_radius, Vec2(0.f, reference_point_y), Vec2(0.f, reference_point_y-capsule_segment_length)),
 		Vec2(0.f, reference_point_y)));
 
@@ -371,7 +375,6 @@ int main(int argc, char** argv)
 	float corridor_width = 20.f;
 	float pillar_radius = 0.5f;
 	float pedestrian_radius = 0.25f;
-	float density = 0.5f;
 	float bin_width = std::sqrt(1.f/density);
 
 	float v_max_crowd = 1.8f;
@@ -387,7 +390,7 @@ int main(int argc, char** argv)
 			if (position.norm() < no_go_radius)
 				continue;
 			rvo_3_agents.push_back(RVO3Agent(position,
-				RVO3Configuration(1.f, delta, v_max_crowd, pedestrian_radius)));
+				RVO3Configuration(tau, delta, v_max_crowd, pedestrian_radius)));
 		}
 	}
 	// static agents (walls)
@@ -397,7 +400,7 @@ int main(int argc, char** argv)
 		{
 			rvo_3_agents.push_back(RVO3Agent(
 				Vec2(-window_size/2.f + i*pillar_radius*2.f, -corridor_width/2.f*float(j)),
-				RVO3Configuration(1.f, delta, 0.f, pillar_radius)));
+				RVO3Configuration(tau, delta, 0.f, pillar_radius)));
 		}
 	}
 
@@ -423,4 +426,22 @@ int main(int argc, char** argv)
 	std::cout << "Robot-objects distance minimum (average over time):" << std::endl;
 	std::cout << "RDS-4 with RVO-3: " << closest_distance_avrg_rds << std::endl;
 	std::cout << "RVO-2 (official): " << closest_distance_avrg_rvo_only << std::endl;
+
+	return 0;
+  std::string filename = "rds_4_table.txt";
+  std::fstream s(filename, s.out | s.app);
+  if (!s.is_open()) {
+    std::cout << "failed to open " << filename << '\n';
+  } else {
+    // write
+    s << std::setw(4) << rds_4_rvo_3_collision_count << ",  ";
+    s << std::setw(4) << rvo_only_collision_count << ",    ";
+    s << std::setw(8) << average_speed_around_robot_rds << ",  ";
+    s << std::setw(8) << average_speed_around_robot_rvo_only << ",    ";
+    s << std::setw(8) << robot_horizontal_progress_rds << ",  ";
+    s << std::setw(8) << robot_horizontal_progress_rvo_only << ",    ";
+    s << std::setw(8) << closest_distance_avrg_rds << ",  ";
+    s << std::setw(8) << closest_distance_avrg_rvo_only << std::endl;
+  }
+  s.close();
 }
