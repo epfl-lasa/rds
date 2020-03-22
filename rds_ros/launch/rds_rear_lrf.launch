@@ -1,0 +1,11 @@
+<launch>
+  <include file="$(find rds_ros)/launch/rear_lrf.launch"/>
+  <node name="rds_ros" pkg="rds_ros" type="rds_ros_node" />
+
+  <node pkg="tf_qolo" type="static_transform_publisher" name="tf_rear_lidar" 
+      args="-0.520 0 0.363 0 0 0 tf_qolo tf_rear_lidar 50" />
+
+  <node pkg="tf" type="static_transform_publisher" name="tf_rear_camera" 
+  		args="-0.620 0 0.263 0 0 0 tf_qolo camera_rear_color_optical_frame 100" />
+
+</launch>
