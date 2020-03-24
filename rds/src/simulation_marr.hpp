@@ -17,13 +17,20 @@
 //	RVO::Simulator& rvo_sim;
 //};
 
+/*
 
+d v_orca /dt = f(x, v_orca)
+d x_rds /dt = g(x, v_orca)
+
+*/
 
 
 struct AgentMARR
 {
 	AgentMARR(int id, const Geometry2D::Vec2& position, double orientation, double radius, double v_max)
 	: m_id(id), m_position(position), m_orientation(orientation), m_radius(radius), m_v_max(v_max) { }
+
+	virtual ~AgentMARR() { }
 
 	virtual void computeVelocity(double time, const std::vector<AgentMARR*>& agents,
 		const AgentMARR* robot) = 0;

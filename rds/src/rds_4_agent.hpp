@@ -35,8 +35,8 @@ private:
 	void getObjectsInLocalFrame(const std::vector<MovingCircle>& objects,
 		std::vector<MovingCircle>* objects_local);
 public:
-	void transformVectorGlobalToLocal(const Geometry2D::Vec2& v_global, Geometry2D::Vec2* v_local);
-	void transformVectorLocalToGlobal(const Geometry2D::Vec2& v_local, Geometry2D::Vec2* v_global);
+	void transformVectorGlobalToLocal(const Geometry2D::Vec2& v_global, Geometry2D::Vec2* v_local) const;
+	void transformVectorLocalToGlobal(const Geometry2D::Vec2& v_local, Geometry2D::Vec2* v_global) const;
 };
 
 #endif

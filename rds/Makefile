@@ -1,9 +1,12 @@
-all: geometry gui demo_geo rds_core rds_wrap demo_rds demo_simu demo_rvo build/demo_hierarchy build/demo_hierarchy_rds_3 build/demo_rds_3 build/demo_rds_4 build/demo_eval_rds_4 build/demo_marr build/blocks# list only what is ready to build
+all: geometry gui demo_geo rds_core rds_wrap demo_rds demo_simu demo_rvo build/demo_hierarchy build/demo_hierarchy_rds_3 build/demo_rds_3 build/demo_rds_4 build/demo_eval_rds_4 build/demo_marr build/demo_rds_orca_simu build/blocks# list only what is ready to build
 	@echo "\033[92mDone with building RDS.\033[0m"
 
 FLAGS = -std=c++11 -g -Wall
 
 # DEMOS
+
+build/demo_rds_orca_simu: src/demo_rds_orca_simu.cpp src/rds_orca_simulator.hpp src/rds_orca_simulator.cpp src/rds_4_agent.cpp src/rds_4_agent.hpp src/rds_4.cpp src/rds_4.hpp src/RVO.hpp src/RVO.cpp
+	g++ $(FLAGS) src/demo_rds_orca_simu.cpp src/rds_orca_simulator.cpp src/rds_4_agent.cpp src/rds_4.cpp src/RVO.cpp -Lbuild -lgui -lSDL2 -lRVO -lgeometry -o build/demo_rds_orca_simu
 
 build/demo_marr: src/demo_marr.cpp src/simulation_marr.cpp src/simulation_marr.hpp build/libgui.a
 	g++ $(FLAGS) src/demo_marr.cpp src/simulation_marr.cpp -Lbuild -lgui -lSDL2 -lRVO -lgeometry -o build/demo_marr
@@ -92,7 +95,8 @@ build/libgui.a: build/rds/.hi src/geometry.hpp src/gui.cpp src/gui.hpp src/windo
 	cp src/geometry.hpp build/rds
 	cp src/gui.hpp build/rds
 	cp src/window.hpp build/rds
-
+	cp src/capsule.hpp build/rds
+	
 geometry: build/libgeometry.a # target just for convenience
 
 build/libgeometry.a: build/.hi src/geometry.hpp src/distance_minimizer.cpp src/distance_minimizer.hpp src/capsule.hpp src/capsule.cpp

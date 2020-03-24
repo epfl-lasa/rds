@@ -50,13 +50,13 @@ void RDS4CapsuleAgent::getObjectsInLocalFrame(const std::vector<MovingCircle>& o
 	}
 }
 
-void RDS4CapsuleAgent::transformVectorGlobalToLocal(const Vec2& v_global, Vec2* v_local)
+void RDS4CapsuleAgent::transformVectorGlobalToLocal(const Vec2& v_global, Vec2* v_local) const
 {
 	*v_local = Vec2(std::cos(orientation)*v_global.x + std::sin(orientation)*v_global.y,
 		-std::sin(orientation)*v_global.x + std::cos(orientation)*v_global.y);
 }
 
-void RDS4CapsuleAgent::transformVectorLocalToGlobal(const Vec2& v_local, Vec2* v_global)
+void RDS4CapsuleAgent::transformVectorLocalToGlobal(const Vec2& v_local, Vec2* v_global) const
 {
 	*v_global = Vec2(std::cos(orientation)*v_local.x - std::sin(orientation)*v_local.y,
 		+std::sin(orientation)*v_local.x + std::cos(orientation)*v_local.y);
