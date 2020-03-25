@@ -6,22 +6,26 @@
 using Geometry2D::Vec2;
 using Geometry2D::Capsule;
 using AdditionalPrimitives2D::Circle;
+using Geometry2D::BoundingCircles;
 
 struct GuiWrap
 {
 	GuiWrap(const RdsOrcaSimulator& sim)
 	: m_gui("RDS-ORCA Simulator", 20.f)
+	, m_bounding_circles(sim.getBoundingCirclesRobot())
 	{
 		m_gui.circles = &m_circles;
 		m_gui.capsules = &m_capsules;
 		for (auto& p : sim.getPedestrians())
 			m_circles.push_back(p.circle);
 		m_capsules.push_back(sim.getRobot().rds_configuration.robot_shape);
+		for (auto& c : m_bounding_circles.circles())
+			m_circles.push_back(c);
 	}
 
 	bool update(const RdsOrcaSimulator& sim)
 	{
-		for (std::vector<Circle>::size_type i = 0; i < m_circles.size(); i++)
+		for (std::vector<Circle>::size_type i = 0; i < m_circles.size() - m_bounding_circles.circles().size(); i++)
 			m_circles[i].center = sim.getPedestrians()[i].circle.center;
 		const Capsule& robot_shape(sim.getRobot().rds_configuration.robot_shape);
 		Vec2 v_result;
@@ -30,12 +34,21 @@ struct GuiWrap
 		sim.getRobot().transformVectorLocalToGlobal(robot_shape.center_b(), &v_result);
 		Vec2 center_b = v_result + sim.getRobot().position;
 		m_capsules[0] = Capsule(m_capsules[0].radius(), center_a, center_b);
+
+		for (std::vector<Circle>::size_type i = m_circles.size() - m_bounding_circles.circles().size(); i < m_circles.size(); i++)
+		{
+			unsigned int bc_index = i - (m_circles.size() - m_bounding_circles.circles().size());
+			sim.getRobot().transformVectorLocalToGlobal(m_bounding_circles.circles()[bc_index].center, &v_result);
+			m_circles[i] = Circle(v_result + sim.getRobot().position, m_bounding_circles.circles()[bc_index].radius);
+		}
+
 		return (m_gui.update() == 0);
 	}
 
 	GUI m_gui;
 	std::vector<Circle> m_circles;
 	std::vector<Capsule> m_capsules;
+	const BoundingCircles& m_bounding_circles;
 };
 
 int main()

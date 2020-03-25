@@ -61,3 +61,15 @@ void RDS4CapsuleAgent::transformVectorLocalToGlobal(const Vec2& v_local, Vec2* v
 	*v_global = Vec2(std::cos(orientation)*v_local.x - std::sin(orientation)*v_local.y,
 		+std::sin(orientation)*v_local.x + std::cos(orientation)*v_local.y);
 }
+
+void RDS4CapsuleAgent::transformReferencePointVelocityToPointVelocity(const Vec2& p_local,
+	const Vec2& v_p_ref_global, Vec2* v_global) const
+{
+	Vec2 v_p_ref_local;
+	transformVectorGlobalToLocal(v_p_ref_global, &v_p_ref_local);
+	float v_linear = v_p_ref_local.x*rds_configuration.p_ref.x/
+		rds_configuration.p_ref.y + v_p_ref_local.y;
+	float v_angular = -v_p_ref_local.x/rds_configuration.p_ref.y;
+	Vec2 v_local = Vec2(0.f, v_linear) + Vec2(-v_angular*p_local.y, v_angular*p_local.x);
+	transformVectorLocalToGlobal(v_local, v_global);
+}

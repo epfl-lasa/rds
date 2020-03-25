@@ -2,6 +2,7 @@
 #define CAPSULE_HPP
 
 #include "geometry.hpp"
+#include <vector>
 
 namespace Geometry2D
 {
@@ -26,6 +27,18 @@ namespace Geometry2D
 		float m_radius;
 		Vec2 m_center_a, m_center_b;
 		HalfPlane2 m_bound_a, m_bound_b;
+	};
+
+	struct BoundingCircles
+	{
+		BoundingCircles(unsigned int n_splits_mid_segment) : m_circles(n_splits_mid_segment + 3) { }
+
+		void fit(const Capsule& capsule, float colliding_objects_radius);
+
+		const std::vector<AdditionalPrimitives2D::Circle>& circles() const { return m_circles; }
+	private:
+		std::vector<AdditionalPrimitives2D::Circle> m_circles;
+
 	};
 }
 

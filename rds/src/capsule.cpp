@@ -1,4 +1,5 @@
 #include "capsule.hpp"
+#include <cmath>
 
 namespace Geometry2D
 {
@@ -26,5 +27,23 @@ namespace Geometry2D
 			*pt_segment = m_center_b;
 		else
 			*pt_segment = m_center_a + m_bound_a.getNormal()*m_bound_a.signedDistance(pt_query);
+	}
+
+	void BoundingCircles::fit(const Capsule& capsule, float colliding_objects_radius)
+	{
+		unsigned int n_splits_mid_segment = m_circles.size() - 3;
+		m_circles.front() = AdditionalPrimitives2D::Circle(capsule.center_a(), capsule.radius());
+		m_circles.back() = AdditionalPrimitives2D::Circle(capsule.center_b(), capsule.radius());
+		float A = (capsule.center_a() - capsule.center_b()).norm()/(n_splits_mid_segment + 1)/2.f;
+		float B = capsule.radius() + colliding_objects_radius;
+		float C = std::sqrt(A*A + B*B);
+		float radius = C - colliding_objects_radius;
+		for (unsigned int i = 1; i < m_circles.size() - 1; i++)
+		{
+			float fraction_position_from_a_to_b = (i - 0.5f)*1.f/(n_splits_mid_segment + 1);
+			Vec2 center((1.f - fraction_position_from_a_to_b)*capsule.center_a() + 
+				fraction_position_from_a_to_b*capsule.center_b());
+			m_circles[i] = AdditionalPrimitives2D::Circle(center, radius);
+		}
 	}
 }

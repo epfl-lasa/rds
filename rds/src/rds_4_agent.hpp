@@ -37,6 +37,8 @@ private:
 public:
 	void transformVectorGlobalToLocal(const Geometry2D::Vec2& v_global, Geometry2D::Vec2* v_local) const;
 	void transformVectorLocalToGlobal(const Geometry2D::Vec2& v_local, Geometry2D::Vec2* v_global) const;
+	void transformReferencePointVelocityToPointVelocity(const Geometry2D::Vec2& p_local, const Geometry2D::Vec2& v_p_ref_global,
+		Geometry2D::Vec2* v_global) const;
 };
 
 #endif

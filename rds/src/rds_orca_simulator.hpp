@@ -23,6 +23,8 @@ struct RdsOrcaSimulator
 	const std::vector<MovingCircle>& getPedestrians() const { return m_pedestrians; }
 
 	const RDS4CapsuleAgent& getRobot() const { return m_robot; }
+
+	const Geometry2D::BoundingCircles& getBoundingCirclesRobot() const { return m_bounding_circles_robot; }
 protected:
 	Geometry2D::Vec2 getRobotNominalVelocity();
 
@@ -31,6 +33,7 @@ protected:
 	RVO::RVOSimulator m_rvo_simulator;
 	std::vector<MovingCircle> m_pedestrians;
 	RDS4CapsuleAgent m_robot;
+	Geometry2D::BoundingCircles m_bounding_circles_robot;
 	float m_time;
 public:
 	const float m_orca_time_horizon;
