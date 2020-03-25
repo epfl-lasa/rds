@@ -90,7 +90,7 @@ void RdsOrcaSimulator::step(float dt)
 	m_rvo_simulator.doStep();
 
 	for (unsigned int i = 0; i < m_pedestrians.size(); i++)
-		m_pedestrians[i].velocity = toRDS(m_rvo_simulator.getAgentVelocity(i + 1));
+		m_pedestrians[i].velocity = toRDS(m_rvo_simulator.getAgentVelocity(i + m_bounding_circles_robot.circles().size()));
 
 	m_robot.stepEuler(dt, getRobotNominalVelocity(), m_pedestrians);
 
@@ -122,4 +122,30 @@ Vec2 RdsOrcaSimulator::getRobotNominalVelocity()
 RVO::Vector2  RdsOrcaSimulator::getPedestrianNominalVelocity(unsigned int i)
 {
 	return RVO::Vector2(1.3f, 0.f);
+}
+
+
+CurveRdsOrcaSimulator::CurveRdsOrcaSimulator(const Geometry2D::Vec2& position, float orientation,
+		const RDSCapsuleConfiguration& config, const Geometry2D::Vec2& reference_point_velocity)
+	: RdsOrcaSimulator(position, orientation, config, reference_point_velocity)
+	, m_vortex_center(0.f, 5.f)
+	, m_omega(0.1f)
+{ }
+
+Vec2 CurveRdsOrcaSimulator::getRobotNominalVelocity()
+{
+	Vec2 v_vortex(1.1f*getVortexVelocity(m_robot.position));
+	return v_vortex/std::max(v_vortex.norm()/m_robot.rds_configuration.v_max, 1.f);
+}
+
+RVO::Vector2 CurveRdsOrcaSimulator::getPedestrianNominalVelocity(unsigned int i)
+{
+	Vec2 v_vortex(1.f*getVortexVelocity(m_pedestrians[i].circle.center));
+	return toRVO(v_vortex/std::max(v_vortex.norm()/m_pedestrian_v_max, 1.f));
+}
+
+Vec2 CurveRdsOrcaSimulator::getVortexVelocity(const Vec2& position)
+{
+	return Vec2(-m_omega*(position.y - m_vortex_center.y),
+		m_omega*(position.x - m_vortex_center.x));
 }

@@ -26,9 +26,9 @@ struct RdsOrcaSimulator
 
 	const Geometry2D::BoundingCircles& getBoundingCirclesRobot() const { return m_bounding_circles_robot; }
 protected:
-	Geometry2D::Vec2 getRobotNominalVelocity();
+	virtual Geometry2D::Vec2 getRobotNominalVelocity();
 
-	RVO::Vector2 getPedestrianNominalVelocity(unsigned int i);
+	virtual RVO::Vector2 getPedestrianNominalVelocity(unsigned int i);
 protected:
 	RVO::RVOSimulator m_rvo_simulator;
 	std::vector<MovingCircle> m_pedestrians;
@@ -40,6 +40,22 @@ public:
 	const float m_orca_distance_margin;
 	const float m_pedestrian_radius;
 	const float m_pedestrian_v_max;
+};
+
+
+struct CurveRdsOrcaSimulator : public RdsOrcaSimulator
+{
+	CurveRdsOrcaSimulator(const Geometry2D::Vec2& position, float orientation,
+		const RDSCapsuleConfiguration& config, const Geometry2D::Vec2& reference_point_velocity);
+protected:
+	virtual Geometry2D::Vec2 getRobotNominalVelocity();
+
+	virtual RVO::Vector2 getPedestrianNominalVelocity(unsigned int i);
+
+	Geometry2D::Vec2 getVortexVelocity(const Geometry2D::Vec2& position);
+
+	Geometry2D::Vec2 m_vortex_center;
+	float m_omega;
 };
 
 #endif

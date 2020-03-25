@@ -56,7 +56,7 @@ int main()
 	float y_ref = 0.2f;
 	RDSCapsuleConfiguration config(1.f, 0.05f, 1.7f,
 		Capsule(0.4f, Vec2(0.f, y_ref), Vec2(0.f, -0.3f)), Vec2(0.f, y_ref));
-	RdsOrcaSimulator sim(Vec2(0.f, 0.f), -3.141f/2.f, config, Vec2(1.f, 0.f));
+	CurveRdsOrcaSimulator sim(Vec2(0.f, 0.f), -3.141f/2.f, config, Vec2(1.f, 0.f));
 
 	sim.addPedestrian(Vec2(2.f, 0.5f), Vec2(1.f, 0.f));
 	sim.addPedestrian(Vec2(-2.f, 0.f), Vec2(1.f, 0.f));
