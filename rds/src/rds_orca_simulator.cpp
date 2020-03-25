@@ -40,9 +40,9 @@ void RdsOrcaSimulator::setRobotProperties(const Vec2& position, float orientatio
 	Vec2 v_pos_to_p_ref_global;
 	m_robot.transformVectorLocalToGlobal(config.p_ref, &v_pos_to_p_ref_global);
 	m_rvo_simulator.setAgentPosition(0, toRVO(position + v_pos_to_p_ref_global));
-	float radius = config.robot_shape.radius + std::max(
-		(config.robot_shape.center_a - config.p_ref).norm(),
-		(config.robot_shape.center_b - config.p_ref).norm());
+	float radius = config.robot_shape.radius() + std::max(
+		(config.robot_shape.center_a() - config.p_ref).norm(),
+		(config.robot_shape.center_b() - config.p_ref).norm());
 	m_rvo_simulator.setAgentRadius(0, radius + m_orca_distance_margin/2.f);
 	m_rvo_simulator.setAgentVelocity(0, toRVO(reference_point_velocity));
 	m_rvo_simulator.setAgentMaxSpeed(0, config.v_max);

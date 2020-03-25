@@ -108,7 +108,7 @@ void count_collisions()
 	{
 		Vec2 pt_segment;
 		capsule_robot_global[0].closestMidLineSegmentPoint(circles_rvo_3_agents_global[i].center, &pt_segment);
-		if (check_collision(circles_rvo_3_agents_global[i], Circle(pt_segment, capsule_robot_global[0].radius)))
+		if (check_collision(circles_rvo_3_agents_global[i], Circle(pt_segment, capsule_robot_global[0].radius())))
 			rds_4_rvo_3_collision_count++;
 	}
 }
@@ -149,7 +149,7 @@ void update_distance_measurements(RVO::RVOSimulator* sim_rvo_only)
 {
 	if (robot_position_backup_rds.x == -666.f)
 	{
-		robot_position_backup_rds = capsule_robot_global[0].center_a;
+		robot_position_backup_rds = capsule_robot_global[0].center_a();
 		robot_position_backup_rvo_only = all_objects_global_rvo_only[0].center;
 		return;
 	}
@@ -174,8 +174,8 @@ void update_distance_measurements(RVO::RVOSimulator* sim_rvo_only)
 	{
 		Vec2 pt_segment;
 		capsule_robot_global[0].closestMidLineSegmentPoint(circles_rvo_3_agents_global[i].center, &pt_segment);
-		if (separation(circles_rvo_3_agents_global[i], Circle(pt_segment, capsule_robot_global[0].radius)) < closest_distance_now_rds)
-			closest_distance_now_rds = separation(circles_rvo_3_agents_global[i], Circle(pt_segment, capsule_robot_global[0].radius));
+		if (separation(circles_rvo_3_agents_global[i], Circle(pt_segment, capsule_robot_global[0].radius())) < closest_distance_now_rds)
+			closest_distance_now_rds = separation(circles_rvo_3_agents_global[i], Circle(pt_segment, capsule_robot_global[0].radius()));
 	}
 	closest_distance_avrg_rds = (n_steps*closest_distance_avrg_rds + closest_distance_now_rds)/double(n_steps + 1);
 }
@@ -212,11 +212,11 @@ bool update_gui(GUI* gui, GUI* gui_rvo_only, bool quick_measurement_mode = false
 void update_objects_for_gui_and_with_v_preferred(const RVO::RVOSimulator& rvo_simulator)
 {
 	Vec2 v_result;
-	robot.transformVectorLocalToGlobal(robot.rds_configuration.robot_shape.center_a, &v_result);
+	robot.transformVectorLocalToGlobal(robot.rds_configuration.robot_shape.center_a(), &v_result);
 	Vec2 center_a(robot.position + v_result);
-	robot.transformVectorLocalToGlobal(robot.rds_configuration.robot_shape.center_b, &v_result);
+	robot.transformVectorLocalToGlobal(robot.rds_configuration.robot_shape.center_b(), &v_result);
 	Vec2 center_b(robot.position + v_result);
-	capsule_robot_global[0] = Capsule(capsule_robot_global[0].radius, center_a, center_b);
+	capsule_robot_global[0] = Capsule(capsule_robot_global[0].radius(), center_a, center_b);
 
 	moving_capsule_v_preferred_robot_global.capsule = capsule_robot_global[0];
 	robot.transformVectorLocalToGlobal(robot.rds_configuration.p_ref, &v_result);
@@ -262,9 +262,9 @@ void simulate(float screen_size, float corridor_width, bool quick_measurement_mo
 	gui_rvo_only.circles = &all_objects_global_rvo_only;
 
 	all_objects_global_rvo_only.resize(rvo_3_agents.size() + 1);
-	all_objects_global_rvo_only[0].radius = robot.rds_configuration.robot_shape.radius + std::max(
-		(robot.rds_configuration.robot_shape.center_a - robot.rds_configuration.p_ref).norm(),
-		(robot.rds_configuration.robot_shape.center_b - robot.rds_configuration.p_ref).norm());
+	all_objects_global_rvo_only[0].radius = robot.rds_configuration.robot_shape.radius() + std::max(
+		(robot.rds_configuration.robot_shape.center_a() - robot.rds_configuration.p_ref).norm(),
+		(robot.rds_configuration.robot_shape.center_b() - robot.rds_configuration.p_ref).norm());
 
 	for (std::vector<Circle>::size_type i = 1; i != all_objects_global_rvo_only.size(); i++)
 		all_objects_global_rvo_only[i].radius = rvo_3_agents[i - 1].rvo_configuration.radius;

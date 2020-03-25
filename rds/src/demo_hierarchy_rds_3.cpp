@@ -297,11 +297,11 @@ void update_objects_global()
 	for (std::vector<Capsule>::size_type i = 0; i != capsule_objects_global.size(); i++)
 	{
 		Vec2 v_result;
-		capsule_agents[i].transformVectorLocalToGlobal(capsule_agents[i].rds_3_configuration.robot_shape.center_a, &v_result);
+		capsule_agents[i].transformVectorLocalToGlobal(capsule_agents[i].rds_3_configuration.robot_shape.center_a(), &v_result);
 		Vec2 center_a(capsule_agents[i].position + v_result);
-		capsule_agents[i].transformVectorLocalToGlobal(capsule_agents[i].rds_3_configuration.robot_shape.center_b, &v_result);
+		capsule_agents[i].transformVectorLocalToGlobal(capsule_agents[i].rds_3_configuration.robot_shape.center_b(), &v_result);
 		Vec2 center_b(capsule_agents[i].position + v_result);
-		capsule_objects_global[i] = Capsule(capsule_objects_global[i].radius, center_a, center_b);
+		capsule_objects_global[i] = Capsule(capsule_objects_global[i].radius(), center_a, center_b);
 	}
 }
 
@@ -382,7 +382,7 @@ bool update_gui(GUI* gui, GUI* gui_rvo_only)
 		Vec2 v_result;
 		cap.transformVectorLocalToGlobal(cap.rds_3_configuration.p_ref, &v_result);
 		Vec2 p_ref_global(cap.position + v_result);
-		circle_objects_global.push_back(Circle(p_ref_global, cap.rds_3_configuration.robot_shape.radius));
+		circle_objects_global.push_back(Circle(p_ref_global, cap.rds_3_configuration.robot_shape.radius()));
 	}
 	bool still_open = (gui->update() == 0) | (gui_rvo_only->update() == 0);
 	for (auto& cap : capsule_agents)
@@ -402,14 +402,14 @@ void simulate(const char* title, float screen_size, int simu_index, float corrid
 			circle_objects_global[i].radius = circle_agents[i].rds_3_configuration.robot_shape.radius;
 		capsule_objects_global.resize(capsule_agents.size());
 		for (std::vector<Capsule>::size_type i = 0; i != capsule_objects_global.size(); i++)
-			capsule_objects_global[i].radius = capsule_agents[i].rds_3_configuration.robot_shape.radius;
+			capsule_objects_global[i] = Capsule(capsule_agents[i].rds_3_configuration.robot_shape.radius(), Vec2(0.f, -1.f), Vec2(0.f, 1.f));;
 	}
 
 	RVO::RVOSimulator sim;
 	for (auto& cap : capsule_agents)
 	{
 		sim.addAgent(RVO::Vector2(0.f, 0.f), 15.0f, 10, 5.0f, 5.0f,
-			cap.rds_3_configuration.robot_shape.radius + cap.rds_3_configuration.delta,
+			cap.rds_3_configuration.robot_shape.radius() + cap.rds_3_configuration.delta,
 			cap.rds_3_configuration.v_max);
 	}
 	for (auto& cir : circle_agents)
@@ -459,10 +459,10 @@ void simulate(const char* title, float screen_size, int simu_index, float corrid
 	for (auto& cap : capsule_agents)
 	{
 		const Capsule& c(cap.rds_3_configuration.robot_shape);
-		Vec2 circle_center_local = (c.center_a + c.center_b)/2.f;
+		Vec2 circle_center_local = (c.center_a() + c.center_b())/2.f;
 		Vec2 v_result;
 		cap.transformVectorLocalToGlobal(circle_center_local, &v_result);
-		float r = (c.center_a - c.center_b).norm()/2.f + c.radius + cap.rds_3_configuration.delta;
+		float r = (c.center_a() - c.center_b()).norm()/2.f + c.radius() + cap.rds_3_configuration.delta;
 		sim_rvo_only.addAgent(RVO::Vector2((cap.position + v_result).x, (cap.position + v_result).y), 15.0f, 10, 5.0f, 5.0f,
 			r, cap.rds_3_configuration.v_max);
 		circle_objects_global_rvo_only.push_back(Circle(Vec2(0.f, 0.f), r));

@@ -1277,8 +1277,8 @@ int main(int argc, char** argv)
 			rds_2_config.robot_shape = Geometry2D::Capsule(0.4, Vec2(0.f, 0.1f), Vec2(0.f, -0.4f));
 			rds_2_config.p_ref = Vec2(0.f, 0.25f);
 
-			robot.circles.push_back(Circle(rds_2_config.robot_shape.center_a, rds_2_config.robot_shape.radius));
-			robot.circles.push_back(Circle(rds_2_config.robot_shape.center_b, rds_2_config.robot_shape.radius));
+			robot.circles.push_back(Circle(rds_2_config.robot_shape.center_a(), rds_2_config.robot_shape.radius()));
+			robot.circles.push_back(Circle(rds_2_config.robot_shape.center_b(), rds_2_config.robot_shape.radius()));
 
 			std::vector<Agent> crowd;
 			std::vector<Environment> e_crowd;

@@ -114,11 +114,11 @@ int updateGUI(RVO::RVOSimulator *sim, GUI* gui)
 	}
 
 	Vec2 v_result;
-	rds_2_agent.transformVectorLocalToGlobal(rds_2_agent.rds_2_configuration.robot_shape.center_a, &v_result);
+	rds_2_agent.transformVectorLocalToGlobal(rds_2_agent.rds_2_configuration.robot_shape.center_a(), &v_result);
 	Vec2 cap_a_global = rds_2_agent.position + v_result;
-	rds_2_agent.transformVectorLocalToGlobal(rds_2_agent.rds_2_configuration.robot_shape.center_b, &v_result);
+	rds_2_agent.transformVectorLocalToGlobal(rds_2_agent.rds_2_configuration.robot_shape.center_b(), &v_result);
 	Vec2 cap_b_global = rds_2_agent.position + v_result;
-	Capsule global_capsule(rds_2_agent.rds_2_configuration.robot_shape.radius, cap_a_global, cap_b_global);
+	Capsule global_capsule(rds_2_agent.rds_2_configuration.robot_shape.radius(), cap_a_global, cap_b_global);
 	gui_capsules.resize(0);
 	gui_capsules.push_back(global_capsule);
 

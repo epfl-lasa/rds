@@ -82,11 +82,11 @@ void update_moving_circles_state(double time)
 void update_robot_capsule_for_gui()
 {
 	Vec2 v_result;
-	robot.transformVectorLocalToGlobal(robot.rds_configuration.robot_shape.center_a, &v_result);
+	robot.transformVectorLocalToGlobal(robot.rds_configuration.robot_shape.center_a(), &v_result);
 	Vec2 center_a(robot.position + v_result);
-	robot.transformVectorLocalToGlobal(robot.rds_configuration.robot_shape.center_b, &v_result);
+	robot.transformVectorLocalToGlobal(robot.rds_configuration.robot_shape.center_b(), &v_result);
 	Vec2 center_b(robot.position + v_result);
-	capsule_robot_global[0] = Capsule(capsule_robot_global[0].radius, center_a, center_b);
+	capsule_robot_global[0] = Capsule(capsule_robot_global[0].radius(), center_a, center_b);
 }
 
 bool update_gui(GUI* gui)
@@ -114,8 +114,8 @@ void robot_stepEulerRVO(float dt, const Vec2& v_nominal, const std::vector<Movin
 	sim.setTimeStep(dt);
 
 	robot_rvo_radius = capsule_radius + std::max(
-		(robot.rds_configuration.robot_shape.center_a - robot.rds_configuration.p_ref).norm(),
-		(robot.rds_configuration.robot_shape.center_b - robot.rds_configuration.p_ref).norm());
+		(robot.rds_configuration.robot_shape.center_a() - robot.rds_configuration.p_ref).norm(),
+		(robot.rds_configuration.robot_shape.center_b() - robot.rds_configuration.p_ref).norm());
 	Vec2 v_result;
 	robot.transformVectorLocalToGlobal(robot.rds_configuration.p_ref, &v_result);
 	Vec2 robot_center(robot.position + v_result);

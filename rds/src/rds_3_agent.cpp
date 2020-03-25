@@ -124,11 +124,11 @@ void RDS3CircleAgent::getCapsuleObjectsInLocalFrame(const std::vector<Capsule>& 
 	capsule_objects_local->resize(0);
 	for (auto& c : capsule_objects)
 	{
-		capsule_objects_local->push_back(Capsule(c.radius,
-			Vec2(rxx*(c.center_a - position).x + ryx*(c.center_a - position).y,
-				rxy*(c.center_a - position).x + ryy*(c.center_a - position).y),
-			Vec2(rxx*(c.center_b - position).x + ryx*(c.center_b - position).y,
-				rxy*(c.center_b - position).x + ryy*(c.center_b - position).y)));
+		capsule_objects_local->push_back(Capsule(c.radius(),
+			Vec2(rxx*(c.center_a() - position).x + ryx*(c.center_a() - position).y,
+				rxy*(c.center_a() - position).x + ryy*(c.center_a() - position).y),
+			Vec2(rxx*(c.center_b() - position).x + ryx*(c.center_b() - position).y,
+				rxy*(c.center_b() - position).x + ryy*(c.center_b() - position).y)));
 	}
 }
 

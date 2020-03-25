@@ -34,7 +34,7 @@ void RVO3Agent::stepEuler(float dt, const Vec2& v_nominal,
 		-robot_with_preferred_velocity.omega*(pt_segment - robot_with_preferred_velocity.p_ref).y,
 		robot_with_preferred_velocity.omega*(pt_segment - robot_with_preferred_velocity.p_ref).x);
 	rvo.computeCoordinativeVelocityObstacles(Circle(position, rvo_configuration.radius),
-		Circle(pt_segment, robot_with_preferred_velocity.capsule.radius), v_nominal,
+		Circle(pt_segment, robot_with_preferred_velocity.capsule.radius()), v_nominal,
 		velocity_pt_segment, &vo_1, &vo_2);
 	constraints.push_back(vo_1);
 

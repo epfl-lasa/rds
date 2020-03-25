@@ -40,7 +40,7 @@ namespace Geometry2D
 		{
 			Vec2 pt_segment;
 			cap_obj.closestMidLineSegmentPoint(robot_shape.center, &pt_segment);
-			generateAndAddConstraint(robot_shape.center, robot_shape.radius, pt_segment, cap_obj.radius,
+			generateAndAddConstraint(robot_shape.center, robot_shape.radius, pt_segment, cap_obj.radius(),
 				p_ref, constraints);
 		}
 	}
@@ -53,7 +53,7 @@ namespace Geometry2D
 		{
 			Vec2 pt_segment;
 			robot_shape.closestMidLineSegmentPoint(objects[i].center, &pt_segment);
-			generateAndAddConstraint(pt_segment, robot_shape.radius, objects[i].center, objects[i].radius,
+			generateAndAddConstraint(pt_segment, robot_shape.radius(), objects[i].center, objects[i].radius,
 				p_ref, constraints);
 		}
 	}

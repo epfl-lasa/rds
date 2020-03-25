@@ -25,11 +25,11 @@ struct GuiWrap
 			m_circles[i].center = sim.getPedestrians()[i].circle.center;
 		const Capsule& robot_shape(sim.getRobot().rds_configuration.robot_shape);
 		Vec2 v_result;
-		sim.getRobot().transformVectorLocalToGlobal(robot_shape.center_a, &v_result);
+		sim.getRobot().transformVectorLocalToGlobal(robot_shape.center_a(), &v_result);
 		Vec2 center_a = v_result + sim.getRobot().position;
-		sim.getRobot().transformVectorLocalToGlobal(robot_shape.center_b, &v_result);
+		sim.getRobot().transformVectorLocalToGlobal(robot_shape.center_b(), &v_result);
 		Vec2 center_b = v_result + sim.getRobot().position;
-		m_capsules[0] = Capsule(m_capsules[0].radius, center_a, center_b);
+		m_capsules[0] = Capsule(m_capsules[0].radius(), center_a, center_b);
 		return (m_gui.update() == 0);
 	}
 
