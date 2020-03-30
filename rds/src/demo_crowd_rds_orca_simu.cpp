@@ -2,7 +2,9 @@
 #include "rds_orca_simulator.hpp"
 #include <chrono>
 #include <thread>
+#include <cmath>
 #include <iostream>
+#include <string>
 
 using Geometry2D::Vec2;
 using Geometry2D::Capsule;
@@ -28,7 +30,8 @@ struct GuiWrap
 		m_capsules.push_back(sim.getRobot().rds_configuration.robot_shape);
 		for (auto& c : m_bounding_circles.circles())
 			m_circles.push_back(c);
-
+		Polygon robot_line = {Vec2(), Vec2()};
+		m_polygons.push_back(robot_line);
 	}
 
 	bool update(const CrowdRdsOrcaSimulator& sim)
@@ -47,6 +50,11 @@ struct GuiWrap
 		Vec2 center_b = v_result + sim.getRobot().position;
 		m_capsules[0] = Capsule(m_capsules[0].radius(), center_a, center_b);
 
+		sim.getRobot().transformVectorLocalToGlobal(sim.getRobot().rds_configuration.p_ref, &v_result);
+		m_polygons.back()[0] = v_result + sim.getRobot().position;
+		sim.m_crowd_trajectory.getPedestrianPositionAtTime(sim.m_robot_leader_index, sim.getTime(), &v_result);
+		m_polygons.back()[1] = v_result;
+
 		for (std::vector<Circle>::size_type i = m_circles.size() - m_bounding_circles.circles().size(); i < m_circles.size(); i++)
 		{
 			unsigned int bc_index = i - (m_circles.size() - m_bounding_circles.circles().size());
@@ -64,21 +72,28 @@ struct GuiWrap
 	std::vector<Polygon> m_polygons;
 };
 
-int main()
+int main(int argc, char** argv)
 {
 	char file_name[] = "./data_university_students/students003_no_obstacles.vsp";
 	float frame_rate = 25.333;
 	float scaling = 0.025;//0.027;
 	CrowdTrajectory crowd_trajectory(file_name, frame_rate, scaling);
 
+	unsigned int robot_leader_index = 23;
+	if ((argc > 1) && (std::stoi(argv[1]) >= 0))
+		robot_leader_index = std::stoi(argv[1]);
+
 	float y_ref = 0.2f;
+	float y_front_circle = 0.1f;
 	RDSCapsuleConfiguration config(1.f, 0.05f, 1.7f,
-		Capsule(0.4f, Vec2(0.f, y_ref), Vec2(0.f, -0.3f)), Vec2(0.f, y_ref));
-	CrowdRdsOrcaSimulator sim(Vec2(10000.f, 10000.f), -3.141f/2.f, config, Vec2(1.f, 0.f),
-		crowd_trajectory);
+		Capsule(0.4f, Vec2(0.f, y_front_circle), Vec2(0.f, -0.3f)), Vec2(0.f, y_ref));
+	CrowdRdsOrcaSimulator sim(config, crowd_trajectory, robot_leader_index);
 
 	for (unsigned int i = 0; i < crowd_trajectory.getNumSplines(); i++)
-		sim.addPedestrian(i);
+	{
+		if (i != robot_leader_index)
+			sim.addPedestrian(i);
+	}
 
 	GuiWrap gui_wrap(sim);
 

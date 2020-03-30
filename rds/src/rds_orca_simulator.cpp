@@ -150,11 +150,30 @@ Vec2 CurveRdsOrcaSimulator::getVortexVelocity(const Vec2& position)
 		m_omega*(position.x - m_vortex_center.x));
 }
 
-CrowdRdsOrcaSimulator::CrowdRdsOrcaSimulator(const  Vec2& position, float orientation,
-	const RDSCapsuleConfiguration& config, const Vec2& reference_point_velocity,
-	const CrowdTrajectory& crowd_trajectory)
-	: RdsOrcaSimulator(position, orientation, config, reference_point_velocity)
+Vec2 init_robot_position(const RDSCapsuleConfiguration& config,
+	const CrowdTrajectory& crowd_trajectory, unsigned int robot_leader_index)
+{
+	Vec2 position;
+	crowd_trajectory.getPedestrianPositionAtTime(robot_leader_index, 0.f, &position);
+	return position - config.p_ref;
+}
+
+Vec2 init_robot_velocity(const RDSCapsuleConfiguration& config,
+	const CrowdTrajectory& crowd_trajectory, unsigned int robot_leader_index)
+{
+	Vec2 velocity;
+	crowd_trajectory.getPedestrianVelocityAtTime(robot_leader_index, 0.f, &velocity);
+	return velocity;
+}
+
+CrowdRdsOrcaSimulator::CrowdRdsOrcaSimulator(const RDSCapsuleConfiguration& config,
+	const CrowdTrajectory& crowd_trajectory, unsigned int robot_leader_index)
+	: RdsOrcaSimulator(init_robot_position(config, crowd_trajectory, robot_leader_index),
+		0.f,
+		config,
+		init_robot_velocity(config, crowd_trajectory, robot_leader_index))
 	, m_crowd_trajectory(crowd_trajectory)
+	, m_robot_leader_index(robot_leader_index)
 { }
 
 void CrowdRdsOrcaSimulator::addPedestrian(unsigned int crowd_pedestrian_index)
@@ -185,4 +204,18 @@ Vec2 CrowdRdsOrcaSimulator::getPedestrianNominalPosition(unsigned int i) const
 	m_crowd_trajectory.getPedestrianPositionAtTime(crowd_pedestrian_index, m_time,
 		&position);
 	return position;
+}
+
+Vec2 CrowdRdsOrcaSimulator::getRobotNominalVelocity()
+{
+	Vec2 feed_forward_velocity, position;
+	m_crowd_trajectory.getPedestrianVelocityAtTime(m_robot_leader_index, m_time,
+		&feed_forward_velocity);
+	m_crowd_trajectory.getPedestrianPositionAtTime(m_robot_leader_index, m_time,
+		&position);
+	Vec2 v_result;
+	m_robot.transformVectorLocalToGlobal(m_robot.rds_configuration.p_ref, &v_result);
+	Vec2 robot_p_ref_position(m_robot.position + v_result);
+	Vec2 feed_back_velocity(0.1f*(position - robot_p_ref_position));
+	return feed_forward_velocity + feed_back_velocity;
 }

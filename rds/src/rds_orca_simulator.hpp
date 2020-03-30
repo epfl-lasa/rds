@@ -63,19 +63,20 @@ protected:
 
 struct CrowdRdsOrcaSimulator : public RdsOrcaSimulator
 {
-	CrowdRdsOrcaSimulator(const Geometry2D::Vec2& position, float orientation,
-		const RDSCapsuleConfiguration& config, const Geometry2D::Vec2& reference_point_velocity,
-		const CrowdTrajectory& crowd_trajectory);
+	CrowdRdsOrcaSimulator(const RDSCapsuleConfiguration& config,
+		const CrowdTrajectory& crowd_trajectory, unsigned int robot_leader_index);
 
 	const CrowdTrajectory m_crowd_trajectory;
 
 	void addPedestrian(unsigned int crowd_pedestrian_index);
 
 	Geometry2D::Vec2 getPedestrianNominalPosition(unsigned int i) const;
+
+	const unsigned int m_robot_leader_index;
 protected:
 	virtual RVO::Vector2 getPedestrianNominalVelocity(unsigned int i);
 
-	virtual Geometry2D::Vec2 getRobotNominalVelocity() { return Geometry2D::Vec2(0.f, 0.f); }
+	virtual Geometry2D::Vec2 getRobotNominalVelocity();
 
 	std::vector<unsigned int> m_crowd_pedestrian_indices;
 };
