@@ -2,7 +2,7 @@
 #define CROWD_TRAJECTORY_HPP
 
 #include "geometry.hpp"
-#include "spline.h" // from https://kluge.in-chemnitz.de/opensource/spline/
+#include "spline.h" // from https://github.com/ttk592/spline
 
 struct CrowdTrajectory
 {
@@ -18,7 +18,9 @@ struct CrowdTrajectory
 
 	unsigned int getNumSplines() const { return m_splines_data.size(); }
 
-	void getPedestrianPositionAtTime(unsigned int i, float t, Geometry2D::Vec2* p);
+	void getPedestrianPositionAtTime(unsigned int i, float t, Geometry2D::Vec2* p) const;
+
+	void getPedestrianVelocityAtTime(unsigned int i, float t, Geometry2D::Vec2* v) const;
 
 	const std::vector<std::vector<Knot> >& getSplinesData()const { return m_splines_data; }
 

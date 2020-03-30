@@ -54,8 +54,15 @@ CrowdTrajectory::CrowdTrajectory(const char* data_file_name, float frame_rate)
 }
 
 void CrowdTrajectory::getPedestrianPositionAtTime(unsigned int i, float t,
-	Geometry2D::Vec2* p)
+	Geometry2D::Vec2* p) const
 {
 	p->x = m_x_splines[i](t);
 	p->y = m_y_splines[i](t);
+}
+
+void CrowdTrajectory::getPedestrianVelocityAtTime(unsigned int i, float t,
+	Geometry2D::Vec2* v) const
+{
+	v->x = m_x_splines[i].deriv(1, t);
+	v->y = m_y_splines[i].deriv(1, t);
 }

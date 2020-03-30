@@ -1,5 +1,8 @@
 # RDS
-The Restrained Dynamical System (RDS) is a control method that avoids collisions for a wheeled vehicle. This repository contains (or will contain) the method's implementation, tools that allow to visualize and monitor its operation, a ROS interface, and example code and instructions to integrate, try out and demonstrate the functionality of the full system or its individual components.
+RDS is a control method that avoids collisions for a wheeled vehicle. This repository contains the method's implementation, tools that allow to visualize and monitor its operation, a ROS interface, and example code and instructions to integrate, try out and demonstrate the functionality of the full system or its individual components.
+
+## Third parties acknowledgements
+This repo contains the spline library from [this project](https://github.com/ttk592/spline), and thus it must inherit the GPL 2 license (if ever released). Further, it contains pedestrian trajectory data from [here](https://graphics.cs.ucy.ac.cy/research/downloads/crowd-data).
 
 ## Software Structure
 

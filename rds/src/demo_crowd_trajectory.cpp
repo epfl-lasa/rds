@@ -73,9 +73,16 @@ int main(int argc, char** argv)
 		gui.blockingShowUntilClosed();
 	}
 
-	std::vector<Vec2> points_pedestrians(c.getNumSplines());
+	std::vector<Vec2> points_pedestrians(2*c.getNumSplines());
 	GUI gui("Crowd Trajectory Test", 2000.f);
 	gui.points = &points_pedestrians;
+	GuiColor red, white;
+	red.g = red.b = 0;
+	for (unsigned int i = 0; i < c.getNumSplines(); i++)
+	{
+		gui.points_colors.push_back(white);
+		gui.points_colors.push_back(red);
+	}
 
 	float dt = 1.f/frame_rate;
 	std::chrono::milliseconds gui_cycle_time(int(dt*1000.f));
@@ -86,8 +93,13 @@ int main(int argc, char** argv)
 		std::this_thread::sleep_for(gui_cycle_time - std::chrono::duration_cast<std::chrono::milliseconds>(
 			std::chrono::high_resolution_clock::now() - t_gui_update));
 		t_gui_update = std::chrono::high_resolution_clock::now();
-		for (unsigned int i = 0; i < points_pedestrians.size(); i++)
-			c.getPedestrianPositionAtTime(i, t, &points_pedestrians[i]);
+		for (unsigned int i = 0; i < c.getNumSplines(); i++)
+		{
+			c.getPedestrianPositionAtTime(i, t, &points_pedestrians[i*2]);
+			Vec2 velocity;
+			c.getPedestrianVelocityAtTime(i, t, &velocity);
+			points_pedestrians[i*2 + 1] = points_pedestrians[i*2] + 0.2f*velocity;
+		}
 		t += dt;
 	}
 	while (gui.update() == 0);
