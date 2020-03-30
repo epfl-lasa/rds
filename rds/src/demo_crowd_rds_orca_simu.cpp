@@ -2,6 +2,7 @@
 #include "rds_orca_simulator.hpp"
 #include <chrono>
 #include <thread>
+#include <iostream>
 
 using Geometry2D::Vec2;
 using Geometry2D::Capsule;
@@ -12,7 +13,7 @@ using AdditionalPrimitives2D::Polygon;
 struct GuiWrap
 {
 	GuiWrap(const CrowdRdsOrcaSimulator& sim)
-	: m_gui("RDS-ORCA Simulator", 30.f, 700)
+	: m_gui("RDS-ORCA Simulator", 20.f, 700)
 	, m_bounding_circles(sim.getBoundingCirclesRobot())
 	{
 		m_gui.circles = &m_circles;
@@ -66,8 +67,8 @@ struct GuiWrap
 int main()
 {
 	char file_name[] = "./data_university_students/students003_no_obstacles.vsp";
-	float frame_rate = 20.f;
-	float scaling = 0.025f;
+	float frame_rate = 25.333;
+	float scaling = 0.025;//0.027;
 	CrowdTrajectory crowd_trajectory(file_name, frame_rate, scaling);
 
 	float y_ref = 0.2f;
@@ -81,7 +82,7 @@ int main()
 
 	GuiWrap gui_wrap(sim);
 
-	float dt = 0.02f;
+	float dt = 0.05f;
 	std::chrono::milliseconds gui_cycle_time(int(dt*1000.f));
 	std::chrono::high_resolution_clock::time_point t_gui_update = std::chrono::high_resolution_clock::now();
 	do
@@ -90,6 +91,7 @@ int main()
 			std::chrono::high_resolution_clock::now() - t_gui_update));
 		t_gui_update = std::chrono::high_resolution_clock::now();
 		sim.step(dt);
+		std::cout << sim.getTime() << "\t\r" << std::flush;
 	}
 	while (gui_wrap.update(sim));
 }

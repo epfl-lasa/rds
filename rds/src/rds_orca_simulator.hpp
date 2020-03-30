@@ -26,6 +26,8 @@ struct RdsOrcaSimulator
 	const RDS4CapsuleAgent& getRobot() const { return m_robot; }
 
 	const Geometry2D::BoundingCircles& getBoundingCirclesRobot() const { return m_bounding_circles_robot; }
+
+	float getTime() const { return m_time; }
 protected:
 	virtual Geometry2D::Vec2 getRobotNominalVelocity();
 

@@ -7,6 +7,7 @@
 #include <chrono>
 #include <thread>
 #include <iostream>
+#include <string>
 
 using Geometry2D::Vec2;
 using AdditionalPrimitives2D::Circle;
@@ -16,8 +17,8 @@ int main(int argc, char** argv)
 	//if (argc < 2)
 	//	std::cout << "No argument. Require 1 argument (the data file name)." << std::endl;
 	char file_name[] = "./data_university_students/students003_no_obstacles.vsp";
-	float frame_rate = 20.f;
-	float scaling = 0.02f;
+	float frame_rate = 25.333;
+	float scaling = 0.025;//0.027f;
 	CrowdTrajectory c(file_name, frame_rate, scaling);
 	std::cout << "Number of splines = " << c.getSplinesData().size() << std::endl;
 
@@ -106,6 +107,7 @@ int main(int argc, char** argv)
 			points_pedestrians[i*2 + 1] = points_pedestrians[i*2] + 0.2f*velocity;
 		}
 		t += dt;
+		std::cout << t << "\t\r" << std::flush;
 	}
 	while (gui.update() == 0);
 

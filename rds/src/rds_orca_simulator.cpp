@@ -17,10 +17,10 @@ RdsOrcaSimulator::RdsOrcaSimulator(const Vec2& position, float orientation,
 	const RDSCapsuleConfiguration& config, const Vec2& reference_point_velocity)
 	: m_bounding_circles_robot(2)
 	, m_time(0.f)
-	, m_orca_time_horizon(1.f)
+	, m_orca_time_horizon(0.5f)
 	, m_orca_distance_margin(0.05f)
 	, m_pedestrian_radius(0.25f)
-	, m_pedestrian_v_max(1.8f)
+	, m_pedestrian_v_max(2.f)
 {
 	for (auto& c : m_bounding_circles_robot.circles())
 		m_rvo_simulator.addAgent(RVO::Vector2(0.f, 0.f), 15.0f, 10, m_orca_time_horizon, m_orca_time_horizon, 1.f, 1.f);
@@ -174,7 +174,7 @@ RVO::Vector2 CrowdRdsOrcaSimulator::getPedestrianNominalVelocity(unsigned int i)
 		&feed_forward_velocity);
 	m_crowd_trajectory.getPedestrianPositionAtTime(crowd_pedestrian_index, m_time,
 		&position);
-	Vec2 feed_back_velocity(0.4f*(position - m_pedestrians[i].circle.center));
+	Vec2 feed_back_velocity(0.5f*(position - m_pedestrians[i].circle.center));
 	return toRVO(feed_forward_velocity + feed_back_velocity);
 }
 
