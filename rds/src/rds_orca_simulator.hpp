@@ -3,6 +3,7 @@
 
 #include "geometry.hpp"
 #include "rds_4_agent.hpp"
+#include "crowd_trajectory.hpp"
 #include <RVO.h>
 #include <vector>
 
@@ -56,6 +57,25 @@ protected:
 
 	Geometry2D::Vec2 m_vortex_center;
 	float m_omega;
+};
+
+struct CrowdRdsOrcaSimulator : public RdsOrcaSimulator
+{
+	CrowdRdsOrcaSimulator(const Geometry2D::Vec2& position, float orientation,
+		const RDSCapsuleConfiguration& config, const Geometry2D::Vec2& reference_point_velocity,
+		const CrowdTrajectory& crowd_trajectory);
+
+	const CrowdTrajectory m_crowd_trajectory;
+
+	void addPedestrian(unsigned int crowd_pedestrian_index);
+
+	Geometry2D::Vec2 getPedestrianNominalPosition(unsigned int i) const;
+protected:
+	virtual RVO::Vector2 getPedestrianNominalVelocity(unsigned int i);
+
+	virtual Geometry2D::Vec2 getRobotNominalVelocity() { return Geometry2D::Vec2(0.f, 0.f); }
+
+	std::vector<unsigned int> m_crowd_pedestrian_indices;
 };
 
 #endif

@@ -6,7 +6,7 @@
 
 struct CrowdTrajectory
 {
-	CrowdTrajectory(const char* data_file_name, float frame_rate);
+	CrowdTrajectory(const char* data_file_name, float frame_rate, float scaling);
 
 	struct Knot
 	{

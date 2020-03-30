@@ -2,7 +2,7 @@
 
 using namespace AdditionalPrimitives2D;
 
-GUI::GUI(const char* title, float window_size_in_distance_units)
+GUI::GUI(const char* title, float window_size_in_distance_units, unsigned int window_size_in_pixels)
 {
 	halfplanes = 0;
 	points = 0;
@@ -12,7 +12,7 @@ GUI::GUI(const char* title, float window_size_in_distance_units)
 	polygons = 0;
 
 	bool window_is_good;
-	window = new Window(title, window_size_in_distance_units, 1000, 10.0, &window_is_good);
+	window = new Window(title, window_size_in_distance_units, window_size_in_pixels, 10.0, &window_is_good);
 	if (!window_is_good)
 	{
 		delete window;

@@ -149,3 +149,40 @@ Vec2 CurveRdsOrcaSimulator::getVortexVelocity(const Vec2& position)
 	return Vec2(-m_omega*(position.y - m_vortex_center.y),
 		m_omega*(position.x - m_vortex_center.x));
 }
+
+CrowdRdsOrcaSimulator::CrowdRdsOrcaSimulator(const  Vec2& position, float orientation,
+	const RDSCapsuleConfiguration& config, const Vec2& reference_point_velocity,
+	const CrowdTrajectory& crowd_trajectory)
+	: RdsOrcaSimulator(position, orientation, config, reference_point_velocity)
+	, m_crowd_trajectory(crowd_trajectory)
+{ }
+
+void CrowdRdsOrcaSimulator::addPedestrian(unsigned int crowd_pedestrian_index)
+{
+	Vec2 position, velocity;
+	m_crowd_trajectory.getPedestrianPositionAtTime(crowd_pedestrian_index, 0.f, &position);
+	m_crowd_trajectory.getPedestrianVelocityAtTime(crowd_pedestrian_index, 0.f, &velocity);
+	RdsOrcaSimulator::addPedestrian(position, velocity);
+	m_crowd_pedestrian_indices.push_back(crowd_pedestrian_index);
+}
+
+RVO::Vector2 CrowdRdsOrcaSimulator::getPedestrianNominalVelocity(unsigned int i)
+{
+	unsigned int crowd_pedestrian_index = m_crowd_pedestrian_indices[i];
+	Vec2 feed_forward_velocity, position;
+	m_crowd_trajectory.getPedestrianVelocityAtTime(crowd_pedestrian_index, m_time,
+		&feed_forward_velocity);
+	m_crowd_trajectory.getPedestrianPositionAtTime(crowd_pedestrian_index, m_time,
+		&position);
+	Vec2 feed_back_velocity(0.4f*(position - m_pedestrians[i].circle.center));
+	return toRVO(feed_forward_velocity + feed_back_velocity);
+}
+
+Vec2 CrowdRdsOrcaSimulator::getPedestrianNominalPosition(unsigned int i) const
+{
+	unsigned int crowd_pedestrian_index = m_crowd_pedestrian_indices[i];
+	Vec2 position;
+	m_crowd_trajectory.getPedestrianPositionAtTime(crowd_pedestrian_index, m_time,
+		&position);
+	return position;
+}

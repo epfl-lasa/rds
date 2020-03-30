@@ -5,7 +5,7 @@
 
 using Geometry2D::Vec2;
 
-CrowdTrajectory::CrowdTrajectory(const char* data_file_name, float frame_rate)
+CrowdTrajectory::CrowdTrajectory(const char* data_file_name, float frame_rate, float scaling)
 	: m_frame_rate(frame_rate)
 {
 	std::ifstream data_file(data_file_name);
@@ -31,7 +31,7 @@ CrowdTrajectory::CrowdTrajectory(const char* data_file_name, float frame_rate)
 			data_file >> pos_x >> pos_y >> frame_i;
 			for (int i = 0; i < n_words_after_data; i++)
 				data_file >> any_word;
-			spline_data.push_back(Knot(Vec2(pos_x, pos_y), frame_i/m_frame_rate));
+			spline_data.push_back(Knot(scaling*Vec2(pos_x, pos_y), frame_i/m_frame_rate));
 		}
 		m_splines_data.push_back(spline_data);
 	}
@@ -54,14 +54,14 @@ CrowdTrajectory::CrowdTrajectory(const char* data_file_name, float frame_rate)
 }
 
 void CrowdTrajectory::getPedestrianPositionAtTime(unsigned int i, float t,
-	Geometry2D::Vec2* p) const
+	Vec2* p) const
 {
 	p->x = m_x_splines[i](t);
 	p->y = m_y_splines[i](t);
 }
 
 void CrowdTrajectory::getPedestrianVelocityAtTime(unsigned int i, float t,
-	Geometry2D::Vec2* v) const
+	Vec2* v) const
 {
 	v->x = m_x_splines[i].deriv(1, t);
 	v->y = m_y_splines[i].deriv(1, t);

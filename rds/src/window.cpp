@@ -408,12 +408,12 @@ void Window::renderCapsules(const std::vector<Geometry2D::Capsule>& capsules)
 	SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255); // render capsules in green
 	for (auto& c : capsules)
 	{
-		Geometry2D::Vec2 centers_diff = c.center_a - c.center_b;
+		Geometry2D::Vec2 centers_diff = c.center_a() - c.center_b();
 		Geometry2D::Vec2 normal(-centers_diff.normalized().y, centers_diff.normalized().x);
-		Geometry2D::Vec2 a1 = c.center_a + c.radius*normal;
-		Geometry2D::Vec2 a2 = c.center_a - c.radius*normal;
-		Geometry2D::Vec2 b1 = c.center_b + c.radius*normal;
-		Geometry2D::Vec2 b2 = c.center_b - c.radius*normal;
+		Geometry2D::Vec2 a1 = c.center_a() + c.radius()*normal;
+		Geometry2D::Vec2 a2 = c.center_a() - c.radius()*normal;
+		Geometry2D::Vec2 b1 = c.center_b() + c.radius()*normal;
+		Geometry2D::Vec2 b2 = c.center_b() - c.radius()*normal;
 		SDL_RenderDrawLine(renderer, pointToPixel(a1).i, pointToPixel(a1).j,
 			pointToPixel(b1).i, pointToPixel(b1).j);
 		SDL_RenderDrawLine(renderer, pointToPixel(a2).i, pointToPixel(a2).j,
@@ -423,8 +423,8 @@ void Window::renderCapsules(const std::vector<Geometry2D::Capsule>& capsules)
 		Window::sdlColor green;
 		green.r = green.b = 0;
 		green.g = 255;
-		renderCutCircle(c.center_a, c.radius, c.radius - thickness, c.bound_a, green);
-		renderCutCircle(c.center_b, c.radius, c.radius - thickness, c.bound_b, green);
+		renderCutCircle(c.center_a(), c.radius(), c.radius() - thickness, c.bound_a(), green);
+		renderCutCircle(c.center_b(), c.radius(), c.radius() - thickness, c.bound_b(), green);
 	}
 }
 

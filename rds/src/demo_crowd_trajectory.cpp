@@ -9,6 +9,7 @@
 #include <iostream>
 
 using Geometry2D::Vec2;
+using AdditionalPrimitives2D::Circle;
 
 int main(int argc, char** argv)
 {
@@ -16,7 +17,8 @@ int main(int argc, char** argv)
 	//	std::cout << "No argument. Require 1 argument (the data file name)." << std::endl;
 	char file_name[] = "./data_university_students/students003_no_obstacles.vsp";
 	float frame_rate = 20.f;
-	CrowdTrajectory c(file_name, frame_rate);
+	float scaling = 0.02f;
+	CrowdTrajectory c(file_name, frame_rate, scaling);
 	std::cout << "Number of splines = " << c.getSplinesData().size() << std::endl;
 
 	if (false)
@@ -74,8 +76,11 @@ int main(int argc, char** argv)
 	}
 
 	std::vector<Vec2> points_pedestrians(2*c.getNumSplines());
-	GUI gui("Crowd Trajectory Test", 2000.f);
+	GUI gui("Crowd Trajectory Test", 30.f, 700);
 	gui.points = &points_pedestrians;
+	std::vector<Circle> center_focus_10 = {Circle(Vec2(0.f, 0.f), 10.f)};
+	gui.circles = &center_focus_10;
+
 	GuiColor red, white;
 	red.g = red.b = 0;
 	for (unsigned int i = 0; i < c.getNumSplines(); i++)
