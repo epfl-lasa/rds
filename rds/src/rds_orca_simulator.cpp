@@ -27,7 +27,13 @@ RdsOrcaSimulator::RdsOrcaSimulator(const Vec2& position, float orientation,
 	for (auto& c : m_bounding_circles_robot.circles())
 		m_rvo_simulator.addAgent(RVO::Vector2(0.f, 0.f), 15.0f, 10, m_orca_time_horizon, m_orca_time_horizon, 1.f, 1.f);
 	if (m_orca_orca)
+	{
 		m_rvo_simulator.addAgent(RVO::Vector2(0.f, 0.f), 15.0f, 10, m_orca_time_horizon, m_orca_time_horizon, 1.f, 1.f);
+		std::vector<size_t> ignore_ids;
+		for (unsigned int i = 0; i < m_bounding_circles_robot.circles().size(); i++)
+			ignore_ids.push_back(m_rvo_simulator.getAgentID(i));
+		m_rvo_simulator.setAgentIgnoreIDs(m_bounding_circles_robot.circles().size(), ignore_ids);
+	}
 	setRobotProperties(position, orientation, config, reference_point_velocity);
 }
 
@@ -106,6 +112,12 @@ void RdsOrcaSimulator::step(float dt)
 	for (unsigned int i = 0; i < m_pedestrians.size(); i++)
 		m_rvo_simulator.setAgentPrefVelocity(i + offset + m_bounding_circles_robot.circles().size(), getPedestrianNominalVelocity(i));
 
+	if (m_orca_orca)
+	{
+		unsigned int i = m_bounding_circles_robot.circles().size();
+		m_rvo_simulator.setAgentPrefVelocity(i, toRVO(getRobotNominalVelocity()));
+	}
+
 	m_rvo_simulator.setTimeStep(dt);
 	m_rvo_simulator.doStep();
 
@@ -117,6 +129,19 @@ void RdsOrcaSimulator::step(float dt)
 	else
 	{
 		// update robot using RVO velocity
+		unsigned int i = m_bounding_circles_robot.circles().size();
+		Vec2 orca_velocity_p_ref = toRDS(m_rvo_simulator.getAgentVelocity(i));
+		Vec2 v_global, v_for_angular_global, v_for_angular_local;
+		m_robot.transformReferencePointVelocityToPointVelocity(m_robot.rds_configuration.p_ref,
+			orca_velocity_p_ref, &v_global);
+		m_robot.transformReferencePointVelocityToPointVelocity(Vec2(0.f, 1.f),
+			orca_velocity_p_ref, &v_for_angular_global);
+		m_robot.transformVectorGlobalToLocal(v_for_angular_global, &v_for_angular_local);
+		float omega = -v_for_angular_local.x;
+
+		m_robot.position = m_robot.position + dt*v_global;
+		m_robot.orientation += dt*omega;
+		m_robot.last_step_p_ref_velocity = orca_velocity_p_ref;
 	}
 
 	for (std::vector<Circle>::size_type i = 0; i < m_bounding_circles_robot.circles().size(); i++)
@@ -130,6 +155,15 @@ void RdsOrcaSimulator::step(float dt)
 		// set RVO agent's velocity
 		m_robot.transformReferencePointVelocityToPointVelocity(p_local, m_robot.last_step_p_ref_velocity, &v_global);
 		m_rvo_simulator.setAgentVelocity(i, toRVO(v_global));
+	}
+	if (m_orca_orca)
+	{
+		// correct any mismatch due to round off errors
+		unsigned int i = m_bounding_circles_robot.circles().size();
+		Vec2 v_global;
+		// set RVO agent's position
+		m_robot.transformVectorLocalToGlobal(m_robot.rds_configuration.p_ref, &v_global);
+		m_rvo_simulator.setAgentPosition(i, toRVO(m_robot.position + v_global));
 	}
 	/*Vec2 v_pos_to_p_ref_global;
 	m_robot.transformVectorLocalToGlobal(m_robot.rds_configuration.p_ref, &v_pos_to_p_ref_global);
@@ -192,11 +226,12 @@ Vec2 init_robot_velocity(const RDSCapsuleConfiguration& config,
 }
 
 CrowdRdsOrcaSimulator::CrowdRdsOrcaSimulator(const RDSCapsuleConfiguration& config,
-	const CrowdTrajectory& crowd_trajectory, unsigned int robot_leader_index)
+	const CrowdTrajectory& crowd_trajectory, unsigned int robot_leader_index,
+	 bool orca_orca)
 	: RdsOrcaSimulator(init_robot_position(config, crowd_trajectory, robot_leader_index),
 		0.f,
 		config,
-		init_robot_velocity(config, crowd_trajectory, robot_leader_index))
+		init_robot_velocity(config, crowd_trajectory, robot_leader_index), orca_orca)
 	, m_crowd_trajectory(crowd_trajectory)
 	, m_robot_leader_index(robot_leader_index)
 { }
@@ -245,6 +280,13 @@ Vec2 CrowdRdsOrcaSimulator::getRobotNominalVelocity()
 	return feed_forward_velocity + feed_back_velocity;
 }
 
+Circle RdsOrcaSimulator::getOrcaOrcaCircle() const
+{
+	if (!m_orca_orca)
+		return Circle(Vec2(), 0.f);
+	unsigned int i = m_bounding_circles_robot.circles().size();
+	return Circle(toRDS(m_rvo_simulator.getAgentPosition(i)), m_rvo_simulator.getAgentRadius(i));
+}
 
 //setAgentIgnoreIDs(size_t agentNo, const std::vector<size_t>& ignore_ids)
 

@@ -28,6 +28,8 @@ struct RdsOrcaSimulator
 	const Geometry2D::BoundingCircles& getBoundingCirclesRobot() const { return m_bounding_circles_robot; }
 
 	float getTime() const { return m_time; }
+
+	AdditionalPrimitives2D::Circle getOrcaOrcaCircle() const;
 protected:
 	virtual Geometry2D::Vec2 getRobotNominalVelocity();
 
@@ -65,7 +67,8 @@ protected:
 struct CrowdRdsOrcaSimulator : public RdsOrcaSimulator
 {
 	CrowdRdsOrcaSimulator(const RDSCapsuleConfiguration& config,
-		const CrowdTrajectory& crowd_trajectory, unsigned int robot_leader_index);
+		const CrowdTrajectory& crowd_trajectory, unsigned int robot_leader_index,
+		bool orca_orca = false);
 
 	const CrowdTrajectory m_crowd_trajectory;
 
