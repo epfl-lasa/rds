@@ -14,15 +14,19 @@ static Vec2 toRDS(const RVO::Vector2& v)
 }
 
 RdsOrcaSimulator::RdsOrcaSimulator(const Vec2& position, float orientation,
-	const RDSCapsuleConfiguration& config, const Vec2& reference_point_velocity)
+	const RDSCapsuleConfiguration& config, const Vec2& reference_point_velocity,
+	bool orca_orca)
 	: m_bounding_circles_robot(2)
 	, m_time(0.f)
 	, m_orca_time_horizon(0.5f)
 	, m_orca_distance_margin(0.05f)
 	, m_pedestrian_radius(0.25f)
 	, m_pedestrian_v_max(2.f)
+	, m_orca_orca(orca_orca)
 {
 	for (auto& c : m_bounding_circles_robot.circles())
+		m_rvo_simulator.addAgent(RVO::Vector2(0.f, 0.f), 15.0f, 10, m_orca_time_horizon, m_orca_time_horizon, 1.f, 1.f);
+	if (m_orca_orca)
 		m_rvo_simulator.addAgent(RVO::Vector2(0.f, 0.f), 15.0f, 10, m_orca_time_horizon, m_orca_time_horizon, 1.f, 1.f);
 	setRobotProperties(position, orientation, config, reference_point_velocity);
 }
@@ -58,6 +62,18 @@ void RdsOrcaSimulator::setRobotProperties(const Vec2& position, float orientatio
 		// set RVO agent's max speed
 		m_rvo_simulator.setAgentMaxSpeed(i, std::max(config.v_max, std::abs(config.v_max*p_local.y)));
 	}
+	if (m_orca_orca)
+	{
+		unsigned int i = m_bounding_circles_robot.circles().size();
+		Vec2 v_global;
+		m_robot.transformVectorLocalToGlobal(config.p_ref, &v_global);
+		m_rvo_simulator.setAgentPosition(i, toRVO(m_robot.position + v_global));
+		float radius = config.robot_shape.radius() + std::max(
+			(config.robot_shape.center_a() - config.p_ref).norm(),
+			(config.robot_shape.center_b() - config.p_ref).norm());
+		m_rvo_simulator.setAgentRadius(i, radius + m_orca_distance_margin/2.f);
+		m_rvo_simulator.setAgentMaxSpeed(i, config.v_max);
+	}
 	/*Vec2 v_pos_to_p_ref_global;
 	m_robot.transformVectorLocalToGlobal(config.p_ref, &v_pos_to_p_ref_global);
 	m_rvo_simulator.setAgentPosition(0, toRVO(position + v_pos_to_p_ref_global));
@@ -71,8 +87,12 @@ void RdsOrcaSimulator::setRobotProperties(const Vec2& position, float orientatio
 
 void RdsOrcaSimulator::step(float dt)
 {
+	int offset = 0;
+	if (m_orca_orca)
+		offset = 1;
 	for (unsigned int i = 0; i < m_pedestrians.size(); i++)
-		m_pedestrians[i].circle.center = toRDS(m_rvo_simulator.getAgentPosition(i + m_bounding_circles_robot.circles().size()));
+		m_pedestrians[i].circle.center = toRDS(m_rvo_simulator.getAgentPosition(i + offset +
+			m_bounding_circles_robot.circles().size()));
 
 	//m_rvo_simulator.setAgentPrefVelocity(0, toRVO(getRobotNominalVelocity()));
 	for (std::vector<Circle>::size_type i = 0; i < m_bounding_circles_robot.circles().size(); i++)
@@ -84,15 +104,20 @@ void RdsOrcaSimulator::step(float dt)
 		m_rvo_simulator.setAgentPrefVelocity(i, toRVO(v_global));
 	}
 	for (unsigned int i = 0; i < m_pedestrians.size(); i++)
-		m_rvo_simulator.setAgentPrefVelocity(i + m_bounding_circles_robot.circles().size(), getPedestrianNominalVelocity(i));
+		m_rvo_simulator.setAgentPrefVelocity(i + offset + m_bounding_circles_robot.circles().size(), getPedestrianNominalVelocity(i));
 
 	m_rvo_simulator.setTimeStep(dt);
 	m_rvo_simulator.doStep();
 
 	for (unsigned int i = 0; i < m_pedestrians.size(); i++)
-		m_pedestrians[i].velocity = toRDS(m_rvo_simulator.getAgentVelocity(i + m_bounding_circles_robot.circles().size()));
+		m_pedestrians[i].velocity = toRDS(m_rvo_simulator.getAgentVelocity(i + offset + m_bounding_circles_robot.circles().size()));
 
-	m_robot.stepEuler(dt, getRobotNominalVelocity(), m_pedestrians);
+	if (!m_orca_orca)
+		m_robot.stepEuler(dt, getRobotNominalVelocity(), m_pedestrians);
+	else
+	{
+		// update robot using RVO velocity
+	}
 
 	for (std::vector<Circle>::size_type i = 0; i < m_bounding_circles_robot.circles().size(); i++)
 	{
@@ -219,3 +244,8 @@ Vec2 CrowdRdsOrcaSimulator::getRobotNominalVelocity()
 	Vec2 feed_back_velocity(0.1f*(position - robot_p_ref_position));
 	return feed_forward_velocity + feed_back_velocity;
 }
+
+
+//setAgentIgnoreIDs(size_t agentNo, const std::vector<size_t>& ignore_ids)
+
+//setAgentDenyCollisions(size_t agentNo, bool deny_collisions)

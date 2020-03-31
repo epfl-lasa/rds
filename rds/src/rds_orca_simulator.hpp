@@ -10,7 +10,7 @@
 struct RdsOrcaSimulator
 {
 	RdsOrcaSimulator(const Geometry2D::Vec2& position, float orientation,
-		const RDSCapsuleConfiguration& config, const Geometry2D::Vec2& reference_point_velocity);
+		const RDSCapsuleConfiguration& config, const Geometry2D::Vec2& reference_point_velocity, bool orca_orca = false);
 
 	virtual ~RdsOrcaSimulator() { }
 
@@ -43,6 +43,7 @@ public:
 	const float m_orca_distance_margin;
 	const float m_pedestrian_radius;
 	const float m_pedestrian_v_max;
+	const bool m_orca_orca;
 };
 
 
@@ -80,5 +81,10 @@ protected:
 
 	std::vector<unsigned int> m_crowd_pedestrian_indices;
 };
+
+/*struct CrowdOrcaOrcaSimulator
+{
+	CrowdOrcaOrcaSimulator(const CrowdRdsOrcaSimulator& ref_sim);
+};*/
 
 #endif
