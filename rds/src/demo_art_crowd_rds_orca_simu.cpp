@@ -2,6 +2,7 @@
 #include "rds_orca_simulator.hpp"
 #include <chrono>
 #include <thread>
+#define _USE_MATH_DEFINES
 #include <cmath>
 #include <iostream>
 #include <string>
@@ -94,14 +95,65 @@ struct GuiWrap
 	std::vector<Polygon> m_polygons;
 };
 
+Vec2 rotate(const Vec2& v, float angle)
+{
+	return Vec2(std::cos(angle)*v.x - std::sin(angle)*v.y,
+		std::sin(angle)*v.x + std::cos(angle)*v.y);
+}
+
+Vec2 straight_left_right_straight(float t, float eta)
+{
+	Vec2 center_left(-5.f, 5.f);
+	Vec2 center_right(5.f, -5.f);
+	Vec2 center_diff = center_left - center_right;
+	float x_0 = -10.f;
+	float v = 1.33f;
+	float y_0 = center_left.y - 0.5*(1.f + eta)*center_diff.norm();
+	float omega_left = v/(center_left.y - y_0);
+	float omega_right = v/(center_diff.norm() - (center_left.y - y_0));
+	float angle = -std::atan2(-center_diff.y, -center_diff.x);
+	float t_left = (center_left.x - x_0)/v;
+	float t_right = t_left + angle/omega_left;
+	float t_straight = t_right + angle/omega_right;
+	if (t <= t_left)
+	{
+		return Vec2(x_0 + v*t, y_0);
+	}
+	else if (t <= t_right)
+	{
+		Vec2 pointer = straight_left_right_straight(t_left, eta) - center_left;
+		return center_left + rotate(pointer, (t - t_left)*omega_left);
+	}
+	else if (t <= t_straight)
+	{
+		Vec2 pointer = straight_left_right_straight(t_right, eta) - center_right;
+		return center_right + rotate(pointer, -(t - t_right)*omega_right);
+	}
+	else
+	{
+		return straight_left_right_straight(t_straight, eta) + Vec2(v*(t - t_straight), 0.f);
+	}
+}
+
 int main(int argc, char** argv)
 {
-	char file_name[] = "./data_university_students/students003_no_obstacles.vsp";
-	float frame_rate = 25.333;
-	float scaling = 0.025;//0.027;
-	CrowdTrajectory crowd_trajectory(file_name, frame_rate, scaling);
+	CrowdTrajectory crowd_trajectory;
 
-	unsigned int robot_leader_index = 23;
+	for (float t_offset = 0.f; t_offset < 14.5f; t_offset += 1.f)
+	{
+		for (float eta = -0.8f; eta < 0.9f; eta += 0.2f)
+		{
+			std::vector<CrowdTrajectory::Knot> pedestrian_trajectory;
+			for (float t = 0.f; t < 20.f; t += 0.1f)
+			{
+				pedestrian_trajectory.push_back(CrowdTrajectory::Knot(
+					straight_left_right_straight(t + t_offset, eta), t));
+			}
+			crowd_trajectory.addPedestrianTrajectory(pedestrian_trajectory);
+		}
+	}
+
+	unsigned int robot_leader_index = 0;
 	if ((argc > 1) && (std::stoi(argv[1]) >= 0))
 		robot_leader_index = std::stoi(argv[1]);
 	bool orca_orca_version = false;

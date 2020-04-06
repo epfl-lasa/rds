@@ -1,4 +1,5 @@
 #include "rds_orca_simulator.hpp"
+#define _USE_MATH_DEFINES
 #include <cmath>
 using Geometry2D::Vec2;
 using AdditionalPrimitives2D::Circle;
@@ -23,6 +24,7 @@ RdsOrcaSimulator::RdsOrcaSimulator(const Vec2& position, float orientation,
 	, m_pedestrian_radius(0.25f)
 	, m_pedestrian_v_max(2.f)
 	, m_orca_orca(orca_orca)
+	, m_robot_avoids(true)
 {
 	for (auto& c : m_bounding_circles_robot.circles())
 		m_rvo_simulator.addAgent(RVO::Vector2(0.f, 0.f), 15.0f, 10, m_orca_time_horizon, m_orca_time_horizon, 1.f, 1.f);
@@ -124,13 +126,15 @@ void RdsOrcaSimulator::step(float dt)
 	for (unsigned int i = 0; i < m_pedestrians.size(); i++)
 		m_pedestrians[i].velocity = toRDS(m_rvo_simulator.getAgentVelocity(i + offset + m_bounding_circles_robot.circles().size()));
 
-	if (!m_orca_orca)
+	if ((!m_orca_orca) && m_robot_avoids)
 		m_robot.stepEuler(dt, getRobotNominalVelocity(), m_pedestrians);
 	else
 	{
 		// update robot using RVO velocity
 		unsigned int i = m_bounding_circles_robot.circles().size();
 		Vec2 orca_velocity_p_ref = toRDS(m_rvo_simulator.getAgentVelocity(i));
+		if ((!m_orca_orca))
+			orca_velocity_p_ref = getRobotNominalVelocity();
 		Vec2 v_global, v_for_angular_global, v_for_angular_local;
 		m_robot.transformReferencePointVelocityToPointVelocity(m_robot.rds_configuration.p_ref,
 			orca_velocity_p_ref, &v_global);
@@ -214,7 +218,26 @@ Vec2 init_robot_position(const RDSCapsuleConfiguration& config,
 {
 	Vec2 position;
 	crowd_trajectory.getPedestrianPositionAtTime(robot_leader_index, 0.f, &position);
-	return position - config.p_ref;
+	Vec2 velocity;
+	crowd_trajectory.getPedestrianVelocityAtTime(robot_leader_index, 0.f, &velocity);
+	if (velocity.norm() == 0.f)
+		return position - config.p_ref;
+	else
+	{
+		float phi = std::atan2(velocity.y, velocity.x) - M_PI/2.f;
+		Vec2 rotated_p_ref(std::cos(phi)*config.p_ref.x - std::sin(phi)*config.p_ref.y,
+			std::sin(phi)*config.p_ref.x + std::cos(phi)*config.p_ref.y);
+		return position - rotated_p_ref;
+	}
+}
+
+float init_robot_orientation(const CrowdTrajectory& crowd_trajectory, unsigned int robot_leader_index)
+{
+	Vec2 velocity;
+	crowd_trajectory.getPedestrianVelocityAtTime(robot_leader_index, 0.f, &velocity);
+	if (velocity.norm() == 0.f)
+		return 0.f;
+	return std::atan2(velocity.y, velocity.x) - M_PI/2.f;
 }
 
 Vec2 init_robot_velocity(const RDSCapsuleConfiguration& config,
@@ -229,7 +252,7 @@ CrowdRdsOrcaSimulator::CrowdRdsOrcaSimulator(const RDSCapsuleConfiguration& conf
 	const CrowdTrajectory& crowd_trajectory, unsigned int robot_leader_index,
 	 bool orca_orca)
 	: RdsOrcaSimulator(init_robot_position(config, crowd_trajectory, robot_leader_index),
-		0.f,
+		init_robot_orientation(crowd_trajectory, robot_leader_index),
 		config,
 		init_robot_velocity(config, crowd_trajectory, robot_leader_index), orca_orca)
 	, m_crowd_trajectory(crowd_trajectory)

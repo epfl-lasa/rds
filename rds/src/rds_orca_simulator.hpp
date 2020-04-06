@@ -46,6 +46,7 @@ public:
 	const float m_pedestrian_radius;
 	const float m_pedestrian_v_max;
 	const bool m_orca_orca;
+	bool m_robot_avoids;
 };
 
 
