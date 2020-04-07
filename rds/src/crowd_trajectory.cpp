@@ -6,6 +6,7 @@
 using Geometry2D::Vec2;
 
 CrowdTrajectory::CrowdTrajectory(const char* data_file_name, float frame_rate, float scaling)
+	: m_time_shift(0.f)
 {
 	std::ifstream data_file(data_file_name);
 	float pos_x, pos_y;
@@ -55,15 +56,15 @@ CrowdTrajectory::CrowdTrajectory(const char* data_file_name, float frame_rate, f
 void CrowdTrajectory::getPedestrianPositionAtTime(unsigned int i, float t,
 	Vec2* p) const
 {
-	p->x = m_x_splines[i](t);
-	p->y = m_y_splines[i](t);
+	p->x = m_x_splines[i](t + m_time_shift);
+	p->y = m_y_splines[i](t + m_time_shift);
 }
 
 void CrowdTrajectory::getPedestrianVelocityAtTime(unsigned int i, float t,
 	Vec2* v) const
 {
-	v->x = m_x_splines[i].deriv(1, t);
-	v->y = m_y_splines[i].deriv(1, t);
+	v->x = m_x_splines[i].deriv(1, t + m_time_shift);
+	v->y = m_y_splines[i].deriv(1, t + m_time_shift);
 }
 
 void CrowdTrajectory::addPedestrianTrajectory(const std::vector<Knot>& spline_data)

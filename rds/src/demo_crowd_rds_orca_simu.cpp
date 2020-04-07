@@ -5,12 +5,26 @@
 #include <cmath>
 #include <iostream>
 #include <string>
+#include <cstdio>
 
 using Geometry2D::Vec2;
 using Geometry2D::Capsule;
 using AdditionalPrimitives2D::Circle;
 using Geometry2D::BoundingCircles;
 using AdditionalPrimitives2D::Polygon;
+
+const float dt = 0.05f;
+
+double robot_mean_distance_to_target = 0.0;
+double time_counter = 0.0;
+
+void update_mean(float distance)
+{
+	double w_old = time_counter/(time_counter + dt);
+	double w_new = dt/(time_counter + dt);
+	robot_mean_distance_to_target = w_old*robot_mean_distance_to_target + w_new*distance;
+	time_counter += dt;
+}
 
 struct GuiWrap
 {
@@ -64,6 +78,8 @@ struct GuiWrap
 		m_polygons.back()[1] = v_result;
 		Vec2 nominal_position = v_result;
 
+		update_mean((nominal_position - p_ref_global).norm());
+
 		for (std::vector<Circle>::size_type i = m_circles.size() - m_bounding_circles.circles().size() - offset; i < m_circles.size() - offset; i++)
 		{
 			unsigned int bc_index = i - (m_circles.size() - m_bounding_circles.circles().size() - offset);
@@ -94,7 +110,7 @@ struct GuiWrap
 	std::vector<Polygon> m_polygons;
 };
 
-int main(int argc, char** argv)
+int pseudo_main(int argc, char** argv)
 {
 	char file_name[] = "./data_university_students/students003_no_obstacles.vsp";
 	float frame_rate = 25.333;
@@ -110,6 +126,21 @@ int main(int argc, char** argv)
 	float track_from_time = -1.f;
 	if (argc > 3)
 		track_from_time = std::stod(argv[3]);
+	float termination_time = 100000.f;
+	if (argc > 4)
+		termination_time = std::stod(argv[4]);
+	bool auto_termination_time = false;
+	if (argc > 5)
+		auto_termination_time = true;
+
+	crowd_trajectory.m_time_shift = crowd_trajectory.getSplinesData()[robot_leader_index][0].t;
+
+	if (auto_termination_time)
+	{
+		termination_time = crowd_trajectory.getSplinesData()[robot_leader_index].back().t;
+		termination_time += 2.f;
+		termination_time -= crowd_trajectory.m_time_shift;
+	}
 
 	float y_ref = 0.2f;
 	float y_front_circle = 0.1f;
@@ -127,7 +158,6 @@ int main(int argc, char** argv)
 
 	GuiWrap gui_wrap(sim, track_from_time);
 
-	float dt = 0.05f;
 	std::chrono::milliseconds gui_cycle_time(int(dt*1000.f));
 	std::chrono::high_resolution_clock::time_point t_gui_update = std::chrono::high_resolution_clock::now();
 	do
@@ -138,5 +168,52 @@ int main(int argc, char** argv)
 		sim.step(dt);
 		std::cout << sim.getTime() << "\t\r" << std::flush;
 	}
-	while (gui_wrap.update(sim));
+	while (gui_wrap.update(sim) && (sim.getTime() < termination_time));
+
+	std::cout << "Robot mean distance to target = ";
+	std::cout << robot_mean_distance_to_target << std::endl;
+
+	return 0;
 }
+
+int main(int argc, char** argv)
+{
+	if (argc > 1)
+		return pseudo_main(argc, argv);
+
+	double average_distance_to_target_rds_orca = 0.0;
+	double average_distance_to_target_orca_orca = 0.0;
+	char pseudo_argv_0[] = "dummy";
+	char pseudo_argv_1[5];
+	char pseudo_argv_2_a[] = {"0"};
+	char pseudo_argv_2_b[] = {"1"};
+	char pseudo_argv_3[] = {"0"};
+	char pseudo_argv_4[] = {"20"};
+	char* pseudo_argv_a[] = {pseudo_argv_0, pseudo_argv_1, pseudo_argv_2_a, pseudo_argv_3, pseudo_argv_4, pseudo_argv_0};
+	char* pseudo_argv_b[] = {pseudo_argv_0, pseudo_argv_1, pseudo_argv_2_b, pseudo_argv_3, pseudo_argv_4, pseudo_argv_0};
+
+	for (int i = 0; i < 100; i++)
+	{
+		std::sprintf(pseudo_argv_1, "%d", i);
+
+		robot_mean_distance_to_target = 0.0;
+		time_counter = 0.0;
+		pseudo_main(6, pseudo_argv_a);
+		average_distance_to_target_rds_orca = average_distance_to_target_rds_orca*i/double(i + 1) + robot_mean_distance_to_target/(i + 1);
+
+		robot_mean_distance_to_target = 0.0;
+		time_counter = 0.0;
+		pseudo_main(6, pseudo_argv_b);
+		average_distance_to_target_orca_orca = average_distance_to_target_orca_orca*i/double(i + 1) + robot_mean_distance_to_target/(i + 1);
+	}
+	std::cout << "average_distance_to_target_rds_orca = ";
+	std::cout << average_distance_to_target_rds_orca << std::endl;
+	std::cout << "average_distance_to_target_orca_orca = ";
+	std::cout << average_distance_to_target_orca_orca << std::endl;
+}
+
+/*
+For this code I got (after 100 simulation cases):
+average_distance_to_target_rds_orca = 0.96995
+average_distance_to_target_orca_orca = 1.44813
+*/

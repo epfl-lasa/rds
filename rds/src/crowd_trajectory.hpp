@@ -8,7 +8,7 @@ struct CrowdTrajectory
 {
 	CrowdTrajectory(const char* data_file_name, float frame_rate, float scaling);
 
-	CrowdTrajectory() { };
+	CrowdTrajectory() : m_time_shift(0.f) { };
 
 	struct Knot
 	{
@@ -27,6 +27,8 @@ struct CrowdTrajectory
 	void getPedestrianVelocityAtTime(unsigned int i, float t, Geometry2D::Vec2* v) const;
 
 	const std::vector<std::vector<Knot> >& getSplinesData() const { return m_splines_data; }
+
+	float m_time_shift;
 
 private:
 	std::vector<std::vector<Knot> > m_splines_data;

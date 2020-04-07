@@ -13,6 +13,19 @@ using AdditionalPrimitives2D::Circle;
 using Geometry2D::BoundingCircles;
 using AdditionalPrimitives2D::Polygon;
 
+const float dt = 0.05f;
+
+double robot_mean_distance_to_target = 0.f;
+double time_counter = 0.0;
+
+void update_mean(float distance)
+{
+	double w_old = time_counter/(time_counter + dt);
+	double w_new = dt/(time_counter + dt);
+	robot_mean_distance_to_target = w_old*robot_mean_distance_to_target + w_new*distance;
+	time_counter += dt;
+}
+
 struct GuiWrap
 {
 	GuiWrap(const CrowdRdsOrcaSimulator& sim, float track_from_time)
@@ -64,6 +77,8 @@ struct GuiWrap
 		sim.m_crowd_trajectory.getPedestrianPositionAtTime(sim.m_robot_leader_index, sim.getTime(), &v_result);
 		m_polygons.back()[1] = v_result;
 		Vec2 nominal_position = v_result;
+
+		update_mean((nominal_position - p_ref_global).norm());
 
 		for (std::vector<Circle>::size_type i = m_circles.size() - m_bounding_circles.circles().size() - offset; i < m_circles.size() - offset; i++)
 		{
@@ -146,9 +161,12 @@ int main(int argc, char** argv)
 	float track_from_time = -1.f;
 	if (argc > 3)
 		track_from_time = std::stod(argv[3]);
-	float robot_multiplier = 1.f;
+	float termination_time = 100000.f;
 	if (argc > 4)
-		robot_multiplier = std::stod(argv[4]);
+		termination_time = std::stod(argv[4]);
+	float robot_multiplier = 1.f;
+	if (argc > 5)
+		robot_multiplier = std::stod(argv[5]);
 
 	CrowdTrajectory crowd_trajectory;
 
@@ -189,7 +207,6 @@ int main(int argc, char** argv)
 
 	GuiWrap gui_wrap(sim, track_from_time);
 
-	float dt = 0.05f;
 	std::chrono::milliseconds gui_cycle_time(int(dt*1000.f));
 	std::chrono::high_resolution_clock::time_point t_gui_update = std::chrono::high_resolution_clock::now();
 	do
@@ -200,5 +217,8 @@ int main(int argc, char** argv)
 		sim.step(dt);
 		std::cout << sim.getTime() << "\t\r" << std::flush;
 	}
-	while (gui_wrap.update(sim));
+	while (gui_wrap.update(sim) && (sim.getTime() < termination_time));
+
+	std::cout << "Robot mean distance to target = ";
+	std::cout << robot_mean_distance_to_target << std::endl;
 }
