@@ -16,7 +16,7 @@ using AdditionalPrimitives2D::Polygon;
 struct GuiWrap
 {
 	GuiWrap(const CrowdRdsOrcaSimulator& sim, float track_from_time)
-	: m_gui("RDS-ORCA Simulator", 20.f, 700)
+	: m_gui("RDS-ORCA Simulator", 30.f, 700)
 	, m_bounding_circles(sim.getBoundingCirclesRobot())
 	, m_track_from_time(track_from_time)
 	{
@@ -103,10 +103,10 @@ Vec2 rotate(const Vec2& v, float angle)
 
 Vec2 straight_left_right_straight(float t, float eta)
 {
-	Vec2 center_left(-5.f, 5.f);
-	Vec2 center_right(5.f, -5.f);
+	Vec2 center_left(-8.f, 8.f);
+	Vec2 center_right(8.f, -8.f);
 	Vec2 center_diff = center_left - center_right;
-	float x_0 = -10.f;
+	float x_0 = -30.f;
 	float v = 1.33f;
 	float y_0 = center_left.y - 0.5*(1.f + eta)*center_diff.norm();
 	float omega_left = v/(center_left.y - y_0);
@@ -137,22 +137,6 @@ Vec2 straight_left_right_straight(float t, float eta)
 
 int main(int argc, char** argv)
 {
-	CrowdTrajectory crowd_trajectory;
-
-	for (float t_offset = 0.f; t_offset < 14.5f; t_offset += 1.f)
-	{
-		for (float eta = -0.8f; eta < 0.9f; eta += 0.2f)
-		{
-			std::vector<CrowdTrajectory::Knot> pedestrian_trajectory;
-			for (float t = 0.f; t < 20.f; t += 0.1f)
-			{
-				pedestrian_trajectory.push_back(CrowdTrajectory::Knot(
-					straight_left_right_straight(t + t_offset, eta), t));
-			}
-			crowd_trajectory.addPedestrianTrajectory(pedestrian_trajectory);
-		}
-	}
-
 	unsigned int robot_leader_index = 0;
 	if ((argc > 1) && (std::stoi(argv[1]) >= 0))
 		robot_leader_index = std::stoi(argv[1]);
@@ -162,6 +146,32 @@ int main(int argc, char** argv)
 	float track_from_time = -1.f;
 	if (argc > 3)
 		track_from_time = std::stod(argv[3]);
+	float robot_multiplier = 1.f;
+	if (argc > 4)
+		robot_multiplier = std::stod(argv[4]);
+
+	CrowdTrajectory crowd_trajectory;
+
+	unsigned int i = 0;
+	for (float t_offset = 0.f; t_offset < 24.5f; t_offset += 1.f)
+	{
+		for (float eta = -0.8f; eta < 0.81f; eta += 0.15f)
+		{
+			float multiplier = 1.f;
+			if (robot_leader_index == i)
+			{
+				multiplier = robot_multiplier;
+			}
+			i++;
+			std::vector<CrowdTrajectory::Knot> pedestrian_trajectory;
+			for (float t = 0.f; t < 40.f; t += 0.1f)
+			{
+				pedestrian_trajectory.push_back(CrowdTrajectory::Knot(
+					straight_left_right_straight(t*multiplier + t_offset, eta), t));
+			}
+			crowd_trajectory.addPedestrianTrajectory(pedestrian_trajectory);
+		}
+	}
 
 	float y_ref = 0.2f;
 	float y_front_circle = 0.1f;
