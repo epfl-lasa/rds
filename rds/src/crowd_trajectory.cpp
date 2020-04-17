@@ -84,3 +84,10 @@ void CrowdTrajectory::addPedestrianTrajectory(const std::vector<Knot>& spline_da
 	m_x_splines.push_back(sx);
 	m_y_splines.push_back(sy);
 }
+
+void CrowdTrajectory::removePedestrian(unsigned int i)
+{
+	m_splines_data.erase(m_splines_data.begin() + i);
+	m_x_splines.erase(m_x_splines.begin() + i);
+	m_y_splines.erase(m_y_splines.begin() + i);
+}

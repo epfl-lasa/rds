@@ -40,6 +40,7 @@ struct GuiWrap
 		for (auto& p : sim.getPedestrians())
 		{
 			m_circles.push_back(p.circle);
+			m_gui.circles_colors.push_back(GuiColor());
 			Polygon line = {p.circle.center, p.circle.center};
 			m_polygons.push_back(line);
 		}
@@ -60,6 +61,8 @@ struct GuiWrap
 		for (std::vector<Circle>::size_type i = 0; i < m_circles.size() - m_bounding_circles.circles().size() - offset; i++)
 		{
 			m_circles[i].center = sim.getPedestrians()[i].circle.center;
+			if (sim.getRobotCollisions()[i])
+				m_gui.circles_colors[i].g = m_gui.circles_colors[i].b = 0;
 			m_polygons[i][0] = m_circles[i].center;
 			m_polygons[i][1] = sim.getPedestrianNominalPosition(i);
 		}
@@ -131,7 +134,10 @@ int pseudo_main(int argc, char** argv)
 		termination_time = std::stod(argv[4]);
 	bool auto_termination_time = false;
 	if (argc > 5)
-		auto_termination_time = true;
+		auto_termination_time = (std::stoi(argv[5]) > 0);
+	bool add_static_pedestrians_and_remove_others = false;
+	if (argc > 6)
+		add_static_pedestrians_and_remove_others = (std::stoi(argv[6]) > 0);
 
 	crowd_trajectory.m_time_shift = crowd_trajectory.getSplinesData()[robot_leader_index][0].t;
 
@@ -142,9 +148,25 @@ int pseudo_main(int argc, char** argv)
 		termination_time -= crowd_trajectory.m_time_shift;
 	}
 
+	if (add_static_pedestrians_and_remove_others)
+	{
+		std::vector<CrowdTrajectory::Knot> spline_data(3);
+		Vec2 move(5.15f, -2.15f);
+		std::vector<Vec2> static_pedestrian_positions = {move + Vec2(-0.3f,-0.3f),
+			move + Vec2(-0.3f, 0.3f), move + Vec2(0.3f,-0.3f), move + Vec2(0.3f, 0.3f)};
+		for (auto& ped_pos : static_pedestrian_positions)
+		{
+			spline_data[0] = CrowdTrajectory::Knot(ped_pos, 0.f);
+			spline_data[1] = CrowdTrajectory::Knot(ped_pos, 1.f);
+			spline_data[2] = CrowdTrajectory::Knot(ped_pos, 2.f);
+			crowd_trajectory.addPedestrianTrajectory(spline_data);
+		}
+		crowd_trajectory.removePedestrian(17);
+	}
+
 	float y_ref = 0.2f;
 	float y_front_circle = 0.1f;
-	RDSCapsuleConfiguration config(1.f, 0.05f, 1.7f,
+	RDSCapsuleConfiguration config(0.5f, 0.05f, 2.0f,
 		Capsule(0.4f, Vec2(0.f, y_front_circle), Vec2(0.f, -0.3f)), Vec2(0.f, y_ref));
 	CrowdRdsOrcaSimulator sim(config, crowd_trajectory, robot_leader_index, orca_orca_version);
 
@@ -166,7 +188,13 @@ int pseudo_main(int argc, char** argv)
 			std::chrono::high_resolution_clock::now() - t_gui_update));
 		t_gui_update = std::chrono::high_resolution_clock::now();
 		sim.step(dt);
-		std::cout << sim.getTime() << "\t\r" << std::flush;
+		sim.checkRobotCollisions();
+		unsigned int collision_count = 0;
+		for (const auto& collision : sim.getRobotCollisions())
+			collision_count += int(collision);
+		char time_str[20];
+		std::sprintf(time_str, "%6.2f", sim.getTime());
+		std::cout << "Time=" << time_str << "; Collisions=" << collision_count << "\t\r" << std::flush;
 	}
 	while (gui_wrap.update(sim) && (sim.getTime() < termination_time));
 

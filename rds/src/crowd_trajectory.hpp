@@ -20,6 +20,8 @@ struct CrowdTrajectory
 
 	void addPedestrianTrajectory(const std::vector<Knot>& spline_data);
 
+	void removePedestrian(unsigned int i);
+
 	unsigned int getNumSplines() const { return m_splines_data.size(); }
 
 	void getPedestrianPositionAtTime(unsigned int i, float t, Geometry2D::Vec2* p) const;

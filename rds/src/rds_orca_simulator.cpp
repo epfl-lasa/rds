@@ -44,6 +44,7 @@ void RdsOrcaSimulator::addPedestrian(const Vec2& position, const Vec2& velocity)
 	m_rvo_simulator.addAgent(toRVO(position), 15.0f, 10, m_orca_time_horizon, m_orca_time_horizon,
 		m_pedestrian_radius + m_orca_distance_margin/2.f, m_pedestrian_v_max, toRVO(velocity));
 	m_pedestrians.push_back(MovingCircle(Circle(position, m_pedestrian_radius), Vec2()));
+	m_robot_collisions.push_back(false);
 }
 
 void RdsOrcaSimulator::setRobotProperties(const Vec2& position, float orientation,
@@ -148,6 +149,27 @@ void RdsOrcaSimulator::step(float dt)
 		m_robot.last_step_p_ref_velocity = orca_velocity_p_ref;
 	}
 
+	if (m_orca_orca)
+	{
+		if (false)
+		{
+			// correct any mismatch due to round off errors
+			unsigned int i = m_bounding_circles_robot.circles().size();
+			Vec2 v_global;
+			// set RVO agent's position
+			m_robot.transformVectorLocalToGlobal(m_robot.rds_configuration.p_ref, &v_global);
+			m_rvo_simulator.setAgentPosition(i, toRVO(m_robot.position + v_global));
+		}
+		else
+		{
+			// do the reverse
+			Vec2 rob_pos = toRDS(m_rvo_simulator.getAgentPosition(m_bounding_circles_robot.circles().size()));
+			Vec2 v_global;
+			m_robot.transformVectorLocalToGlobal(m_robot.rds_configuration.p_ref, &v_global);
+			m_robot.position = rob_pos - v_global;
+		}
+	}
+
 	for (std::vector<Circle>::size_type i = 0; i < m_bounding_circles_robot.circles().size(); i++)
 	{
 		const Vec2& p_local(m_bounding_circles_robot.circles()[i].center);
@@ -160,15 +182,7 @@ void RdsOrcaSimulator::step(float dt)
 		m_robot.transformReferencePointVelocityToPointVelocity(p_local, m_robot.last_step_p_ref_velocity, &v_global);
 		m_rvo_simulator.setAgentVelocity(i, toRVO(v_global));
 	}
-	if (m_orca_orca)
-	{
-		// correct any mismatch due to round off errors
-		unsigned int i = m_bounding_circles_robot.circles().size();
-		Vec2 v_global;
-		// set RVO agent's position
-		m_robot.transformVectorLocalToGlobal(m_robot.rds_configuration.p_ref, &v_global);
-		m_rvo_simulator.setAgentPosition(i, toRVO(m_robot.position + v_global));
-	}
+
 	/*Vec2 v_pos_to_p_ref_global;
 	m_robot.transformVectorLocalToGlobal(m_robot.rds_configuration.p_ref, &v_pos_to_p_ref_global);
 	m_rvo_simulator.setAgentPosition(0, toRVO(m_robot.position + v_pos_to_p_ref_global));
@@ -187,6 +201,36 @@ RVO::Vector2  RdsOrcaSimulator::getPedestrianNominalVelocity(unsigned int i)
 	return RVO::Vector2(1.3f, 0.f);
 }
 
+void RdsOrcaSimulator::checkRobotCollisions()
+{
+	int offset = 0;
+	if (m_orca_orca)
+		offset = 1;
+	for (unsigned int i = 0; i < m_pedestrians.size(); i++)
+	{
+		unsigned int ped_index = i + offset + m_bounding_circles_robot.circles().size();
+		Vec2 ped_pos = toRDS(m_rvo_simulator.getAgentPosition(ped_index));
+		float ped_radius = m_rvo_simulator.getAgentRadius(ped_index);
+		if (m_orca_orca)
+		{
+			unsigned int rob_index = m_bounding_circles_robot.circles().size();
+			Vec2 rob_pos = toRDS(m_rvo_simulator.getAgentPosition(rob_index));
+			float rob_radius = m_rvo_simulator.getAgentRadius(rob_index);
+			if ((rob_pos - ped_pos).norm() < rob_radius + ped_radius)
+				m_robot_collisions[i] = true;
+		}
+		else
+		{
+			for (unsigned int j = 0; j < m_bounding_circles_robot.circles().size(); j++)
+			{
+				Vec2 rob_pos = toRDS(m_rvo_simulator.getAgentPosition(j));
+				float rob_radius = m_rvo_simulator.getAgentRadius(j);
+				if ((rob_pos - ped_pos).norm() < rob_radius + ped_radius)
+					m_robot_collisions[i] = true;
+			}
+		}
+	}
+}
 
 CurveRdsOrcaSimulator::CurveRdsOrcaSimulator(const Geometry2D::Vec2& position, float orientation,
 		const RDSCapsuleConfiguration& config, const Geometry2D::Vec2& reference_point_velocity)
@@ -299,7 +343,7 @@ Vec2 CrowdRdsOrcaSimulator::getRobotNominalVelocity()
 	Vec2 v_result;
 	m_robot.transformVectorLocalToGlobal(m_robot.rds_configuration.p_ref, &v_result);
 	Vec2 robot_p_ref_position(m_robot.position + v_result);
-	Vec2 feed_back_velocity(0.1f*(position - robot_p_ref_position));
+	Vec2 feed_back_velocity(0.25f*(position - robot_p_ref_position));
 	return feed_forward_velocity + feed_back_velocity;
 }
 

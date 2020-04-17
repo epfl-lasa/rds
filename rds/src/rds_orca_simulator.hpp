@@ -29,6 +29,10 @@ struct RdsOrcaSimulator
 
 	float getTime() const { return m_time; }
 
+	void checkRobotCollisions();
+
+	const std::vector<bool>& getRobotCollisions() const { return m_robot_collisions; }
+
 	AdditionalPrimitives2D::Circle getOrcaOrcaCircle() const;
 protected:
 	virtual Geometry2D::Vec2 getRobotNominalVelocity();
@@ -40,6 +44,7 @@ protected:
 	RDS4CapsuleAgent m_robot;
 	Geometry2D::BoundingCircles m_bounding_circles_robot;
 	float m_time;
+	std::vector<bool> m_robot_collisions;
 public:
 	const float m_orca_time_horizon;
 	const float m_orca_distance_margin;
