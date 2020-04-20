@@ -19,10 +19,10 @@ RdsOrcaSimulator::RdsOrcaSimulator(const Vec2& position, float orientation,
 	bool orca_orca)
 	: m_bounding_circles_robot(2)
 	, m_time(0.f)
-	, m_orca_time_horizon(0.5f)
-	, m_orca_distance_margin(0.05f)
+	, m_orca_time_horizon(config.tau)
+	, m_orca_distance_margin(config.delta)
 	, m_pedestrian_radius(0.25f)
-	, m_pedestrian_v_max(2.f)
+	, m_pedestrian_v_max(config.v_max)
 	, m_orca_orca(orca_orca)
 	, m_robot_avoids(true)
 {
@@ -211,7 +211,19 @@ void RdsOrcaSimulator::checkRobotCollisions()
 		unsigned int ped_index = i + offset + m_bounding_circles_robot.circles().size();
 		Vec2 ped_pos = toRDS(m_rvo_simulator.getAgentPosition(ped_index));
 		float ped_radius = m_rvo_simulator.getAgentRadius(ped_index);
-		if (m_orca_orca)
+		
+		Vec2 ped_pos_local;
+		m_robot.transformVectorGlobalToLocal(ped_pos - m_robot.position, &ped_pos_local);
+		const Geometry2D::Capsule& robot_shape(m_robot.rds_configuration.robot_shape);
+		Vec2 pt_segment;
+		robot_shape.closestMidLineSegmentPoint(ped_pos_local, &pt_segment);
+
+		float delta = m_robot.rds_configuration.delta;
+		float radius_sum = ped_radius - delta/2.f + robot_shape.radius(); //assumes orca margin = rds margin
+		if ((pt_segment - ped_pos_local).norm() < radius_sum + delta)
+			m_robot_collisions[i] = true;
+
+		/*if (m_orca_orca)
 		{
 			unsigned int rob_index = m_bounding_circles_robot.circles().size();
 			Vec2 rob_pos = toRDS(m_rvo_simulator.getAgentPosition(rob_index));
@@ -228,7 +240,7 @@ void RdsOrcaSimulator::checkRobotCollisions()
 				if ((rob_pos - ped_pos).norm() < rob_radius + ped_radius)
 					m_robot_collisions[i] = true;
 			}
-		}
+		}*/
 	}
 }
 
@@ -344,7 +356,8 @@ Vec2 CrowdRdsOrcaSimulator::getRobotNominalVelocity()
 	m_robot.transformVectorLocalToGlobal(m_robot.rds_configuration.p_ref, &v_result);
 	Vec2 robot_p_ref_position(m_robot.position + v_result);
 	Vec2 feed_back_velocity(0.25f*(position - robot_p_ref_position));
-	return feed_forward_velocity + feed_back_velocity;
+	//Vec2 disturbance = 0.5f*std::sin(m_time*6.f*2.f*M_PI)*Vec2(-feed_forward_velocity.y, feed_forward_velocity.x);
+	return feed_forward_velocity + feed_back_velocity;// + disturbance;
 }
 
 Circle RdsOrcaSimulator::getOrcaOrcaCircle() const
