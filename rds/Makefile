@@ -1,9 +1,13 @@
-all: geometry gui demo_geo rds_core rds_wrap demo_rds demo_simu demo_rvo build/demo_hierarchy build/demo_hierarchy_rds_3 build/demo_rds_3 build/demo_rds_4 build/demo_eval_rds_4 build/demo_marr build/demo_rds_orca_simu build/blocks build/demo_crowd_trajectory build/demo_crowd_rds_orca_simu build/demo_art_crowd_rds_orca_simu# list only what is ready to build
+all: geometry gui demo_geo rds_core rds_wrap demo_rds demo_simu demo_rvo build/demo_hierarchy build/demo_hierarchy_rds_3 build/demo_rds_3 build/demo_rds_4 build/demo_eval_rds_4 build/demo_marr build/demo_rds_orca_simu build/blocks build/demo_crowd_trajectory build/demo_crowd_rds_orca_simu build/demo_art_crowd_rds_orca_simu build/simple_rds_orca_simu# list only what is ready to build
 	@echo "\033[92mDone with building RDS.\033[0m"
 
 FLAGS = -std=c++11 -g -Wall
 
 # DEMOS
+
+build/simple_rds_orca_simu: src/simple_rds_orca_simu.cpp src/crowd_trajectory.cpp src/crowd_trajectory.hpp build/libgui.a src/rds_orca_simulator.hpp src/rds_orca_simulator.cpp src/rds_4_agent.cpp src/rds_4_agent.hpp src/rds_4.cpp src/rds_4.hpp src/RVO.hpp src/RVO.cpp
+	g++ $(FLAGS) src/simple_rds_orca_simu.cpp src/crowd_trajectory.cpp src/rds_orca_simulator.cpp src/rds_4_agent.cpp src/rds_4.cpp src/RVO.cpp -Lbuild -lgui -lSDL2 -lRVO -lgeometry -o build/simple_rds_orca_simu
+
 
 build/demo_art_crowd_rds_orca_simu: src/demo_art_crowd_rds_orca_simu.cpp src/crowd_trajectory.cpp src/crowd_trajectory.hpp build/libgui.a src/rds_orca_simulator.hpp src/rds_orca_simulator.cpp src/rds_4_agent.cpp src/rds_4_agent.hpp src/rds_4.cpp src/rds_4.hpp src/RVO.hpp src/RVO.cpp
 	g++ $(FLAGS) src/demo_art_crowd_rds_orca_simu.cpp src/crowd_trajectory.cpp src/rds_orca_simulator.cpp src/rds_4_agent.cpp src/rds_4.cpp src/RVO.cpp -Lbuild -lgui -lSDL2 -lRVO -lgeometry -o build/demo_art_crowd_rds_orca_simu
