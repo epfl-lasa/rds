@@ -7,6 +7,15 @@
 #include <RVO.h>
 #include <vector>
 
+struct StaticCircle
+{
+	StaticCircle(const Geometry2D::Vec2& position, float radius, float max_error);
+	const AdditionalPrimitives2D::Circle circle;
+	const AdditionalPrimitives2D::Polygon polygon;
+	const std::vector<RVO::Vector2> rvo_polygon;
+	bool robot_collision;
+};
+
 struct RdsOrcaSimulator
 {
 	RdsOrcaSimulator(const Geometry2D::Vec2& position, float orientation,
@@ -29,7 +38,11 @@ struct RdsOrcaSimulator
 
 	float getTime() const { return m_time; }
 
+	const std::vector<StaticCircle>& getStaticObstacles() const { return m_static_obstacles; }
+
 	void checkRobotCollisions();
+
+	void addStaticObstacle(const Geometry2D::Vec2& position, float radius);
 
 	const std::vector<bool>& getRobotCollisions() const { return m_robot_collisions; }
 
@@ -43,6 +56,7 @@ protected:
 	std::vector<MovingCircle> m_pedestrians;
 	RDS4CapsuleAgent m_robot;
 	Geometry2D::BoundingCircles m_bounding_circles_robot;
+	std::vector<StaticCircle> m_static_obstacles;
 	float m_time;
 	std::vector<bool> m_robot_collisions;
 public:

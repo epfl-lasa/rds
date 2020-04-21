@@ -387,6 +387,7 @@ void Window::renderArrows(const std::vector<AdditionalPrimitives2D::Arrow>& arro
 void Window::renderPolygons(const std::vector<AdditionalPrimitives2D::Polygon>& polygons)
 {
 	SDL_Renderer* renderer = allSdlPointers[sdlWindowCreationNumber].renderer; // for convenience
+	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 	for (auto& pg : polygons)
 	{
 		for (int i = 1; i < pg.size(); i++)

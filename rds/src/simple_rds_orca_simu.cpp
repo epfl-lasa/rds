@@ -13,7 +13,8 @@ using AdditionalPrimitives2D::Circle;
 using Geometry2D::BoundingCircles;
 using AdditionalPrimitives2D::Polygon;
 
-const float dt = 0.005f;
+const float dt = 0.05f; //0.05f; // 0.15f; 0.005f;
+// the smaller the time step, the quicker can orca propagate avoidance velocities through the crowd
 
 double robot_mean_distance_to_target = 0.0;
 double time_counter = 0.0;
@@ -37,6 +38,8 @@ struct GuiWrap
 		m_gui.circles = &m_circles;
 		m_gui.capsules = &m_capsules;
 		m_gui.polygons = &m_polygons;
+		for (unsigned int i = 0; i < sim.getStaticObstacles().size(); i++)
+			m_polygons.push_back(sim.getStaticObstacles()[i].polygon);
 		for (auto& p : sim.getPedestrians())
 		{
 			m_circles.push_back(p.circle);
@@ -46,11 +49,23 @@ struct GuiWrap
 		}
 		m_capsules.push_back(sim.getRobot().rds_configuration.robot_shape);
 		for (auto& c : m_bounding_circles.circles())
+		{
 			m_circles.push_back(c);
+			m_gui.circles_colors.push_back(GuiColor());
+		}
 		Polygon robot_line = {Vec2(), Vec2()};
 		m_polygons.push_back(robot_line);
 		if (sim.m_orca_orca)
+		{
 			m_circles.push_back(sim.getOrcaOrcaCircle());
+			m_gui.circles_colors.push_back(GuiColor());
+		}
+
+		for (unsigned int i = 0; i < sim.getStaticObstacles().size(); i++)
+		{
+			m_circles.push_back(sim.getStaticObstacles()[i].circle);
+			m_gui.circles_colors.push_back(GuiColor());
+		}
 	}
 
 	bool update(const CrowdRdsOrcaSimulator& sim)
@@ -58,13 +73,14 @@ struct GuiWrap
 		int offset = 0;
 		if (sim.m_orca_orca)
 			offset = 1;
+		offset += sim.getStaticObstacles().size();
 		for (std::vector<Circle>::size_type i = 0; i < m_circles.size() - m_bounding_circles.circles().size() - offset; i++)
 		{
 			m_circles[i].center = sim.getPedestrians()[i].circle.center;
 			if (sim.getRobotCollisions()[i])
 				m_gui.circles_colors[i].g = m_gui.circles_colors[i].b = 0;
-			m_polygons[i][0] = m_circles[i].center;
-			m_polygons[i][1] = sim.getPedestrianNominalPosition(i);
+			m_polygons[i + sim.getStaticObstacles().size()][0] = m_circles[i].center;
+			m_polygons[i + sim.getStaticObstacles().size()][1] = sim.getPedestrianNominalPosition(i);
 		}
 		const Capsule& robot_shape(sim.getRobot().rds_configuration.robot_shape);
 		Vec2 v_result;
@@ -90,7 +106,16 @@ struct GuiWrap
 			m_circles[i] = Circle(v_result + sim.getRobot().position, m_bounding_circles.circles()[bc_index].radius);
 		}
 		if (sim.m_orca_orca)
-			m_circles.back() = sim.getOrcaOrcaCircle();
+			m_circles[m_circles.size() - 1 - sim.getStaticObstacles().size()] = sim.getOrcaOrcaCircle();
+
+		for (unsigned int i = 0; i < sim.getStaticObstacles().size(); i++)
+		{
+			if (sim.getStaticObstacles()[i].robot_collision)
+			{
+				m_gui.circles_colors[m_circles.size() + i - sim.getStaticObstacles().size()].g = 0;
+				m_gui.circles_colors[m_circles.size() + i - sim.getStaticObstacles().size()].b = 0;
+			}
+		}
 
 		if ((m_track_from_time >= 0.f) && sim.getTime() > m_track_from_time)
 		{
@@ -115,35 +140,56 @@ struct GuiWrap
 
 int main(int argc, char** argv)
 {
+	bool robot_avoids = true;
+	bool orca_orca = false;
+	if (argc > 1)
+	{
+		if (std::stoi(argv[1]) == 1)
+			orca_orca = true;
+		else if (std::stoi(argv[1]) == 2)
+			robot_avoids = false;
+	}
+
 	CrowdTrajectory crowd_trajectory;
+	/*{
+		std::vector<CrowdTrajectory::Knot> spline_data(3);
+		for (int i = 2; i < 15; i++)
+		{
+			for (int j = 2; j < 15; j++)
+			{
+				Vec2 ped_pos(i*0.551 + 0.0*std::sin(j*i*2000), j*0.551 + 0.0*std::sin((j-i)*1000));
+				ped_pos = ped_pos - Vec2(2.f, 5.0);
+				for (int k = 0; k < 3; k++)
+					spline_data[k] = CrowdTrajectory::Knot(ped_pos, float(k));
+				crowd_trajectory.addPedestrianTrajectory(spline_data);
+			}
+		}
+	}*/
 	{
 		std::vector<CrowdTrajectory::Knot> spline_data(3);
-		Vec2 move(5.15f, -2.15f);
-		std::vector<Vec2> static_pedestrian_positions = {move + Vec2(-0.3f,-0.3f),
-			move + Vec2(-0.3f, 0.3f), move + Vec2(0.3f,-0.3f), move + Vec2(0.3f, 0.3f)};
-		Vec2 shift_per_second(-1.3f, 0.f);
-		shift_per_second = Vec2();
-		for (auto& ped_pos : static_pedestrian_positions)
-		{
-			spline_data[0] = CrowdTrajectory::Knot(ped_pos, 0.f);
-			spline_data[1] = CrowdTrajectory::Knot(ped_pos + shift_per_second, 1.f);
-			spline_data[2] = CrowdTrajectory::Knot(ped_pos + 2.f*shift_per_second, 2.f);
-			crowd_trajectory.addPedestrianTrajectory(spline_data);
-		}
+		for (int k = 0; k < 3; k++)
+			spline_data[k] = CrowdTrajectory::Knot(Vec2(1.5f, 0.3f), float(k));
+		crowd_trajectory.addPedestrianTrajectory(spline_data);
+		for (int k = 0; k < 3; k++)
+			spline_data[k] = CrowdTrajectory::Knot(Vec2(5.5f, -10.5f + 1.3f*k), float(k));
+		crowd_trajectory.addPedestrianTrajectory(spline_data);
+		for (int k = 0; k < 3; k++)
+			spline_data[k] = CrowdTrajectory::Knot(Vec2(-6.5f + 1.6f*k, -0.55f), float(k));
+		crowd_trajectory.addPedestrianTrajectory(spline_data);
 	}
 
 	unsigned int robot_leader_index = crowd_trajectory.getSplinesData().size();
 	std::vector<CrowdTrajectory::Knot> spline_data(3);
-	spline_data[0] = CrowdTrajectory::Knot(Vec2(-5.f, -2.f), 0.f);
-	spline_data[1] = CrowdTrajectory::Knot(Vec2(-3.7f, -2.f), 1.f);
-	spline_data[2] = CrowdTrajectory::Knot(Vec2(-2.4f, -2.f), 2.f);
+	spline_data[0] = CrowdTrajectory::Knot(Vec2(-5.f, 0.f), 0.f);
+	spline_data[1] = CrowdTrajectory::Knot(Vec2(-3.7f, 0.f), 1.f);
+	spline_data[2] = CrowdTrajectory::Knot(Vec2(-2.4f, 0.f), 2.f);
 	crowd_trajectory.addPedestrianTrajectory(spline_data);
 
 	float y_ref = 0.2f;
 	float y_front_circle = 0.1f;
 	RDSCapsuleConfiguration config(0.5f, 0.05f, 2.0f,
 		Capsule(0.4f, Vec2(0.f, y_front_circle), Vec2(0.f, -0.3f)), Vec2(0.f, y_ref));
-	CrowdRdsOrcaSimulator sim(config, crowd_trajectory, robot_leader_index, false);
+	CrowdRdsOrcaSimulator sim(config, crowd_trajectory, robot_leader_index, orca_orca);
 
 	for (unsigned int i = 0; i < crowd_trajectory.getNumSplines(); i++)
 	{
@@ -151,7 +197,11 @@ int main(int argc, char** argv)
 			sim.addPedestrian(i);
 	}
 
-	sim.m_robot_avoids = false;
+	sim.addStaticObstacle(Vec2(-2.f, 0.8f), 0.5f);
+	sim.addStaticObstacle(Vec2(2.f, 1.2f), 0.5f);
+	sim.addStaticObstacle(Vec2(2.7f, 0.9f), 0.5f);
+
+	sim.m_robot_avoids = robot_avoids;
 
 	GuiWrap gui_wrap(sim, 0.f);
 

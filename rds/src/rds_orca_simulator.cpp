@@ -3,6 +3,7 @@
 #include <cmath>
 using Geometry2D::Vec2;
 using AdditionalPrimitives2D::Circle;
+using AdditionalPrimitives2D::Polygon;
 
 static RVO::Vector2 toRVO(const Vec2& v)
 {
@@ -13,6 +14,35 @@ static Vec2 toRDS(const RVO::Vector2& v)
 {
 	return Vec2(v.x(), v.y());
 }
+
+static Polygon init_polygon(const Vec2& position, float radius, float max_error)
+{
+	if (max_error < 0.01f)
+		max_error = 0.01f;
+	unsigned int n_points = 3;
+	while (radius*(1.f - std::cos(M_PI/n_points)) > max_error)
+		n_points++;
+	Polygon polygon(n_points);
+	float center_angles = 2.f*M_PI/n_points;
+	for (unsigned int i = 0; i < n_points; i++)
+		polygon[i] = position + radius*Vec2(std::cos(i*center_angles), std::sin(i*center_angles));
+	return polygon;
+}
+
+static std::vector<RVO::Vector2> init_rvo_polygon(const Polygon& polygon)
+{
+	std::vector<RVO::Vector2> rvo_polygon;
+	for (const auto& v : polygon)
+		rvo_polygon.push_back(toRVO(v));
+	return rvo_polygon;
+}
+
+StaticCircle::StaticCircle(const Vec2& position, float radius, float max_error)
+	: circle(position, radius)
+	, polygon(init_polygon(position, radius, max_error))
+	, rvo_polygon(init_rvo_polygon(polygon))
+	, robot_collision(false)
+{}
 
 RdsOrcaSimulator::RdsOrcaSimulator(const Vec2& position, float orientation,
 	const RDSCapsuleConfiguration& config, const Vec2& reference_point_velocity,
@@ -128,7 +158,15 @@ void RdsOrcaSimulator::step(float dt)
 		m_pedestrians[i].velocity = toRDS(m_rvo_simulator.getAgentVelocity(i + offset + m_bounding_circles_robot.circles().size()));
 
 	if ((!m_orca_orca) && m_robot_avoids)
+	{
+		for (const auto& sc : m_static_obstacles)
+			m_pedestrians.push_back(MovingCircle(sc.circle, Vec2(0.f, 0.f)));
+		
 		m_robot.stepEuler(dt, getRobotNominalVelocity(), m_pedestrians);
+		
+		for (const auto& sc : m_static_obstacles)
+			m_pedestrians.pop_back();
+	}
 	else
 	{
 		// update robot using RVO velocity
@@ -220,7 +258,7 @@ void RdsOrcaSimulator::checkRobotCollisions()
 
 		float delta = m_robot.rds_configuration.delta;
 		float radius_sum = ped_radius - delta/2.f + robot_shape.radius(); //assumes orca margin = rds margin
-		if ((pt_segment - ped_pos_local).norm() < radius_sum + delta)
+		if ((pt_segment - ped_pos_local).norm() < radius_sum)// + delta)
 			m_robot_collisions[i] = true;
 
 		/*if (m_orca_orca)
@@ -242,6 +280,30 @@ void RdsOrcaSimulator::checkRobotCollisions()
 			}
 		}*/
 	}
+
+	for (auto& sc : m_static_obstacles)
+	{	
+		Vec2 sc_pos_local;
+		m_robot.transformVectorGlobalToLocal(sc.circle.center - m_robot.position, &sc_pos_local);
+		const Geometry2D::Capsule& robot_shape(m_robot.rds_configuration.robot_shape);
+		Vec2 pt_segment;
+		robot_shape.closestMidLineSegmentPoint(sc_pos_local, &pt_segment);
+
+		float orca_additional_margin = 0.03f + m_robot.rds_configuration.delta/2.f;
+		if (!m_orca_orca)
+			orca_additional_margin = 0.f;
+		float delta = m_robot.rds_configuration.delta;
+		float radius_sum = sc.circle.radius + robot_shape.radius();
+		if ((pt_segment - sc_pos_local).norm() < radius_sum - orca_additional_margin)// + delta)
+			sc.robot_collision = true;
+	}
+}
+
+void RdsOrcaSimulator::addStaticObstacle(const Vec2& position, float radius)
+{
+	m_static_obstacles.push_back(StaticCircle(position, radius, 0.03f));
+	m_rvo_simulator.addObstacle(m_static_obstacles.back().rvo_polygon);
+	m_rvo_simulator.processObstacles();
 }
 
 CurveRdsOrcaSimulator::CurveRdsOrcaSimulator(const Geometry2D::Vec2& position, float orientation,
