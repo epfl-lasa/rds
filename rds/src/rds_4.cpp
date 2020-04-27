@@ -56,9 +56,23 @@ namespace Geometry2D
 
 		const Vec2& n(crvo.getNormal());
 		Vec2 n_constraint_tmp(n.x*robot_point.y/p_ref.y + n.y*(p_ref.x - robot_point.x)/p_ref.y, n.y);
+		
 		float b = crvo.getOffset();
 		if ((v_max_sqrt_2 + 0.01f)*n_constraint_tmp.norm() > b)
 			constraints->push_back(HalfPlane2(n_constraint_tmp, b/n_constraint_tmp.norm()));
+		float normal_limit = 1.f*robot_radius/tau/v_max_sqrt_2;
+		if (std::abs(n_constraint_tmp.x) < normal_limit)
+		{
+			float shift_abs = normal_limit - std::abs(n_constraint_tmp.x);
+			Vec2 n_constraint_tmp_plus(n.x*(robot_point.y + shift_abs)/
+				p_ref.y + n.y*(p_ref.x - robot_point.x)/p_ref.y, n.y);
+			Vec2 n_constraint_tmp_minus(n.x*(robot_point.y - shift_abs)/
+				p_ref.y + n.y*(p_ref.x - robot_point.x)/p_ref.y, n.y);
+			if ((v_max_sqrt_2 + 0.01f)*n_constraint_tmp_plus.norm() > b)
+				constraints->push_back(HalfPlane2(n_constraint_tmp_plus, b/n_constraint_tmp_plus.norm()));
+			if ((v_max_sqrt_2 + 0.01f)*n_constraint_tmp_minus.norm() > b)
+				constraints->push_back(HalfPlane2(n_constraint_tmp_minus, b/n_constraint_tmp_minus.norm()));
+		}
 	}
 	
 	void RDS4::solve(const Vec2& v_nominal, std::vector<HalfPlane2>& constraints_tmp, Vec2* v_corrected)
