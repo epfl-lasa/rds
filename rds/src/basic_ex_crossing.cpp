@@ -151,27 +151,13 @@ int main(int argc, char** argv)
 	}
 
 	CrowdTrajectory crowd_trajectory;
-	/*{
-		std::vector<CrowdTrajectory::Knot> spline_data(3);
-		for (int i = 2; i < 15; i++)
-		{
-			for (int j = 2; j < 15; j++)
-			{
-				Vec2 ped_pos(i*0.551 + 0.0*std::sin(j*i*2000), j*0.551 + 0.0*std::sin((j-i)*1000));
-				ped_pos = ped_pos - Vec2(2.f, 5.0);
-				for (int k = 0; k < 3; k++)
-					spline_data[k] = CrowdTrajectory::Knot(ped_pos, float(k));
-				crowd_trajectory.addPedestrianTrajectory(spline_data);
-			}
-		}
-	}*/
 	{
 		std::vector<CrowdTrajectory::Knot> spline_data(3);
 		for (int k = 0; k < 3; k++)
-			spline_data[k] = CrowdTrajectory::Knot(Vec2(1.5f, 0.3f), float(k));
-		crowd_trajectory.addPedestrianTrajectory(spline_data);
+			spline_data[k] = CrowdTrajectory::Knot(Vec2(-2.6f, -2.93f + 1.4f*k), float(k));
+		crowd_trajectory.addPedestrianTrajectory(spline_data);//-2.7f
 		for (int k = 0; k < 3; k++)
-			spline_data[k] = CrowdTrajectory::Knot(Vec2(0.75f, -0.2f), float(k));
+			spline_data[k] = CrowdTrajectory::Knot(Vec2(2.6f, 8.73f - 1.4f*k), float(k));
 		crowd_trajectory.addPedestrianTrajectory(spline_data);
 	}
 
@@ -194,9 +180,9 @@ int main(int argc, char** argv)
 			sim.addPedestrian(i);
 	}
 
-	sim.addStaticObstacle(Vec2(-2.f, 1.2f), 1.f);
-	sim.addStaticObstacle(Vec2(2.f, 1.8f), 1.f);
-	sim.addStaticObstacle(Vec2(2.7f, 1.4f), 1.f);
+	//sim.addStaticObstacle(Vec2(-2.f, 1.2f), 1.f);
+	//sim.addStaticObstacle(Vec2(2.f, 1.8f), 1.f);
+	//sim.addStaticObstacle(Vec2(2.7f, 1.4f), 1.f);
 
 	sim.m_robot_avoids = robot_avoids;
 
