@@ -217,10 +217,10 @@ int main(int argc, char** argv)
 	char pseudo_argv_2_b[] = {"1"};
 	char pseudo_argv_3[] = {"0"};
 	char pseudo_argv_4[] = {"20"};
-	char* pseudo_argv_a[] = {pseudo_argv_0, pseudo_argv_1, pseudo_argv_2_a, pseudo_argv_3, pseudo_argv_4, pseudo_argv_0};
-	char* pseudo_argv_b[] = {pseudo_argv_0, pseudo_argv_1, pseudo_argv_2_b, pseudo_argv_3, pseudo_argv_4, pseudo_argv_0};
+	char* pseudo_argv_a[] = {pseudo_argv_0, pseudo_argv_1, pseudo_argv_2_a, pseudo_argv_3, pseudo_argv_4, pseudo_argv_2_b};
+	char* pseudo_argv_b[] = {pseudo_argv_0, pseudo_argv_1, pseudo_argv_2_b, pseudo_argv_3, pseudo_argv_4, pseudo_argv_2_b};
 
-	for (int i = 0; i < 100; i++)
+	for (int i = 0; i < 30; i+=3)
 	{
 		std::sprintf(pseudo_argv_1, "%d", i);
 
