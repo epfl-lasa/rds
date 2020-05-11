@@ -1,5 +1,8 @@
 #include "aggregate_two_lrf.hpp"
 
+#include <geometry_msgs/TransformStamped.h>
+#include <tf2/LinearMath/Transform.h>
+
 #define _USE_MATH_DEFINES
 #include <cmath>
 
@@ -30,49 +33,69 @@ float angle_difference(float alpha, float beta)
 }
 
 void AggregatorTwoLRF::getPointsFromLRF(const sensor_msgs::LaserScan::ConstPtr& lrf_msg,
-	const Geometry2D::Vec2& position_lrf, float orientation_lrf,
-	float angle_center, float angle_cutoff, float range_cutoff_lower,
+	float angle_cutoff, float range_cutoff_lower,
 	std::vector<Geometry2D::Vec2>* result_points)
 {
+	geometry_msgs::TransformStamped transformStamped;
+	try
+	{
+		transformStamped = tf_buffer.lookupTransform(
+			lrf_msg->header.frame_id, "tf_qolo", ros::Time::now());
+		/*ROS_INFO("Translation = [%f, %f, %f]",
+			transformStamped.transform.translation.x,
+			transformStamped.transform.translation.y,
+			transformStamped.transform.translation.z);*/
+	}
+	catch (tf2::TransformException &ex)
+	{
+		ROS_WARN("%s excpetion, when looking up tf from %s to tf_qolo", ex.what(), lrf_msg->header.frame_id);
+		return;
+	}
+
+	tf2::Quaternion rotation(transformStamped.transform.rotation.x,
+		transformStamped.transform.rotation.y,
+		transformStamped.transform.rotation.z,
+		transformStamped.transform.rotation.w);
+
+	tf2::Vector3 translation(transformStamped.transform.translation.x,
+		transformStamped.transform.translation.y,
+		transformStamped.transform.translation.z);
+
+	tf2::Transform transform(rotation, translation);
+
 	result_points->resize(0);
 	for (std::vector<float>::size_type i = 0; i != lrf_msg->ranges.size(); i++)
 	{
-		float phi = orientation_lrf + lrf_msg->angle_min + i*lrf_msg->angle_increment;
-		if (angle_cutoff < std::abs(angle_difference(angle_center, phi)))
+		float phi = lrf_msg->angle_min + i*lrf_msg->angle_increment;
+		if (angle_cutoff < std::abs(angle_difference(0.0, phi)))
 			continue;
 		if (range_cutoff_lower > lrf_msg->ranges[i])
 			continue;
-		Vec2 point = position_lrf + lrf_msg->ranges[i]*Vec2(std::cos(phi), std::sin(phi));
-		result_points->push_back(point);
+
+		tf2::Vector3 position_lrf_frame(lrf_msg->ranges[i]*std::cos(phi), lrf_msg->ranges[i]*std::sin(phi), 0.0);
+		tf2::Vector3 position_axle_frame = transform.operator*(position_lrf_frame);
+
+		result_points->push_back(Vec2(position_axle_frame.getX(), position_axle_frame.getY()));
 	}
 }
 
-AggregatorTwoLRF::AggregatorTwoLRF(const Geometry2D::Vec2& position_lrf_front, float orientation_lrf_front,
-	float angle_center_lrf_front, float angle_cutoff_lrf_front, float range_cutoff_lower_lrf_front,
-	const Geometry2D::Vec2& position_lrf_rear, float orientation_lrf_rear,
-	float angle_center_lrf_rear, float angle_cutoff_lrf_rear, float range_cutoff_lower_lrf_rear)
-	: position_lrf_front(position_lrf_front)
-	, orientation_lrf_front(orientation_lrf_front)
-	, angle_center_lrf_front(angle_center_lrf_front)
-	, angle_cutoff_lrf_front(angle_cutoff_lrf_front)
+AggregatorTwoLRF::AggregatorTwoLRF(float angle_cutoff_lrf_front, float range_cutoff_lower_lrf_front,
+	float angle_cutoff_lrf_rear, float range_cutoff_lower_lrf_rear)
+	: angle_cutoff_lrf_front(angle_cutoff_lrf_front)
 	, range_cutoff_lower_lrf_front(range_cutoff_lower_lrf_front)
-	, position_lrf_rear(position_lrf_rear)
-	, orientation_lrf_rear(orientation_lrf_rear)
-	, angle_center_lrf_rear(angle_center_lrf_rear)
 	, angle_cutoff_lrf_rear(angle_cutoff_lrf_rear)
 	, range_cutoff_lower_lrf_rear(range_cutoff_lower_lrf_rear)
+	, tf_listener(tf_buffer)
 { }
 
 void AggregatorTwoLRF::callbackLRFFront(const sensor_msgs::LaserScan::ConstPtr& lrf_msg)
 {
-	getPointsFromLRF(lrf_msg, position_lrf_front, orientation_lrf_front,
-		angle_center_lrf_front, angle_cutoff_lrf_front, range_cutoff_lower_lrf_front,
+	getPointsFromLRF(lrf_msg, angle_cutoff_lrf_front, range_cutoff_lower_lrf_front,
 		&points_front);
 }
 
 void AggregatorTwoLRF::callbackLRFRear(const sensor_msgs::LaserScan::ConstPtr& lrf_msg)
 {
-	getPointsFromLRF(lrf_msg, position_lrf_rear, orientation_lrf_rear,
-		angle_center_lrf_rear, angle_cutoff_lrf_rear, range_cutoff_lower_lrf_rear,
+	getPointsFromLRF(lrf_msg, angle_cutoff_lrf_rear, range_cutoff_lower_lrf_rear,
 		&points_rear);
 }

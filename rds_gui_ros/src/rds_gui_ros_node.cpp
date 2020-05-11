@@ -1,100 +1,50 @@
 #include "rds_gui_ros_node.hpp"
 
-#include <rds/differential_drive_kinematics.hpp>
-
 #include <chrono>
 #include <thread>
 
 #include <algorithm>
 #include <random>
 
-auto rng = std::default_random_engine {};
-
 using Geometry2D::Vec2;
 using Geometry2D::HalfPlane2;
 using AdditionalPrimitives2D::Arrow;
 using AdditionalPrimitives2D::Circle;
-using RDS::VelocityCommand;
-using RDS::PointVelocityConstraint;
+using Geometry2D::Capsule;
 
 void RDSGUIROSNode::toGuiMessageCallback(const rds_network_ros::ToGui::ConstPtr& to_gui_msg)
 {
 	const rds_network_ros::ToGui& msg = *to_gui_msg;
 
-	float linear_normalization = msg.limit_velocity_command_max_linear;
-	float angular_normalization = msg.limit_velocity_command_abs_angular_at_zero_linear;
-
-	Vec2 reference_point(msg.reference_point.x, msg.reference_point.y);
-
-	Vec2 nominal_command(-msg.nominal_command.angular/angular_normalization, msg.nominal_command.linear/linear_normalization);
-	Vec2 corrected_command(-msg.corrected_command.angular/angular_normalization, msg.corrected_command.linear/linear_normalization);
+	Vec2 v_p_ref_nominal(msg.reference_point_nominal_velocity.x, msg.reference_point_nominal_velocity.y);
+	Vec2 v_p_ref_solution(msg.reference_point_velocity_solution.x, msg.reference_point_velocity_solution.y);
 
 	command_space_arrows.resize(0);
-	command_space_arrows.push_back(Arrow(nominal_command, Vec2()));
-	command_space_arrows.push_back(Arrow(corrected_command, Vec2()));
+	command_space_arrows.push_back(Arrow(v_p_ref_nominal, Vec2()));
+	command_space_arrows.push_back(Arrow(v_p_ref_solution, Vec2()));
 	gui_command_space.arrows_colors.resize(0);
 	gui_command_space.arrows_colors.push_back(color_nominal);
 	gui_command_space.arrows_colors.push_back(color_corrected);
 
 	command_space_halfplanes.resize(0);
 	for (auto& h_msg : msg.reference_point_velocity_constraints)
-	{
-		PointVelocityConstraint pvc(reference_point, HalfPlane2(Vec2(h_msg.normal.x, h_msg.normal.y), h_msg.offset));
-		command_space_halfplanes.push_back(RDS::transformPointVelocityConstraintToCommandConstraint(pvc,
-			linear_normalization, angular_normalization));
-	}
-	std::shuffle(std::begin(command_space_halfplanes) + 10, std::end(command_space_halfplanes), rng);
-
-	solver_space_points.resize(0);
-	solver_space_points.push_back(Vec2());
-	solver_space_points.push_back(Vec2(msg.solver_solution.x, msg.solver_solution.y));
-	gui_solver_space.points_colors.resize(0);
-	gui_solver_space.points_colors.push_back(color_nominal);
-	gui_solver_space.points_colors.push_back(color_corrected);
-
-	solver_space_halfplanes.resize(0);
-	for (auto& h_msg : msg.solver_constraints)
-		solver_space_halfplanes.push_back(HalfPlane2(Vec2(h_msg.normal.x, h_msg.normal.y), h_msg.offset));
-	std::shuffle(std::begin(solver_space_halfplanes) + 10, std::end(solver_space_halfplanes), rng);
+		command_space_halfplanes.push_back(HalfPlane2(Vec2(h_msg.normal.x, h_msg.normal.y), h_msg.offset));
 
 	work_space_points.resize(0);
 	gui_work_space.points_colors.resize(0);
 
-	Vec2 p_ref_com_lim(msg.reference_point_for_command_limits.x, msg.reference_point_for_command_limits.y);
-	Vec2 v_nominal_p_ref_com_lim(RDS::VelocityCommand(msg.nominal_command.linear,
-		msg.nominal_command.angular).pointVelocity(p_ref_com_lim));
-	Vec2 v_corrected_p_ref_com_lim(RDS::VelocityCommand(msg.corrected_command.linear,
-		msg.corrected_command.angular).pointVelocity(p_ref_com_lim));
-
-	for (auto& p_msg : msg.collision_points_on_robot)
-	{
-		work_space_points.push_back(Vec2(p_msg.x, p_msg.y));
-		gui_work_space.points_colors.push_back(orange);
-	}
-	for (auto& p_msg : msg.collision_points_on_obstacles)
+	for (auto& p_msg : msg.moving_objects)
 	{
 		work_space_points.push_back(Vec2(p_msg.x, p_msg.y));
 		gui_work_space.points_colors.push_back(yellow);
 	}
 
-	//work_space_points.push_back(p_ref_com_lim);
-	//gui_work_space.points_colors.push_back(magenta);
-
-	//work_space_points.push_back(reference_point);
-	//gui_work_space.points_colors.push_back(cyan);
-
 	work_space_arrows.resize(0);
-	gui_work_space.arrows_colors.resize(0);
-	Vec2 reference_point_velocity_solution(msg.reference_point_velocity_solution.x, msg.reference_point_velocity_solution.y);
-	Vec2 reference_point_nominal_velocity(msg.reference_point_nominal_velocity.x, msg.reference_point_nominal_velocity.y);
-	work_space_arrows.push_back(Arrow(p_ref_com_lim + 1.4*v_nominal_p_ref_com_lim, p_ref_com_lim));
-	work_space_arrows.push_back(Arrow(p_ref_com_lim + 1.4*v_corrected_p_ref_com_lim, p_ref_com_lim));
-	gui_work_space.arrows_colors.push_back(color_nominal);
-	gui_work_space.arrows_colors.push_back(color_corrected);
 
-	work_space_circles.resize(0);
-	for (auto& c_msg : msg.robot_shape)
-		work_space_circles.push_back(Circle(Vec2(c_msg.center.x, c_msg.center.y), c_msg.radius));
+	work_space_capsules.resize(0);
+	work_space_capsules.push_back(Capsule(msg.robot_shape.radius,
+		Vec2(msg.robot_shape.center_a.x, msg.robot_shape.center_a.y),
+		Vec2(msg.robot_shape.center_b.x, msg.robot_shape.center_b.y)));
 }
 
 RDSGUIROSNode::RDSGUIROSNode(ros::NodeHandle* n)
@@ -112,8 +62,8 @@ RDSGUIROSNode::RDSGUIROSNode(ros::NodeHandle* n)
 	gui_solver_space.halfplanes = &solver_space_halfplanes;
 
 	gui_work_space.points = &work_space_points;
-	gui_work_space.circles = &work_space_circles;
 	gui_work_space.arrows = &work_space_arrows;
+	gui_work_space.capsules = &work_space_capsules;
 
 	green.r = green.b = 0;
 	green.g = 255;

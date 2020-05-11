@@ -1,16 +1,4 @@
 VelocityCommand nominal_command
-VelocityCommandHexagonLimits velocity_limits
-VelocityCommand last_actual_command
-float32 command_cycle_time
-float32 abs_linear_acceleration_limit
-float32 abs_angular_acceleration_limit
-float32 delta
-float32 tau
-float32 y_coordinate_of_reference_point_for_command_limits
-float32 weight_scaling_of_reference_point_for_command_limits
-float32 clearance_from_axle_of_final_reference_point
-float32 y_coordinate_of_reference_biasing_point
-float32 weight_of_reference_biasing_point
 ---
 VelocityCommand corrected_command
-bool feasible
+bool got_it

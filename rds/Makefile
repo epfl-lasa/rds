@@ -1,7 +1,22 @@
-all: geometry gui demo_geo rds_core rds_wrap demo_rds demo_simu demo_rvo build/demo_hierarchy build/demo_hierarchy_rds_3 build/demo_rds_3 build/demo_rds_4 build/demo_eval_rds_4 build/demo_marr build/demo_rds_orca_simu build/blocks build/demo_crowd_trajectory build/demo_crowd_rds_orca_simu build/demo_art_crowd_rds_orca_simu build/simple_rds_orca_simu build/basic_ex_standing_pedestrian build/basic_ex_overtaking build/basic_ex_crossing# list only what is ready to build
+all: geometry gui demo_geo rds_core build/demo_hierarchy build/demo_hierarchy_rds_3 build/demo_rds_3 build/demo_rds_4 build/demo_eval_rds_4 build/demo_marr build/demo_rds_orca_simu build/blocks build/demo_crowd_trajectory build/demo_crowd_rds_orca_simu build/demo_art_crowd_rds_orca_simu build/simple_rds_orca_simu build/basic_ex_standing_pedestrian build/basic_ex_overtaking build/basic_ex_crossing qolo_rds# list only what is ready to build
 	@echo "\033[92mDone with building RDS.\033[0m"
 
 FLAGS = -std=c++11 -g -Wall
+
+# Qolo-RDS-4
+qolo_rds: build/lib_rds_4.a 
+
+build/lib_rds_4.a: build/rds/.hi src/rds_4.cpp src/rds_4.hpp src/capsule.hpp src/capsule.cpp src/geometry.hpp src/distance_minimizer.cpp src/distance_minimizer.hpp src/RVO.cpp src/RVO.hpp
+	g++ $(FLAGS) -c src/rds_4.cpp -o build/rds_4.o
+	g++ $(FLAGS) -c src/capsule.cpp -o build/capsule.o
+	g++ $(FLAGS) -c src/RVO.cpp -o build/RVO.o
+	g++ $(FLAGS) -c src/distance_minimizer.cpp -o build/distance_minimizer.o
+	ar rvs build/lib_rds_4.a build/rds_4.o build/capsule.o build/RVO.o build/distance_minimizer.o
+	cp src/rds_4.hpp build/rds
+	cp src/capsule.hpp build/rds
+	cp src/geometry.hpp build/rds
+	cp src/distance_minimizer.hpp build/rds
+	cp src/RVO.hpp build/rds
 
 # DEMOS
 build/basic_ex_crossing: src/basic_ex_crossing.cpp src/crowd_trajectory.cpp src/crowd_trajectory.hpp build/libgui.a src/rds_orca_simulator.hpp src/rds_orca_simulator.cpp src/rds_4_agent.cpp src/rds_4_agent.hpp src/rds_4.cpp src/rds_4.hpp src/RVO.hpp src/RVO.cpp
@@ -54,20 +69,20 @@ check_rvo: build/check_rvo
 build/check_rvo: src/check_rvo.cpp src/RVO.hpp src/RVO.cpp src/geometry.hpp build/libgui.a
 	g++ $(FLAGS) src/check_rvo.cpp src/RVO.cpp -Lbuild -lgui -lSDL2 -o build/check_rvo
 
-demo_rvo: build/demo_rvo
+#demo_rvo: build/demo_rvo
 
-build/demo_rvo: src/demo_rvo.cpp src/simulation.hpp src/simulation.cpp src/RVO.hpp src/RVO.cpp src/simulate_rvo_rds.hpp src/simulate_rvo_rds.cpp src/rds_2.cpp src/rds_2.hpp build/libgui.a build/libgeometry.a build/librds_wrap.a
-	g++ $(FLAGS) src/demo_rvo.cpp src/simulation.cpp src/RVO.cpp src/simulate_rvo_rds.cpp src/rds_2.cpp -Lbuild -lrds_wrap -lgeometry -lgui -lSDL2 -o build/demo_rvo
+#build/demo_rvo: src/demo_rvo.cpp src/simulation.hpp src/simulation.cpp src/RVO.hpp src/RVO.cpp src/simulate_rvo_rds.hpp src/simulate_rvo_rds.cpp src/rds_2.cpp src/rds_2.hpp build/libgui.a build/libgeometry.a build/librds_wrap.a
+#	g++ $(FLAGS) src/demo_rvo.cpp src/simulation.cpp src/RVO.cpp src/simulate_rvo_rds.cpp src/rds_2.cpp -Lbuild -lrds_wrap -lgeometry -lgui -lSDL2 -o build/demo_rvo
 
-demo_simu: build/demo_simu
+#demo_simu: build/demo_simu
 
-build/demo_simu: src/demo_simu.cpp src/simulator.cpp src/simulator.hpp src/orca_style.cpp src/orca_style.hpp build/librds_wrap.a
-	g++ $(FLAGS) src/demo_simu.cpp src/simulator.cpp src/orca_style.cpp -Lbuild -lrds_wrap -lgui -lSDL2 -o build/demo_simu
+#build/demo_simu: src/demo_simu.cpp src/simulator.cpp src/simulator.hpp src/orca_style.cpp src/orca_style.hpp build/librds_wrap.a
+#	g++ $(FLAGS) src/demo_simu.cpp src/simulator.cpp src/orca_style.cpp -Lbuild -lrds_wrap -lgui -lSDL2 -o build/demo_simu
 
-demo_rds: build/demo_rds  # target just for convenience
+#demo_rds: build/demo_rds  # target just for convenience
 
-build/demo_rds: src/demo_rds.cpp build/librds_wrap.a build/libgui.a
-	g++ $(FLAGS) src/demo_rds.cpp -Lbuild -lrds_wrap -lgui -lSDL2 -o build/demo_rds
+#build/demo_rds: src/demo_rds.cpp build/librds_wrap.a build/libgui.a
+#	g++ $(FLAGS) src/demo_rds.cpp -Lbuild -lrds_wrap -lgui -lSDL2 -o build/demo_rds
 
 demo_geo: build/demo_geo # target just for convenience
 
@@ -85,19 +100,19 @@ build/demo_geo: src/demo_geo.cpp build/libgeometry.a build/libgui.a
 
 # LIBRARIES
 
-rds_wrap: build/librds_wrap.a # target just for convenience
+# rds_wrap: build/librds_wrap.a # target just for convenience
 
-build/librds_wrap.a: build/rds/.hi src/rds_wrap.cpp src/rds_wrap.hpp build/librds_core.a
-	g++ $(FLAGS) -c src/rds_wrap.cpp -o build/rds_wrap.o
-	g++ $(FLAGS) -c src/rds_core.cpp -o build/rds_core.o
-	g++ $(FLAGS) -c src/distance_minimizer.cpp -o build/distance_minimizer.o
-	ar rvs build/librds_wrap.a build/rds_wrap.o build/rds_core.o build/distance_minimizer.o
-	cp src/rds_wrap.hpp build/rds
-	cp src/collision_point.hpp build/rds
-	cp src/differential_drive_kinematics.hpp build/rds
-	cp src/rds_core.hpp build/rds
-	cp src/geometry.hpp build/rds
-	cp src/capsule.hpp build/rds
+# build/librds_wrap.a: build/rds/.hi src/rds_wrap.cpp src/rds_wrap.hpp build/librds_core.a
+# 	g++ $(FLAGS) -c src/rds_wrap.cpp -o build/rds_wrap.o
+# 	g++ $(FLAGS) -c src/rds_core.cpp -o build/rds_core.o
+# 	g++ $(FLAGS) -c src/distance_minimizer.cpp -o build/distance_minimizer.o
+# 	ar rvs build/librds_wrap.a build/rds_wrap.o build/rds_core.o build/distance_minimizer.o
+# 	cp src/rds_wrap.hpp build/rds
+# 	cp src/collision_point.hpp build/rds
+# 	cp src/differential_drive_kinematics.hpp build/rds
+# 	cp src/rds_core.hpp build/rds
+# 	cp src/geometry.hpp build/rds
+# 	cp src/capsule.hpp build/rds
 
 rds_core: build/librds_core.a # target just for convenience
 

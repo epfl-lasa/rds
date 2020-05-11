@@ -27,7 +27,7 @@ struct RDSGUIROSNode
 
 	std::vector<Geometry2D::Vec2> work_space_points;
 	std::vector<AdditionalPrimitives2D::Arrow> work_space_arrows;
-	std::vector<AdditionalPrimitives2D::Circle> work_space_circles;
+	std::vector<Geometry2D::Capsule> work_space_capsules;
 
 	GuiColor green, blue, red, magenta, cyan, yellow, orange, blue_fade, white, purple, color_nominal, color_corrected;
 };

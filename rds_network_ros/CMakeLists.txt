@@ -50,6 +50,7 @@ add_message_files(
   Point2D.msg
   HalfPlane2D.msg
   Circle.msg
+  Capsule.msg
   ToGui.msg
 )
 
