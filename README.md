@@ -1,6 +1,6 @@
 # RDS
 
-This repository contains the RDS method's basic implementation, a ROS node to integrate it into a control loop via ROS, and another ROS node to monitor the first node. The term RDS stands for Redirecting Driver Support and refers to a method to enable robots to reactively avoid imminent collisions with moving objects.
+Redirecting Driver Support (RDS) is a method to enable robots to reactively avoid imminent collisions with moving objects. This repository contains the RDS method's basic implementation, a ROS node to integrate it into a control loop via ROS, and another ROS node to monitor the first node.
 
 ## Qolo Setup 
 
