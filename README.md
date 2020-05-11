@@ -1,12 +1,6 @@
 # RDS
-RDS is a control method that avoids collisions for a wheeled vehicle. This repository contains the method's implementation, tools that allow to visualize and monitor its operation, a ROS interface, and example code and instructions to integrate, try out and demonstrate the functionality of the full system or its individual components.
 
-## Third parties acknowledgements
-This repo contains the spline library from [this project](https://github.com/ttk592/spline), and thus it must inherit the GPL 2 license (if ever released). Further, it contains pedestrian trajectory data from [here](https://graphics.cs.ucy.ac.cy/research/downloads/crowd-data).
-
-## Software Structure
-
-![Alt text](/docs/software.png?raw=true "Each box corresponds to one source folder.")
+This repository contains the RDS method's basic implementation, a ROS node to integrate it into a control loop via ROS, and another ROS node to monitor the first node. The term RDS stands for Redirecting Driver Support and refers to a method to enable robots to reactively avoid imminent collisions with moving objects.
 
 ## Qolo Setup 
 
@@ -49,6 +43,13 @@ To run the GUI node:
 ```
 rosrun rds_gui_ros rds_gui_ros_node
 ```
+## Third parties acknowledgements
+
+This repo contains the spline library from [this project](https://github.com/ttk592/spline), and thus it must inherit the GPL 2 license (if ever released). Further, it contains pedestrian trajectory data from [here](https://graphics.cs.ucy.ac.cy/research/downloads/crowd-data).
+
+## Software Structure
+
+![Alt text](/docs/software.png?raw=true "Each box corresponds to one source folder.")
 
 ## Holonomic mode (OUTDATED)
 
