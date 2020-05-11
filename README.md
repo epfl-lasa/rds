@@ -49,7 +49,7 @@ This repo contains the spline library from [this project](https://github.com/ttk
 
 ## Software Structure
 
-![Alt text](/docs/software.png?raw=true "Each box corresponds to one source folder.")
+![Alt text](/docs/software_2.png?raw=true "Each box corresponds to one source folder.")
 
 ## Holonomic mode (OUTDATED)
 
