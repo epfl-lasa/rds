@@ -36,11 +36,14 @@ void AggregatorTwoLRF::getPointsFromLRF(const sensor_msgs::LaserScan::ConstPtr& 
 	float angle_cutoff, float range_cutoff_lower,
 	std::vector<Geometry2D::Vec2>* result_points)
 {
+	//ROS_INFO("ros::Time::now() gives %f", ros::Time::now());
+	//return;
 	geometry_msgs::TransformStamped transformStamped;
 	try
 	{
 		transformStamped = tf_buffer.lookupTransform(
-			lrf_msg->header.frame_id, "tf_qolo", ros::Time::now());
+			lrf_msg->header.frame_id, "tf_qolo" //"sick_laser_front"//
+			, ros::Time::now());
 		/*ROS_INFO("Translation = [%f, %f, %f]",
 			transformStamped.transform.translation.x,
 			transformStamped.transform.translation.y,

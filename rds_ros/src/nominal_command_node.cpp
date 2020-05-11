@@ -10,8 +10,8 @@ int main(int argc, char** argv)
 	rds_network_ros::VelocityCommandCorrectionRDS srv;
 	rds_network_ros::VelocityCommandCorrectionRDS::Request& request = srv.request;
 
-	request.nominal_command.linear = 0.5;
-	request.nominal_command.angular = 0.2;
+	request.nominal_command.linear = 1.0;
+	request.nominal_command.angular = 0.5;
 
 	ros::init(argc, argv, "rds_ros_nominal_command_node");
 	ros::NodeHandle n;

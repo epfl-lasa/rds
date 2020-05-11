@@ -126,7 +126,8 @@ gui: build/libgui.a # target just for convenience
 build/libgui.a: build/rds/.hi src/geometry.hpp src/gui.cpp src/gui.hpp src/window.cpp src/window.hpp src/capsule.hpp src/capsule.cpp
 	g++ $(FLAGS) -c src/gui.cpp -o build/gui.o 
 	g++ $(FLAGS) -c src/window.cpp -o build/window.o
-	ar rvs build/libgui.a build/gui.o build/window.o
+	g++ $(FLAGS) -c src/capsule.cpp -o build/capsule.o
+	ar rvs build/libgui.a build/gui.o build/window.o build/capsule.o
 	cp src/geometry.hpp build/rds
 	cp src/gui.hpp build/rds
 	cp src/window.hpp build/rds

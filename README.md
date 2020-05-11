@@ -8,43 +8,49 @@ This repo contains the spline library from [this project](https://github.com/ttk
 
 ![Alt text](/docs/software.png?raw=true "Each box corresponds to one source folder.")
 
-## Visualization Setup
+## Qolo Setup 
 
-The visualization depends on the game library SDL 2.0. To install it and set it up (on Ubuntu), use the following commands in a terminal.
 ```
-sudo apt install libsdl2-dev
-```
-
-## Demos for the Basic Library
-The demos use the visualization and therefore require to setup SDL as described above. To build and run the demos, run the following commands in a terminal.
-```
-cd [THIS_REPOSITORY_ROOT_FOLDER]/rds
-make
-./build/demo_geo
-./build/demo_simu 3 s
+mkdir -p catkin_ws_rds/src
+cd catkin_ws_rds/src
+git clone https://github.com/epfl-lasa/rds.git
+cd rds/rds
+make qolo_rds
+cd ../../..
+catkin build rds_ros
 ```
 
-## Install and run on ROS
-```
-sudo apt install ros-kinetic-velodyne-msgs ros-kinetic-velodyne-pointcloud
-cd [THIS_REPOSITORY_ROOT_FOLDER]/rds
-make demo_rds # this creates the necessary library files inside build/
-cd [YOUR_CATKIN_WORKSPACE]
-catkin build
-```
+To run the RDS node:
 
-To run the rds node
 ```
 rosrun rds_ros rds_ros_node
 ```
-rds_ros_node listens to the topic /laserscan (sensor_msgs/LaserScan).
 
-To run the gui node
+## GUI Setup
+
+There is a GUI for monitoring on a desktop computer how RDS processes sensor data and computes the new velocity command from the nominal command. It depends on the game library SDL 2.0, which the following command installs (on Ubuntu).
+```
+sudo apt install libsdl2-dev
+```
+Then, one can setup the GUI as follows.
+
+```
+mkdir -p catkin_ws_rds/src
+cd catkin_ws_rds/src
+git clone https://github.com/epfl-lasa/rds.git
+cd rds/rds
+make gui
+cd ../../..
+catkin build rds_gui_ros
+```
+
+To run the GUI node:
+
 ```
 rosrun rds_gui_ros rds_gui_ros_node
 ```
 
-## Holonomic mode
+## Holonomic mode (OUTDATED)
 
 The two ros nodes to use for holonomic robots are "rds_holonomic_ros_node" and "rds_holonomic_gui_ros_node".
 
@@ -57,7 +63,7 @@ https://github.com/epfl-lasa/rds/blob/master/docs/hexagon_limits.pdf
 
 In the holonomic case, the omega axis is interpreted as the x-axis, i.e. the lateral component of the velocity in m/s. One can set a rectangular limitation by setting all the omega limits to the same value. The acceleration limits will be interpreted similarly (angular=x, linear=y) and the command_cycle_time value is used to generate velocity limits out of the acceleration limits (setting a very high value effectively disables the acceleration limits).
 
-## Demos for the ROS nodes
+## Demos for the ROS nodes (OUTDATED)
 ```
 roscore
 rosbag play -l [THIS_REPOSITORY_ROOT_FOLDER]/data/ethz_lrf_snippet.bag /sick_laser_front/cropped_scan:=/laserscan

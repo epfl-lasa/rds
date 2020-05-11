@@ -152,7 +152,6 @@ add_dependencies(${PROJECT_NAME}_node rds_network_ros_generate_messages_cpp)
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_node
   ${CMAKE_CURRENT_SOURCE_DIR}/../rds/build/libgui.a
-  ${CMAKE_CURRENT_SOURCE_DIR}/../rds/build/lib_rds_4.a
   ${SDL2_LIBRARIES}
   ${catkin_LIBRARIES}
 )

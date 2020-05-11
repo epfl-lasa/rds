@@ -73,6 +73,7 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 		msg_to_gui.moving_objects.push_back(p_msg);
 	}
 
+	msg_to_gui.robot_shape.radius = robot_shape.radius();
 	msg_to_gui.robot_shape.center_a.x = robot_shape.center_a().x;
 	msg_to_gui.robot_shape.center_a.y = robot_shape.center_a().y;
 	msg_to_gui.robot_shape.center_b.x = robot_shape.center_b().x;
@@ -85,10 +86,10 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 
 RDSNode::RDSNode(ros::NodeHandle* n, AggregatorTwoLRF& agg)
 	: m_aggregator_two_lrf(agg)
-	, subscriber_lrf_front(n->subscribe<sensor_msgs::LaserScan>("front_lidar/laserscan", 1,
-		&AggregatorTwoLRF::callbackLRFFront, &m_aggregator_two_lrf))
-	, subscriber_lrf_rear(n->subscribe<sensor_msgs::LaserScan>("rear_lidar/laserscan", 1,
-		&AggregatorTwoLRF::callbackLRFRear, &m_aggregator_two_lrf))
+	, subscriber_lrf_front(n->subscribe<sensor_msgs::LaserScan>("front_lidar/laserscan"//"sick_laser_front/cropped_scan"//
+		, 1, &AggregatorTwoLRF::callbackLRFFront, &m_aggregator_two_lrf))
+	, subscriber_lrf_rear(n->subscribe<sensor_msgs::LaserScan>("rear_lidar/laserscan"//"sick_laser_rear/cropped_scan"//
+		, 1, &AggregatorTwoLRF::callbackLRFRear, &m_aggregator_two_lrf))
 	, publisher_for_gui(n->advertise<rds_network_ros::ToGui>("rds_to_gui", 1)) 
 	, command_correction_server(n->advertiseService("rds_velocity_command_correction",
 		&RDSNode::commandCorrectionService, this))
@@ -98,13 +99,14 @@ RDSNode::RDSNode(ros::NodeHandle* n, AggregatorTwoLRF& agg)
 
 int main(int argc, char** argv)
 {
+	ros::init(argc, argv, "rds_ros_node");
+
 	AggregatorTwoLRF aggregator_two_lrf(
 		3.f*M_PI/4.f,
 		0.05,
 		3.f*M_PI/4.f,
 		0.05);
 
-	ros::init(argc, argv, "rds_ros_node");
 	ros::NodeHandle n;
 	RDSNode rds_node(&n, aggregator_two_lrf);
 	return 0;
