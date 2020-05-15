@@ -31,10 +31,10 @@ build/basic_ex_standing_pedestrian: src/basic_ex_standing_pedestrian.cpp src/cro
 build/simple_rds_orca_simu: src/simple_rds_orca_simu.cpp src/crowd_trajectory.cpp src/crowd_trajectory.hpp build/libgui.a src/rds_orca_simulator.hpp src/rds_orca_simulator.cpp src/rds_4_agent.cpp src/rds_4_agent.hpp src/rds_4.cpp src/rds_4.hpp src/RVO.hpp src/RVO.cpp
 	g++ $(FLAGS) src/simple_rds_orca_simu.cpp src/crowd_trajectory.cpp src/rds_orca_simulator.cpp src/rds_4_agent.cpp src/rds_4.cpp src/RVO.cpp -Lbuild -lgui -lSDL2 -lRVO -lgeometry -o build/simple_rds_orca_simu
 
-build/demo_art_crowd_rds_orca_simu: src/demo_art_crowd_rds_orca_simu.cpp src/crowd_trajectory.cpp src/crowd_trajectory.hpp build/libgui.a src/rds_orca_simulator.hpp src/rds_orca_simulator.cpp src/rds_4_agent.cpp src/rds_4_agent.hpp src/rds_4.cpp src/rds_4.hpp src/RVO.hpp src/RVO.cpp
+build/demo_art_crowd_rds_orca_simu: src/demo_art_crowd_rds_orca_simu.cpp src/crowd_trajectory.cpp src/crowd_trajectory.hpp build/libgui.a src/rds_orca_simulator.hpp src/rds_orca_simulator.cpp src/rds_4_agent.cpp src/rds_4_agent.hpp src/rds_4.cpp src/rds_4.hpp src/RVO.hpp src/RVO.cpp build/libgeometry.a
 	g++ $(FLAGS) src/demo_art_crowd_rds_orca_simu.cpp src/crowd_trajectory.cpp src/rds_orca_simulator.cpp src/rds_4_agent.cpp src/rds_4.cpp src/RVO.cpp -Lbuild -lgui -lSDL2 -lRVO -lgeometry -o build/demo_art_crowd_rds_orca_simu
 
-build/demo_crowd_rds_orca_simu: src/demo_crowd_rds_orca_simu.cpp src/crowd_trajectory.cpp src/crowd_trajectory.hpp build/libgui.a src/rds_orca_simulator.hpp src/rds_orca_simulator.cpp src/rds_4_agent.cpp src/rds_4_agent.hpp src/rds_4.cpp src/rds_4.hpp src/RVO.hpp src/RVO.cpp
+build/demo_crowd_rds_orca_simu: src/demo_crowd_rds_orca_simu.cpp src/crowd_trajectory.cpp src/crowd_trajectory.hpp build/libgui.a src/rds_orca_simulator.hpp src/rds_orca_simulator.cpp src/rds_4_agent.cpp src/rds_4_agent.hpp src/rds_4.cpp src/rds_4.hpp src/RVO.hpp src/RVO.cpp build/libgeometry.a
 	g++ $(FLAGS) src/demo_crowd_rds_orca_simu.cpp src/crowd_trajectory.cpp src/rds_orca_simulator.cpp src/rds_4_agent.cpp src/rds_4.cpp src/RVO.cpp -Lbuild -lgui -lSDL2 -lRVO -lgeometry -o build/demo_crowd_rds_orca_simu
 
 build/demo_crowd_trajectory: src/demo_crowd_trajectory.cpp src/crowd_trajectory.cpp src/crowd_trajectory.hpp build/libgui.a

@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf2_ros
   tf2_eigen
   sensor_msgs
+  frame_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -148,7 +149,7 @@ add_executable(${PROJECT_NAME}_nominal_command_node src/nominal_command_node.cpp
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-add_dependencies(${PROJECT_NAME}_node rds_network_ros_generate_messages_cpp)
+add_dependencies(${PROJECT_NAME}_node rds_network_ros_generate_messages_cpp frame_msgs_generate_messages_cpp)
 add_dependencies(${PROJECT_NAME}_nominal_command_node rds_network_ros_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against

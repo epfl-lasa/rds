@@ -30,13 +30,13 @@ void RDSGUIROSNode::toGuiMessageCallback(const rds_network_ros::ToGui::ConstPtr&
 	for (auto& h_msg : msg.reference_point_velocity_constraints)
 		command_space_halfplanes.push_back(HalfPlane2(Vec2(h_msg.normal.x, h_msg.normal.y), h_msg.offset));
 
-	work_space_points.resize(0);
-	gui_work_space.points_colors.resize(0);
+	work_space_circles.resize(0);
+	gui_work_space.circles_colors.resize(0);
 
-	for (auto& p_msg : msg.moving_objects)
+	for (auto& c_msg : msg.moving_objects)
 	{
-		work_space_points.push_back(Vec2(p_msg.x, p_msg.y));
-		gui_work_space.points_colors.push_back(yellow);
+		work_space_circles.push_back(Circle(Vec2(c_msg.center.x, c_msg.center.y), c_msg.radius));
+		gui_work_space.circles_colors.push_back(yellow);
 	}
 
 	work_space_arrows.resize(0);
@@ -61,7 +61,7 @@ RDSGUIROSNode::RDSGUIROSNode(ros::NodeHandle* n)
 	gui_solver_space.points = &solver_space_points;
 	gui_solver_space.halfplanes = &solver_space_halfplanes;
 
-	gui_work_space.points = &work_space_points;
+	gui_work_space.circles = &work_space_circles;
 	gui_work_space.arrows = &work_space_arrows;
 	gui_work_space.capsules = &work_space_capsules;
 

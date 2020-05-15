@@ -7,12 +7,82 @@
 #include <rds_network_ros/ToGui.h>
 #include <rds_network_ros/HalfPlane2D.h>
 #include <rds_network_ros/Point2D.h>
+#include <rds_network_ros/Circle.h>
+
+#include <geometry_msgs/TransformStamped.h>
 
 #define _USE_MATH_DEFINES
 #include <cmath>
 
 using Geometry2D::Vec2;
 using Geometry2D::Capsule;
+using AdditionalPrimitives2D::Circle;
+
+bool not_debugging = false;
+
+void RDSNode::obtainTf(const std::string& frame_id_1, const std::string& frame_id_2, tf2::Transform* tf)
+{
+	geometry_msgs::TransformStamped transformStamped;
+	try
+	{
+		transformStamped = tf_buffer.lookupTransform(
+			frame_id_1, frame_id_2 //"sick_laser_front"//
+			, ros::Time::now());
+		/*ROS_INFO("Translation = [%f, %f, %f]",
+			transformStamped.transform.translation.x,
+			transformStamped.transform.translation.y,
+			transformStamped.transform.translation.z);*/
+	}
+	catch (tf2::TransformException &ex)
+	{
+		ROS_WARN("%s excpetion, when looking up tf from %s to %s", ex.what(), frame_id_1.c_str(), frame_id_2.c_str());
+		return;
+	}
+
+	tf2::Quaternion rotation(transformStamped.transform.rotation.x,
+		transformStamped.transform.rotation.y,
+		transformStamped.transform.rotation.z,
+		transformStamped.transform.rotation.w);
+
+	tf2::Vector3 translation(transformStamped.transform.translation.x,
+		transformStamped.transform.translation.y,
+		transformStamped.transform.translation.z);
+
+	*tf = tf2::Transform(rotation, translation);
+}
+
+void RDSNode::callbackTracker(const frame_msgs::TrackedPersons::ConstPtr& tracks_msg)
+{
+	//ROS_INFO("Tracking currently %i persons.", tracks_msg->tracks.size());
+	tf2::Transform tf;
+
+	obtainTf(tracks_msg->header.frame_id, "tf_qolo", &tf);
+
+
+	m_tracked_persons.resize(0);
+	tf2::Vector3 position_global, position_local, velocity_global, velocity_local;
+	for (const auto& track : tracks_msg->tracks)
+	{
+		position_global.setX(track.pose.pose.position.x);
+		position_global.setY(track.pose.pose.position.y);
+		position_global.setZ(track.pose.pose.position.z);
+
+		position_local = tf*position_global;
+		ROS_INFO("(%4.2f, %4.2f, %4.2f) vs. (%4.2f, %4.2f, %4.2f))",
+			position_global.getX(), position_global.getY(), position_global.getZ(),
+			position_local.getX(), position_local.getY(), position_local.getZ());
+
+		velocity_global.setX(track.twist.twist.linear.x);
+		velocity_global.setY(track.twist.twist.linear.y);
+		velocity_global.setZ(track.twist.twist.linear.z);
+
+		velocity_local = tf*velocity_global;
+
+		m_tracked_persons.push_back(MovingCircle(
+			Circle(Vec2(position_local.getX(), position_local.getY()), 0.3), //radius=0.3 (default)
+			Vec2(velocity_local.getX(), velocity_local.getY())));
+	}
+}
 
 bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectionRDS::Request& request,
 	rds_network_ros::VelocityCommandCorrectionRDS::Response& response)
@@ -26,6 +96,8 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 		moving_object.circle.center = m_aggregator_two_lrf.getPoint(i);
 		all_moving_objects.push_back(moving_object);
 	}
+	for (auto& pedestrian : m_tracked_persons)
+		all_moving_objects.push_back(pedestrian);
 
 	Geometry2D::RDS4 rds_4(1.5, 0.05, 1.2); //tau, delta, v_max
 
@@ -36,10 +108,13 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 	Vec2 v_nominal_p_ref(-p_ref.y*request.nominal_command.angular,
 		request.nominal_command.linear + p_ref.x*request.nominal_command.angular);
 
-	Vec2 v_corrected_p_ref;
+	Vec2 v_corrected_p_ref(0.5f, 1.f);
 
-	rds_4.computeCorrectedVelocity(robot_shape, p_ref,
-		v_nominal_p_ref, all_moving_objects, &v_corrected_p_ref);
+	if (not_debugging)
+	{
+		rds_4.computeCorrectedVelocity(robot_shape, p_ref,
+			v_nominal_p_ref, all_moving_objects, &v_corrected_p_ref);
+	}
 
 	response.corrected_command.linear = p_ref.x/p_ref.y*v_corrected_p_ref.x + v_corrected_p_ref.y;
 	response.corrected_command.angular = -1.0/p_ref.y*v_corrected_p_ref.x;
@@ -65,12 +140,13 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 		msg_to_gui.reference_point_velocity_constraints.push_back(h_msg);
 	}
 
-	rds_network_ros::Point2D p_msg;
+	rds_network_ros::Circle c_msg;
 	for (auto & mo : all_moving_objects)
 	{
-		p_msg.x = mo.circle.center.x;
-		p_msg.y = mo.circle.center.y;
-		msg_to_gui.moving_objects.push_back(p_msg);
+		c_msg.center.x = mo.circle.center.x;
+		c_msg.center.y = mo.circle.center.y;
+		c_msg.radius = mo.circle.radius;
+		msg_to_gui.moving_objects.push_back(c_msg);
 	}
 
 	msg_to_gui.robot_shape.radius = robot_shape.radius();
@@ -86,13 +162,16 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 
 RDSNode::RDSNode(ros::NodeHandle* n, AggregatorTwoLRF& agg)
 	: m_aggregator_two_lrf(agg)
-	, subscriber_lrf_front(n->subscribe<sensor_msgs::LaserScan>("front_lidar/laserscan"//"sick_laser_front/cropped_scan"//
+	, subscriber_lrf_front(n->subscribe<sensor_msgs::LaserScan>("front_lidar/scan"//"sick_laser_front/cropped_scan"//
 		, 1, &AggregatorTwoLRF::callbackLRFFront, &m_aggregator_two_lrf))
-	, subscriber_lrf_rear(n->subscribe<sensor_msgs::LaserScan>("rear_lidar/laserscan"//"sick_laser_rear/cropped_scan"//
+	, subscriber_lrf_rear(n->subscribe<sensor_msgs::LaserScan>("rear_lidar/scan"//"sick_laser_rear/cropped_scan"//
 		, 1, &AggregatorTwoLRF::callbackLRFRear, &m_aggregator_two_lrf))
+	, subscriber_tracker(n->subscribe<frame_msgs::TrackedPersons>("rwth_tracker/tracked_persons"
+		, 1, &RDSNode::callbackTracker, this) )
 	, publisher_for_gui(n->advertise<rds_network_ros::ToGui>("rds_to_gui", 1)) 
 	, command_correction_server(n->advertiseService("rds_velocity_command_correction",
 		&RDSNode::commandCorrectionService, this))
+	, tf_listener(tf_buffer)
 {
 	ros::spin();
 }

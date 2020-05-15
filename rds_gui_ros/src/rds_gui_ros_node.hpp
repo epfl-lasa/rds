@@ -25,7 +25,8 @@ struct RDSGUIROSNode
 	std::vector<Geometry2D::Vec2> solver_space_points;
 	std::vector<Geometry2D::HalfPlane2> solver_space_halfplanes;
 
-	std::vector<Geometry2D::Vec2> work_space_points;
+	//std::vector<Geometry2D::Vec2> work_space_points;
+	std::vector<AdditionalPrimitives2D::Circle> work_space_circles;
 	std::vector<AdditionalPrimitives2D::Arrow> work_space_arrows;
 	std::vector<Geometry2D::Capsule> work_space_capsules;
 
