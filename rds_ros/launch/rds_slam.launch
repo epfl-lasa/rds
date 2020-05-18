@@ -1,0 +1,8 @@
+<launch>
+  
+  <include file="$(find rds_ros)/launch/front_lrf_new_driver.launch"/>
+  <node name="rds_ros" pkg="rds_ros" type="rds_ros_node" />
+
+  <include file="$(find hector_mapping)/launch/mapping_qolo.launch"/>
+
+</launch>
