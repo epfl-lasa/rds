@@ -18,7 +18,7 @@ using Geometry2D::Vec2;
 using Geometry2D::Capsule;
 using AdditionalPrimitives2D::Circle;
 
-bool not_debugging = false;
+//bool not_debugging = false;
 
 void RDSNode::obtainTf(const std::string& frame_id_1, const std::string& frame_id_2, tf2::Transform* tf)
 {
@@ -56,7 +56,7 @@ void RDSNode::callbackTracker(const frame_msgs::TrackedPersons::ConstPtr& tracks
 	//ROS_INFO("Tracking currently %i persons.", tracks_msg->tracks.size());
 	tf2::Transform tf;
 
-	obtainTf(tracks_msg->header.frame_id, "tf_qolo", &tf);
+	obtainTf("tf_rds", tracks_msg->header.frame_id, &tf);
 
 
 	m_tracked_persons.resize(0);
@@ -87,6 +87,7 @@ void RDSNode::callbackTracker(const frame_msgs::TrackedPersons::ConstPtr& tracks
 bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectionRDS::Request& request,
 	rds_network_ros::VelocityCommandCorrectionRDS::Response& response)
 {
+        //ROS_INFO("Some one has called the RDS COMMAND CORRECTION SERVICE");
 	MovingCircle moving_object;
 	moving_object.velocity = Vec2(0.0, 0.0);
 	moving_object.circle.radius = 0.0;
@@ -99,7 +100,8 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 	for (auto& pedestrian : m_tracked_persons)
 		all_moving_objects.push_back(pedestrian);
 
-	Geometry2D::RDS4 rds_4(1.5, 0.05, 1.2); //tau, delta, v_max
+	float delta = 0.05;
+	Geometry2D::RDS4 rds_4(1.5, delta, 1.2); //tau, delta, v_max
 
 	Capsule robot_shape(0.45, Vec2(0.0, 0.05), Vec2(0.0, -0.5));
 
@@ -108,13 +110,9 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 	Vec2 v_nominal_p_ref(-p_ref.y*request.nominal_command.angular,
 		request.nominal_command.linear + p_ref.x*request.nominal_command.angular);
 
-	Vec2 v_corrected_p_ref(0.5f, 1.f);
-
-	if (not_debugging)
-	{
-		rds_4.computeCorrectedVelocity(robot_shape, p_ref,
-			v_nominal_p_ref, all_moving_objects, &v_corrected_p_ref);
-	}
+	Vec2 v_corrected_p_ref(0.f, 0.f);
+	rds_4.computeCorrectedVelocity(robot_shape, p_ref,
+		v_nominal_p_ref, all_moving_objects, &v_corrected_p_ref);
 
 	response.corrected_command.linear = p_ref.x/p_ref.y*v_corrected_p_ref.x + v_corrected_p_ref.y;
 	response.corrected_command.angular = -1.0/p_ref.y*v_corrected_p_ref.x;
@@ -145,7 +143,7 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 	{
 		c_msg.center.x = mo.circle.center.x;
 		c_msg.center.y = mo.circle.center.y;
-		c_msg.radius = mo.circle.radius;
+		c_msg.radius = mo.circle.radius + delta;
 		msg_to_gui.moving_objects.push_back(c_msg);
 	}
 

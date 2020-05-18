@@ -42,7 +42,7 @@ void AggregatorTwoLRF::getPointsFromLRF(const sensor_msgs::LaserScan::ConstPtr& 
 	try
 	{
 		transformStamped = tf_buffer.lookupTransform(
-			lrf_msg->header.frame_id, "tf_qolo" //"sick_laser_front"//
+			 "tf_rds", lrf_msg->header.frame_id //"sick_laser_front"//
 			, ros::Time::now());
 		/*ROS_INFO("Translation = [%f, %f, %f]",
 			transformStamped.transform.translation.x,
