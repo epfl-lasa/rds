@@ -57,7 +57,7 @@ void RDSNode::callbackTracker(const frame_msgs::TrackedPersons::ConstPtr& tracks
 	tf2::Transform tf;
 
 	obtainTf("tf_rds", tracks_msg->header.frame_id, &tf);
-
+	tf2::Transform tf_only_rotation(tf.getRotation());
 
 	m_tracked_persons.resize(0);
 	tf2::Vector3 position_global, position_local, velocity_global, velocity_local;
@@ -76,7 +76,7 @@ void RDSNode::callbackTracker(const frame_msgs::TrackedPersons::ConstPtr& tracks
 		velocity_global.setY(track.twist.twist.linear.y);
 		velocity_global.setZ(track.twist.twist.linear.z);
 
-		velocity_local = tf*velocity_global;
+		velocity_local = tf_only_rotation*velocity_global;
 
 		m_tracked_persons.push_back(MovingCircle(
 			Circle(Vec2(position_local.getX(), position_local.getY()), 0.3), //radius=0.3 (default)
