@@ -26,14 +26,6 @@ TEST_NO=0
 #     &> /dev/null &"
 # PID_LIST+="$! "
 
-# #eval "rosbag record -q \
-# #    -O ${LOG_FOLDER}/camera \
-# #    -e '/camera_front/(.*)' \
-# #    &> /dev/null &"
-# PID_LIST+="$! "
-
-# sleep 5
-
 #----- Launch Rear Lidar  -----
 echo "Launching Velodyne Frontal LIDAR..."
 eval ". devel/setup.bash"
@@ -45,6 +37,14 @@ PID_LIST+="$! "
 
 #eval "rosrun tf static_transform_publisher 0 0 0 0 0 0 1 /tf_qolo camera_front_color_optical_frame 10"
 sleep 5
+
+# #eval "rosbag record -q \
+# #    -O ${LOG_FOLDER}/camera \
+# #    -e '/camera_front/(.*)' \
+# #    &> /dev/null &"
+# PID_LIST+="$! "
+
+# sleep 5
 
 # Wait till all pids to be finished or killed
 echo "All PIDs : ${PID_LIST}"

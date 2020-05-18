@@ -1,5 +1,5 @@
 import rospy
-from rds_network_ros.srv import * #VelocityCommandCorrectionRDS
+# from rds_network_ros.srv import * #VelocityCommandCorrectionRDS
 import tf
 from std_msgs.msg import Float32MultiArray
 import numpy as np
@@ -48,7 +48,7 @@ trajectory_xyt = np.array([
 trajectory_spline = create_spline_curve(trajectory_xyt)
 trajectory_spline_derivative = [trajectory_spline[0].derivative(), trajectory_spline[1].derivative()]
 
-plot_spline_curve(trajectory_spline, np.arange(-5.0, 25.0, 0.15), trajectory_xyt)
+# plot_spline_curve(trajectory_spline, np.arange(-5.0, 25.0, 0.15), trajectory_xyt)
 
 tf_listener = None
 command_publisher = None
@@ -114,27 +114,31 @@ def publish_command(command_linear, command_angular, t):
       command_angular])
    command_publisher.publish(msg)
 
-def rds_service(t):
+# def rds_service(t):
+#    # print "Waiting for RDS Service"
+
+#    rospy.wait_for_service('rds_velocity_command_correction')
+#    # try:
+#    RDS = rospy.ServiceProxy('rds_velocity_command_correction',
+#       VelocityCommandCorrectionRDS)
+
+#    request = VelocityCommandCorrectionRDSRequest()
+
+#    (Trajectory_V, Trajectory_W) = feedforward_feedback_controller(t)
+
+#    request.nominal_command.linear = Trajectory_V;
+#    request.nominal_command.angular = Trajectory_W;
+
+#    response = RDS(request)
+#    Output_V = round(response.corrected_command.linear, 4)
+#    Output_W = round(response.corrected_command.angular, 4)
+
+#    publish_command(Output_V, Output_W, t)
+
+def trajectory_service(t):
    # print "Waiting for RDS Service"
-
-   rospy.wait_for_service('rds_velocity_command_correction')
-   # try:
-   RDS = rospy.ServiceProxy('rds_velocity_command_correction',
-      VelocityCommandCorrectionRDS)
-
-   request = VelocityCommandCorrectionRDSRequest()
-
    (Trajectory_V, Trajectory_W) = feedforward_feedback_controller(t)
-
-   request.nominal_command.linear = Trajectory_V;
-   request.nominal_command.angular = Trajectory_W;
-
-   response = RDS(request)
-   Output_V = round(response.corrected_command.linear, 4)
-   Output_W = round(response.corrected_command.angular, 4)
-
-   publish_command(Output_V, Output_W, t)
-
+   publish_command(Trajectory_V, Trajectory_W, t)
 
 def main():
    global tf_listener
@@ -146,7 +150,7 @@ def main():
 
    start_time = time.time()
    while not rospy.is_shutdown():
-      rds_service(time.time() - start_time)
+      trajectory_service(time.time() - start_time)
 
 if __name__ == '__main__':
    main()

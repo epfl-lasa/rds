@@ -1,7 +1,7 @@
 <launch>
   
   <include file="$(find rds_ros)/launch/front_lrf_new_driver.launch"/>
-  <node name="rds_ros" pkg="rds_ros" type="rds_ros_node"/>
+  <node name="rds_ros" pkg="rds_ros" type="rds_ros_node" launch-prefix="xterm -e gdb --args"/>
 
   <include file="$(find hector_mapping)/launch/mapping_qolo.launch"/>
 
