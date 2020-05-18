@@ -37,6 +37,9 @@ sleep 5
 #----- Launch Rear Lidar  -----
 echo "Launching Velodyne Frontal LIDAR..."
 eval "roslaunch rds_ros rds_front_lrf.launch"
+# eval ". /home/qolo/hasler_ws/devel/setup.bash"
+# echo "Launching SLAM..."
+# eval "roslaunch hector_mapping mapping_qolo.launch"
 PID_LIST+="$! "
 
 #eval "rosrun tf static_transform_publisher 0 0 0 0 0 0 1 /tf_qolo camera_front_color_optical_frame 10"

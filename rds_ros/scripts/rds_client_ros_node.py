@@ -38,33 +38,34 @@ def rds_service():
    request.nominal_command.linear = User_V;
    request.nominal_command.angular = User_W;
 
-   request.velocity_limits.max_linear = max_linear;
-   request.velocity_limits.min_linear = min_linear;
-   request.velocity_limits.abs_angular_at_min_linear = absolute_angular_at_min_linear;
-   request.velocity_limits.abs_angular_at_max_linear = absolute_angular_at_max_linear;
-   request.velocity_limits.abs_angular_at_zero_linear = absolute_angular_at_zero_linear;
-   request.abs_linear_acceleration_limit = linear_acceleration_limit;
-   request.abs_angular_acceleration_limit = angular_acceleration_limit;
+   # request.velocity_limits.max_linear = max_linear;
+   # request.velocity_limits.min_linear = min_linear;
+   # request.velocity_limits.abs_angular_at_min_linear = absolute_angular_at_min_linear;
+   # request.velocity_limits.abs_angular_at_max_linear = absolute_angular_at_max_linear;
+   # request.velocity_limits.abs_angular_at_zero_linear = absolute_angular_at_zero_linear;
+   # request.abs_linear_acceleration_limit = linear_acceleration_limit;
+   # request.abs_angular_acceleration_limit = angular_acceleration_limit;
 
-   request.y_coordinate_of_reference_point_for_command_limits = y_coordinate_of_reference_point_for_command_limits;
-   request.weight_scaling_of_reference_point_for_command_limits = weight_scaling_of_reference_point_for_command_limits;
-   request.clearance_from_axle_of_final_reference_point = clearance_from_axle_of_final_reference_point;
-   request.delta = delta;
-   request.tau = tau;
-   request.y_coordinate_of_reference_biasing_point = 1.;
-   request.weight_of_reference_biasing_point = 0.;
+   # request.y_coordinate_of_reference_point_for_command_limits = y_coordinate_of_reference_point_for_command_limits;
+   # request.weight_scaling_of_reference_point_for_command_limits = weight_scaling_of_reference_point_for_command_limits;
+   # request.clearance_from_axle_of_final_reference_point = clearance_from_axle_of_final_reference_point;
+   # request.delta = delta;
+   # request.tau = tau;
+   # request.y_coordinate_of_reference_biasing_point = 1.;
+   # request.weight_of_reference_biasing_point = 0.;
 
-   request.last_actual_command.linear = last_v;
-   request.last_actual_command.angular = last_w;
+   # request.last_actual_command.linear = last_v;
+   # request.last_actual_command.angular = last_w;
 
    if cycle==0:
        delta_time = 0.005;
    else:
        delta_time = time.clock() - cycle;
 
-   request.command_cycle_time = delta_time
+   # request.command_cycle_time = delta_time
 
    response = RDS(request)
+   
    Output_V = round(response.corrected_command.linear,4)
    Output_W = round(response.corrected_command.angular,4)
    feasible = response.feasible

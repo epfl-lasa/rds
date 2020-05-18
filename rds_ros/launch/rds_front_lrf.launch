@@ -2,13 +2,4 @@
   <include file="$(find rds_ros)/launch/front_lrf.launch"/>
   <node name="rds_ros" pkg="rds_ros" type="rds_ros_node" />
 
-  <node pkg="tf" type="static_transform_publisher" name="front_lidar" 
-  		args="0.03 0 0.465 0 0 0 tf_qolo tf_front_lidar 50" />
-
-  <node pkg="tf" type="static_transform_publisher" name="front_camera" 
-  		args="0.13 0 0.405 0 0 0 tf_qolo camera_front_color_optical_frame 100" />
-
-  <node pkg="tf" type="static_transform_publisher" name="velodyne" 
-  		args="0.03 0 0.465 0 0 0 tf_qolo velodyne 50" />
-
 </launch>
