@@ -1,12 +1,40 @@
+#! /usr/bin/env python
+#########  ROS version of Trajectory Tracking with safety ##########
+##### Author: Diego F. Paez G. & David Gonon
+##### Preliminar version: David Gonon
+##### Data: 2020/05/18
+
+import time
+import math
 import rospy
 # from rds_network_ros.srv import * #VelocityCommandCorrectionRDS
 import tf
 from std_msgs.msg import Float32MultiArray
+from std_msgs.msg import MultiArrayLayout, MultiArrayDimension 
 import numpy as np
 from scipy.interpolate import UnivariateSpline
 import matplotlib.pyplot as plt
+ 
+trajectory_xyt = np.array([
+   [ 0.0, 0.0,  0.0], # accelerating
+   [ 1.0, 0.0,  5.0],
+   [ 2.0, 0.0, 10.0] # decelerating
+   ])
+# trajectory_xyt = np.array([
+#    [ 0.0, 0.0,  0.0], # accelerating
+#    [ 0.0, 1.0,  4.0],
+#    [ 1.0, 5.0, 10.0],
+#    [ 5.0, 6.0, 16.0],
+#    [ 6.0, 6.0, 20.0] # decelerating
+#    ])
+# plot_spline_curve(trajectory_spline, np.arange(-5.0, 25.0, 0.15), trajectory_xyt)
 
-import time
+tf_listener = None
+command_publisher = None
+t_lost_tf = -1.0
+previous_command_linear = None
+previous_command_angular = None
+data_remote = Float32MultiArray()
 
 def create_spline_curve(XYT):
    return [
@@ -37,28 +65,13 @@ def plot_spline_curve(spline_curve, time_vector, data_xyt):
    axs[1].set(xlabel='t', ylabel='y')
    plt.show()
 
-trajectory_xyt = np.array([
-   [ 0.0, 0.0,  0.0], # accelerating
-   [ 0.0, 1.0,  4.0],
-   [ 1.0, 5.0, 10.0],
-   [ 5.0, 6.0, 16.0],
-   [ 6.0, 6.0, 20.0] # decelerating
-   ])
 
 trajectory_spline = create_spline_curve(trajectory_xyt)
 trajectory_spline_derivative = [trajectory_spline[0].derivative(), trajectory_spline[1].derivative()]
 
-# plot_spline_curve(trajectory_spline, np.arange(-5.0, 25.0, 0.15), trajectory_xyt)
-
-tf_listener = None
-command_publisher = None
-t_lost_tf = -1.0
-previous_command_linear = None
-previous_command_angular = None
-
 def get_pose():
    global tf_listener
-   (trans, rot) = tf_listener.lookupTransform('/tf_qolo', '/tf_qolo_world', rospy.Time(0))
+   (trans, rot) = tf_listener.lookupTransform('/tf_rds', '/tf_qolo_world', rospy.Time(0))
    rpy = tf.transformations.euler_from_quaternion(rot)
    return (trans[0], trans[1], rpy[2])
 
@@ -107,12 +120,16 @@ def feedforward_feedback_controller(t):
          decay_factor*previous_command_angular)
 
 def publish_command(command_linear, command_angular, t):
-   msg = Float32MultiArray()
-   msg.data = np.array([
-      rospy.get_rostime(),
-      command_linear,
-      command_angular])
-   command_publisher.publish(msg)
+   global data_remote, command_publisher
+   
+   Ctime = round(time.clock(),4)
+   data_remote.data = [Ctime,command_linear,command_angular]
+   # msg.data = np.array([
+   #    rospy.get_rostime(),
+   #    command_linear,
+   #    command_angular])
+   command_publisher.publish(data_remote)
+   rospy.loginfo(data_remote)
 
 # def rds_service(t):
 #    # print "Waiting for RDS Service"
@@ -137,16 +154,24 @@ def publish_command(command_linear, command_angular, t):
 
 def trajectory_service(t):
    # print "Waiting for RDS Service"
-   (Trajectory_V, Trajectory_W) = feedforward_feedback_controller(t)
-   publish_command(Trajectory_V, Trajectory_W, t)
+   try:
+      (Trajectory_V, Trajectory_W) = feedforward_feedback_controller(t)
+      publish_command(Trajectory_V, Trajectory_W, t)
+   except:
+        publish_command(0., 0., 0.)
+        print ('Trajectory Error Stopping [0 0]')
+
 
 def main():
-   global tf_listener
-   global command_publisher
-   rospy.init_node('rds_client_ros_node')
+   global tf_listener, command_publisher, data_remote
+   rospy.init_node('qolo_trajectory_tracking')
    tf_listener = tf.TransformListener()
-   command_publisher = rospy.Publisher('qolo/remote_commands',
-      Float32MultiArray, queue_size=1)
+   command_publisher = rospy.Publisher('qolo/remote_commands',Float32MultiArray, queue_size=1)
+
+   data_remote.layout.dim.append(MultiArrayDimension())
+   data_remote.layout.dim[0].label = 'Trajectory Commands [V, W]'
+   data_remote.layout.dim[0].size = 3
+   data_remote.data = [0]*3
 
    start_time = time.time()
    while not rospy.is_shutdown():
