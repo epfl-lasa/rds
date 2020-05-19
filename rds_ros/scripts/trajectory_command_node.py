@@ -98,12 +98,13 @@ def feedforward_feedback_controller(t):
       position_setpoint = np.array([[trajectory_spline[0](t)],
          [trajectory_spline[1](t)]])
       feedback_velocity = 0.25*(position_setpoint - p_ref_global)
-      v_command_p_ref = feedforward_velocity + feedback_velocity
+      v_command_p_ref_global = feedforward_velocity + feedback_velocity
+      v_command_p_ref_local = np.matmul(np.transpose(R), v_command_p_ref_global)
 
       J_p_ref_inv = np.array([
          [p_ref_local[0,0]/p_ref_local[1,0], 1.0],
          [-1.0/p_ref_local[1,0], 0.0]])
-      command_linear_angular = np.matmul(J_p_ref_inv, v_command_p_ref)
+      command_linear_angular = np.matmul(J_p_ref_inv, v_command_p_ref_local)
       command_linear = command_linear_angular[0]
       command_angular = command_linear_angular[1]
       previous_command_linear = command_linear
