@@ -27,7 +27,7 @@ struct RDSNode
 
 	void callbackTracker(const frame_msgs::TrackedPersons::ConstPtr& tracks_msg);
 
-	void obtainTf(const std::string& frame_id_1, const std::string& frame_id_2, tf2::Transform* tf);
+	int obtainTf(const std::string& frame_id_1, const std::string& frame_id_2, tf2::Transform* tf);
 
 	AggregatorTwoLRF& m_aggregator_two_lrf;
 	ros::Subscriber subscriber_lrf_front;

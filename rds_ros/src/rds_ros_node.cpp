@@ -20,7 +20,7 @@ using AdditionalPrimitives2D::Circle;
 
 //bool not_debugging = false;
 
-void RDSNode::obtainTf(const std::string& frame_id_1, const std::string& frame_id_2, tf2::Transform* tf)
+int RDSNode::obtainTf(const std::string& frame_id_1, const std::string& frame_id_2, tf2::Transform* tf)
 {
 	geometry_msgs::TransformStamped transformStamped;
 	try
@@ -28,15 +28,15 @@ void RDSNode::obtainTf(const std::string& frame_id_1, const std::string& frame_i
 		transformStamped = tf_buffer.lookupTransform(
 			frame_id_1, frame_id_2 //"sick_laser_front"//
 			, ros::Time::now());
-		/*ROS_INFO("Translation = [%f, %f, %f]",
+		ROS_INFO("Obtain Translation = [%f, %f, %f]",
 			transformStamped.transform.translation.x,
 			transformStamped.transform.translation.y,
-			transformStamped.transform.translation.z);*/
+			transformStamped.transform.translation.z);
 	}
 	catch (tf2::TransformException &ex)
 	{
 		ROS_WARN("%s excpetion, when looking up tf from %s to %s", ex.what(), frame_id_1.c_str(), frame_id_2.c_str());
-		return;
+		return 1;
 	}
 
 	tf2::Quaternion rotation(transformStamped.transform.rotation.x,
@@ -49,6 +49,7 @@ void RDSNode::obtainTf(const std::string& frame_id_1, const std::string& frame_i
 		transformStamped.transform.translation.z);
 
 	*tf = tf2::Transform(rotation, translation);
+	return 0;
 }
 
 void RDSNode::callbackTracker(const frame_msgs::TrackedPersons::ConstPtr& tracks_msg)
@@ -56,7 +57,9 @@ void RDSNode::callbackTracker(const frame_msgs::TrackedPersons::ConstPtr& tracks
 	//ROS_INFO("Tracking currently %i persons.", tracks_msg->tracks.size());
 	tf2::Transform tf;
 
-	obtainTf("tf_rds", tracks_msg->header.frame_id, &tf);
+	int error_tf_lookup = obtainTf("tf_rds", tracks_msg->header.frame_id, &tf);
+	if (error_tf_lookup)
+		return;
 	tf2::Transform tf_only_rotation(tf.getRotation());
 
 	m_tracked_persons.resize(0);
@@ -68,7 +71,11 @@ void RDSNode::callbackTracker(const frame_msgs::TrackedPersons::ConstPtr& tracks
 		position_global.setZ(track.pose.pose.position.z);
 
 		position_local = tf*position_global;
-		ROS_INFO("(%4.2f, %4.2f, %4.2f) vs. (%4.2f, %4.2f, %4.2f))",
+		ROS_INFO("TF-translation: (%4.2f, %4.2f, %4.2f)", 
+			tf.getRotation().getX(), tf.getRotation().getY(),tf.getRotation().getZ());
+		ROS_INFO("TF-rotation: (%4.2f, %4.2f, %4.2f, %4.2f)", 
+			tf.getRotation().getX(), tf.getRotation().getY(),tf.getRotation().getZ(),tf.getRotation().getW());
+		ROS_INFO("V original: (%4.2f, %4.2f, %4.2f) vs. V transf.:(%4.2f, %4.2f, %4.2f))",
 			position_global.getX(), position_global.getY(), position_global.getZ(),
 			position_local.getX(), position_local.getY(), position_local.getZ());
 
@@ -111,8 +118,8 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 		request.nominal_command.linear + p_ref.x*request.nominal_command.angular);
 
 	Vec2 v_corrected_p_ref(0.f, 0.f);
-	rds_4.computeCorrectedVelocity(robot_shape, p_ref,
-		v_nominal_p_ref, all_moving_objects, &v_corrected_p_ref);
+	//rds_4.computeCorrectedVelocity(robot_shape, p_ref,
+	//	v_nominal_p_ref, all_moving_objects, &v_corrected_p_ref);
 
 	response.corrected_command.linear = p_ref.x/p_ref.y*v_corrected_p_ref.x + v_corrected_p_ref.y;
 	response.corrected_command.angular = -1.0/p_ref.y*v_corrected_p_ref.x;

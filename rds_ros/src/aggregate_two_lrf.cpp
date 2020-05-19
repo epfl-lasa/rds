@@ -51,7 +51,7 @@ void AggregatorTwoLRF::getPointsFromLRF(const sensor_msgs::LaserScan::ConstPtr& 
 	}
 	catch (tf2::TransformException &ex)
 	{
-		ROS_WARN("%s excpetion, when looking up tf from %s to tf_qolo", ex.what(), lrf_msg->header.frame_id);
+		ROS_WARN("%s excpetion, when looking up tf from %s to tf_rds", ex.what(), lrf_msg->header.frame_id);
 		return;
 	}
 
