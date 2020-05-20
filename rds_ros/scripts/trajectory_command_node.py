@@ -16,9 +16,9 @@ from scipy.interpolate import UnivariateSpline
 #import matplotlib.pyplot as plt
  
 trajectory_xyt = np.array([
-   [ 0.0, 0.0,  0.0], # accelerating
-   [ 1.0, 0.0,  5.0],
-   [ 2.0, 0.0, 10.0] # decelerating
+   [ 0.3, 0.0,  0.0], # accelerating
+   [ 1.3, 0.0,  5.0],
+   [ 2.3, 0.0, 10.0] # decelerating
    ])
 # trajectory_xyt = np.array([
 #    [ 0.0, 0.0,  0.0], # accelerating
@@ -102,7 +102,7 @@ def feedforward_feedback_controller(t):
       feedback_velocity = 0.25*(position_setpoint - p_ref_global)
       v_norm_max = 1.2
       v_norm_actual = np.linalg.norm(feedback_velocity)
-      if (v_norm_actual > v_max):
+      if (v_norm_actual > v_norm_max):
          feedback_velocity = feedback_velocity/v_norm_actual*v_norm_max
 
       v_command_p_ref_global = feedforward_velocity + feedback_velocity
@@ -164,12 +164,12 @@ def publish_command(command_linear, command_angular, t):
 
 def trajectory_service(t):
    # print "Waiting for RDS Service"
-   try:
-      (Trajectory_V, Trajectory_W) = feedforward_feedback_controller(t)
-      publish_command(Trajectory_V, Trajectory_W, t)
-   except:
-        publish_command(0., 0., 0.)
-        print ('Trajectory Error Stopping [0 0]')
+   # try:
+   (Trajectory_V, Trajectory_W) = feedforward_feedback_controller(t)
+   publish_command(Trajectory_V, Trajectory_W, t)
+   # except:
+        # publish_command(0., 0., 0.)
+        # print ('Trajectory Error Stopping [0 0]')
 
 
 def main():
