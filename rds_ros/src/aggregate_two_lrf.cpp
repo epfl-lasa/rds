@@ -33,21 +33,15 @@ float angle_difference(float alpha, float beta)
 }
 
 void AggregatorTwoLRF::getPointsFromLRF(const sensor_msgs::LaserScan::ConstPtr& lrf_msg,
-	float angle_cutoff, float range_cutoff_lower,
+	float angle_cutoff, float range_cutoff_lower, float range_cutoff_upper,
 	std::vector<Geometry2D::Vec2>* result_points)
 {
-	//ROS_INFO("ros::Time::now() gives %f", ros::Time::now());
-	//return;
 	geometry_msgs::TransformStamped transformStamped;
 	try
 	{
 		transformStamped = tf_buffer.lookupTransform(
 			 "tf_rds", lrf_msg->header.frame_id //"sick_laser_front"//
 			, ros::Time::now());
-		/*ROS_INFO("Translation = [%f, %f, %f]",
-			transformStamped.transform.translation.x,
-			transformStamped.transform.translation.y,
-			transformStamped.transform.translation.z);*/
 	}
 	catch (tf2::TransformException &ex)
 	{
@@ -74,6 +68,10 @@ void AggregatorTwoLRF::getPointsFromLRF(const sensor_msgs::LaserScan::ConstPtr& 
 			continue;
 		if (range_cutoff_lower > lrf_msg->ranges[i])
 			continue;
+		if (range_cutoff_upper < lrf_msg->ranges[i])
+			continue;
+		if (lrf_msg->ranges[i] != lrf_msg->ranges[i]) //true for nan
+			continue;
 
 		tf2::Vector3 position_lrf_frame(lrf_msg->ranges[i]*std::cos(phi), lrf_msg->ranges[i]*std::sin(phi), 0.0);
 		tf2::Vector3 position_axle_frame = transform.operator*(position_lrf_frame);
@@ -82,23 +80,25 @@ void AggregatorTwoLRF::getPointsFromLRF(const sensor_msgs::LaserScan::ConstPtr& 
 	}
 }
 
-AggregatorTwoLRF::AggregatorTwoLRF(float angle_cutoff_lrf_front, float range_cutoff_lower_lrf_front,
-	float angle_cutoff_lrf_rear, float range_cutoff_lower_lrf_rear)
+AggregatorTwoLRF::AggregatorTwoLRF(float angle_cutoff_lrf_front, float range_cutoff_lower_lrf_front , float range_cutoff_upper_lrf_front,
+	float angle_cutoff_lrf_rear, float range_cutoff_lower_lrf_rear, float range_cutoff_upper_lrf_rear)
 	: angle_cutoff_lrf_front(angle_cutoff_lrf_front)
 	, range_cutoff_lower_lrf_front(range_cutoff_lower_lrf_front)
+	, range_cutoff_upper_lrf_front(range_cutoff_upper_lrf_front)
 	, angle_cutoff_lrf_rear(angle_cutoff_lrf_rear)
 	, range_cutoff_lower_lrf_rear(range_cutoff_lower_lrf_rear)
+	, range_cutoff_upper_lrf_rear(range_cutoff_upper_lrf_rear)
 	, tf_listener(tf_buffer)
 { }
 
 void AggregatorTwoLRF::callbackLRFFront(const sensor_msgs::LaserScan::ConstPtr& lrf_msg)
 {
 	getPointsFromLRF(lrf_msg, angle_cutoff_lrf_front, range_cutoff_lower_lrf_front,
-		&points_front);
+		range_cutoff_upper_lrf_front, &points_front);
 }
 
 void AggregatorTwoLRF::callbackLRFRear(const sensor_msgs::LaserScan::ConstPtr& lrf_msg)
 {
 	getPointsFromLRF(lrf_msg, angle_cutoff_lrf_rear, range_cutoff_lower_lrf_rear,
-		&points_rear);
+		range_cutoff_upper_lrf_rear, &points_rear);
 }

@@ -18,8 +18,6 @@ using Geometry2D::Vec2;
 using Geometry2D::Capsule;
 using AdditionalPrimitives2D::Circle;
 
-//bool not_debugging = false;
-
 int RDSNode::obtainTf(const std::string& frame_id_1, const std::string& frame_id_2, tf2::Transform* tf)
 {
 	geometry_msgs::TransformStamped transformStamped;
@@ -28,10 +26,6 @@ int RDSNode::obtainTf(const std::string& frame_id_1, const std::string& frame_id
 		transformStamped = tf_buffer.lookupTransform(
 			frame_id_1, frame_id_2 //"sick_laser_front"//
 			, ros::Time::now());
-		ROS_INFO("Obtain Translation = [%f, %f, %f]",
-			transformStamped.transform.translation.x,
-			transformStamped.transform.translation.y,
-			transformStamped.transform.translation.z);
 	}
 	catch (tf2::TransformException &ex)
 	{
@@ -54,7 +48,6 @@ int RDSNode::obtainTf(const std::string& frame_id_1, const std::string& frame_id
 
 void RDSNode::callbackTracker(const frame_msgs::TrackedPersons::ConstPtr& tracks_msg)
 {
-	//ROS_INFO("Tracking currently %i persons.", tracks_msg->tracks.size());
 	tf2::Transform tf;
 
 	int error_tf_lookup = obtainTf("tf_rds", tracks_msg->header.frame_id, &tf);
@@ -71,13 +64,6 @@ void RDSNode::callbackTracker(const frame_msgs::TrackedPersons::ConstPtr& tracks
 		position_global.setZ(track.pose.pose.position.z);
 
 		position_local = tf*position_global;
-		ROS_INFO("TF-translation: (%4.2f, %4.2f, %4.2f)", 
-			tf.getRotation().getX(), tf.getRotation().getY(),tf.getRotation().getZ());
-		ROS_INFO("TF-rotation: (%4.2f, %4.2f, %4.2f, %4.2f)", 
-			tf.getRotation().getX(), tf.getRotation().getY(),tf.getRotation().getZ(),tf.getRotation().getW());
-		ROS_INFO("V original: (%4.2f, %4.2f, %4.2f) vs. V transf.:(%4.2f, %4.2f, %4.2f))",
-			position_global.getX(), position_global.getY(), position_global.getZ(),
-			position_local.getX(), position_local.getY(), position_local.getZ());
 
 		velocity_global.setX(track.twist.twist.linear.x);
 		velocity_global.setY(track.twist.twist.linear.y);
@@ -94,7 +80,6 @@ void RDSNode::callbackTracker(const frame_msgs::TrackedPersons::ConstPtr& tracks
 bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectionRDS::Request& request,
 	rds_network_ros::VelocityCommandCorrectionRDS::Response& response)
 {
-        //ROS_INFO("Some one has called the RDS COMMAND CORRECTION SERVICE");
 	MovingCircle moving_object;
 	moving_object.velocity = Vec2(0.0, 0.0);
 	moving_object.circle.radius = 0.0;
@@ -118,8 +103,9 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 		request.nominal_command.linear + p_ref.x*request.nominal_command.angular);
 
 	Vec2 v_corrected_p_ref(0.f, 0.f);
-	//rds_4.computeCorrectedVelocity(robot_shape, p_ref,
-	//	v_nominal_p_ref, all_moving_objects, &v_corrected_p_ref);
+
+	rds_4.computeCorrectedVelocity(robot_shape, p_ref,
+		v_nominal_p_ref, all_moving_objects, &v_corrected_p_ref);
 
 	response.corrected_command.linear = p_ref.x/p_ref.y*v_corrected_p_ref.x + v_corrected_p_ref.y;
 	response.corrected_command.angular = -1.0/p_ref.y*v_corrected_p_ref.x;
@@ -188,8 +174,10 @@ int main(int argc, char** argv)
 	AggregatorTwoLRF aggregator_two_lrf(
 		3.f*M_PI/4.f,
 		0.05,
+		100.f,
 		3.f*M_PI/4.f,
-		0.05);
+		0.05,
+		100.f);
 
 	ros::NodeHandle n;
 	RDSNode rds_node(&n, aggregator_two_lrf);

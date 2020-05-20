@@ -12,8 +12,10 @@ struct AggregatorTwoLRF
 	AggregatorTwoLRF(
 		float angle_cutoff_lrf_front,
 		float range_cutoff_lower_lrf_front,
+		float range_cutoff_upper_lrf_front,
 		float angle_cutoff_lrf_rear,
-		float range_cutoff_lower_lrf_rear);
+		float range_cutoff_lower_lrf_rear,
+		float range_cutoff_upper_lrf_rear);
 
 	unsigned int size();
 	const Geometry2D::Vec2& getPoint(unsigned int index);
@@ -27,9 +29,11 @@ struct AggregatorTwoLRF
 	// parameters lrf front
 	const float angle_cutoff_lrf_front;
 	const float range_cutoff_lower_lrf_front;
+	const float range_cutoff_upper_lrf_front;
 	// parameters lrf rear
 	const float angle_cutoff_lrf_rear;
 	const float range_cutoff_lower_lrf_rear;
+	const float range_cutoff_upper_lrf_rear;
 
 	tf2_ros::Buffer tf_buffer;
 	tf2_ros::TransformListener tf_listener;
@@ -38,7 +42,7 @@ struct AggregatorTwoLRF
 
 private:
 	void getPointsFromLRF(const sensor_msgs::LaserScan::ConstPtr& lrf_msg,
-		float angle_cutoff, float range_cutoff_lower,
+		float angle_cutoff, float range_cutoff_lower, float range_cutoff_upper,
 		std::vector<Geometry2D::Vec2>* result_points);
 };
 
