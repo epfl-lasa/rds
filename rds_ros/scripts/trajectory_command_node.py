@@ -13,7 +13,7 @@ from std_msgs.msg import Float32MultiArray
 from std_msgs.msg import MultiArrayLayout, MultiArrayDimension 
 import numpy as np
 from scipy.interpolate import UnivariateSpline
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
  
 trajectory_xyt = np.array([
    [ 0.0, 0.0,  0.0], # accelerating
@@ -27,7 +27,6 @@ trajectory_xyt = np.array([
 #    [ 5.0, 6.0, 16.0],
 #    [ 6.0, 6.0, 20.0] # decelerating
 #    ])
-# plot_spline_curve(trajectory_spline, np.arange(-5.0, 25.0, 0.15), trajectory_xyt)
 
 tf_listener = None
 command_publisher = None
@@ -69,10 +68,13 @@ def plot_spline_curve(spline_curve, time_vector, data_xyt):
 trajectory_spline = create_spline_curve(trajectory_xyt)
 trajectory_spline_derivative = [trajectory_spline[0].derivative(), trajectory_spline[1].derivative()]
 
+#plot_spline_curve(trajectory_spline, np.arange(-5.0, 25.0, 0.15), trajectory_xyt)
+
 def get_pose():
    global tf_listener
-   (trans, rot) = tf_listener.lookupTransform('/tf_rds', '/tf_qolo_world', rospy.Time(0))
+   (trans, rot) = tf_listener.lookupTransform('/tf_qolo_world', '/tf_rds', rospy.Time(0))
    rpy = tf.transformations.euler_from_quaternion(rot)
+   print ("phi=", rpy[2])
    return (trans[0], trans[1], rpy[2])
 
 def feedforward_feedback_controller(t):
@@ -98,8 +100,15 @@ def feedforward_feedback_controller(t):
       position_setpoint = np.array([[trajectory_spline[0](t)],
          [trajectory_spline[1](t)]])
       feedback_velocity = 0.25*(position_setpoint - p_ref_global)
+      v_norm_max = 1.2
+      v_norm_actual = np.linalg.norm(feedback_velocity)
+      if (v_norm_actual > v_max):
+         feedback_velocity = feedback_velocity/v_norm_actual*v_norm_max
+
       v_command_p_ref_global = feedforward_velocity + feedback_velocity
+      print ("v_command_p_ref_global=", v_command_p_ref_global[0], v_command_p_ref_global[1])
       v_command_p_ref_local = np.matmul(np.transpose(R), v_command_p_ref_global)
+      print ("v_command_p_ref_local=", v_command_p_ref_local[0], v_command_p_ref_local[1])
 
       J_p_ref_inv = np.array([
          [p_ref_local[0,0]/p_ref_local[1,0], 1.0],
