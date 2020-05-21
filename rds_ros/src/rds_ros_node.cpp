@@ -18,18 +18,20 @@ using Geometry2D::Vec2;
 using Geometry2D::Capsule;
 using AdditionalPrimitives2D::Circle;
 
-int RDSNode::obtainTf(const std::string& frame_id_1, const std::string& frame_id_2, tf2::Transform* tf)
+int RDSNode::obtainTrackerMsgRelativeTf(const frame_msgs::TrackedPersons::ConstPtr& tracks_msg,
+	tf2::Transform* tf)
 {
+	std::string source_frame = tracks_msg->header.frame_id;
 	geometry_msgs::TransformStamped transformStamped;
 	try
 	{
 		transformStamped = tf_buffer.lookupTransform(
-			frame_id_1, frame_id_2 //"sick_laser_front"//
-			, ros::Time::now());
+			target_frame, source_frame //"sick_laser_front"//
+			, tracks_msg->header.stamp);
 	}
 	catch (tf2::TransformException &ex)
 	{
-		ROS_WARN("%s excpetion, when looking up tf from %s to %s", ex.what(), frame_id_1.c_str(), frame_id_2.c_str());
+		ROS_WARN("%s excpetion, when looking up tf from %s to %s", ex.what(), source_frame.c_str(), target_frame.c_str());
 		return 1;
 	}
 
@@ -49,8 +51,7 @@ int RDSNode::obtainTf(const std::string& frame_id_1, const std::string& frame_id
 void RDSNode::callbackTracker(const frame_msgs::TrackedPersons::ConstPtr& tracks_msg)
 {
 	tf2::Transform tf;
-
-	int error_tf_lookup = obtainTf("tf_rds", tracks_msg->header.frame_id, &tf);
+	int error_tf_lookup = obtainTrackerMsgRelativeTf(tracks_msg, &tf);
 	if (error_tf_lookup)
 		return;
 	tf2::Transform tf_only_rotation(tf.getRotation());
@@ -157,13 +158,20 @@ RDSNode::RDSNode(ros::NodeHandle* n, AggregatorTwoLRF& agg)
 		, 1, &AggregatorTwoLRF::callbackLRFFront, &m_aggregator_two_lrf))
 	, subscriber_lrf_rear(n->subscribe<sensor_msgs::LaserScan>("rear_lidar/scan"//"sick_laser_rear/cropped_scan"//
 		, 1, &AggregatorTwoLRF::callbackLRFRear, &m_aggregator_two_lrf))
-	, subscriber_tracker(n->subscribe<frame_msgs::TrackedPersons>("rwth_tracker/tracked_persons"
-		, 1, &RDSNode::callbackTracker, this) )
+	
+	, target_frame("tf_rds")
+	, tf_listener(tf_buffer)
+	, tracker_msg_filter(subscriber_tracker, tf_buffer, target_frame, 1, 0)
+
+
 	, publisher_for_gui(n->advertise<rds_network_ros::ToGui>("rds_to_gui", 1)) 
 	, command_correction_server(n->advertiseService("rds_velocity_command_correction",
 		&RDSNode::commandCorrectionService, this))
-	, tf_listener(tf_buffer)
 {
+
+	subscriber_tracker.subscribe(*n, "rwth_tracker/tracked_persons", 1);
+	tracker_msg_filter.registerCallback( boost::bind(&RDSNode::callbackTracker, this, _1) );
+
 	ros::spin();
 }
 
