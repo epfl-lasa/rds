@@ -39,7 +39,14 @@ void RDSGUIROSNode::toGuiMessageCallback(const rds_network_ros::ToGui::ConstPtr&
 		gui_work_space.circles_colors.push_back(yellow);
 	}
 
-	work_space_arrows.resize(0);
+	work_space_arrows.resize(msg.moving_objects_predictions.size()/2);
+	for (unsigned int i = 0; i < work_space_arrows.size(); i++)
+	{
+		work_space_arrows[i].head.x = msg.moving_objects_predictions[2*i].x;
+		work_space_arrows[i].head.y = msg.moving_objects_predictions[2*i].y;
+		work_space_arrows[i].tail.x = msg.moving_objects_predictions[2*i + 1].x;
+		work_space_arrows[i].tail.y = msg.moving_objects_predictions[2*i + 1].y;
+	}
 
 	work_space_capsules.resize(0);
 	work_space_capsules.push_back(Capsule(msg.robot_shape.radius,
@@ -48,7 +55,7 @@ void RDSGUIROSNode::toGuiMessageCallback(const rds_network_ros::ToGui::ConstPtr&
 }
 
 RDSGUIROSNode::RDSGUIROSNode(ros::NodeHandle* n)
-	: gui_command_space("Command Space", 2.f)
+	: gui_command_space("Velocity Space", 2.f)
 	, gui_solver_space("Solver Space", 1.f)
 	, gui_work_space("Work Space", 4.f)
 	, to_gui_subscriber(n->subscribe<rds_network_ros::ToGui>("rds_to_gui", 1,

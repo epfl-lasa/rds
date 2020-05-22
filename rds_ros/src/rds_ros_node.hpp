@@ -3,7 +3,7 @@
 
 #include "aggregate_two_lrf.hpp"
 #include <rds/geometry.hpp>
-#include <rds/rds_4.hpp>
+#include <rds/rds_5.hpp>
 
 #include <rds_network_ros/VelocityCommandCorrectionRDS.h>
 
@@ -38,6 +38,8 @@ struct RDSNode
 	std::vector<MovingCircle> m_tracked_persons;
 	tf2_ros::Buffer tf_buffer;
 	tf2_ros::TransformListener tf_listener;
+	float command_correct_previous_linear, command_correct_previous_angular;
+	unsigned int call_counter;
 };
 
 #endif

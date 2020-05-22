@@ -2,7 +2,6 @@
 
 #include <rds/geometry.hpp>
 #include <rds/capsule.hpp>
-#include <rds/rds_4.hpp>
 
 #include <rds_network_ros/ToGui.h>
 #include <rds_network_ros/HalfPlane2D.h>
@@ -80,6 +79,7 @@ void RDSNode::callbackTracker(const frame_msgs::TrackedPersons::ConstPtr& tracks
 bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectionRDS::Request& request,
 	rds_network_ros::VelocityCommandCorrectionRDS::Response& response)
 {
+	// prepare pedestrian tracks/ scan points retrieved from recent messages
 	MovingCircle moving_object;
 	moving_object.velocity = Vec2(0.0, 0.0);
 	moving_object.circle.radius = 0.0;
@@ -92,38 +92,55 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 	for (auto& pedestrian : m_tracked_persons)
 		all_moving_objects.push_back(pedestrian);
 
-	float delta = 0.05;
-	Geometry2D::RDS4 rds_4(1.5, delta, 1.2); //tau, delta, v_max
+	// parse service parameters
+	float a_v_min = command_correct_previous_linear - request.dt*request.acc_limit_linear_abs_max;
+	float a_v_max = command_correct_previous_linear + request.dt*request.acc_limit_linear_abs_max;
+	float a_w_min = command_correct_previous_angular - request.dt*request.acc_limit_angular_abs_max;
+	float a_w_max = command_correct_previous_angular + request.dt*request.acc_limit_angular_abs_max;
+	VWBox vw_box_limits(a_v_min, a_v_max, a_w_min, a_w_max);
 
-	Capsule robot_shape(0.45, Vec2(0.0, 0.05), Vec2(0.0, -0.5));
+	VWDiamond vw_diamond_limits(request.vel_lim_linear_min, request.vel_lim_linear_max,
+		request.vel_lim_angular_abs_max, request.vel_linear_at_angular_abs_max);
 
-	Vec2 p_ref(0.0, 0.25);
+	Geometry2D::RDS5 rds_5(request.rds_tau, request.rds_delta, request.reference_point_y, //0.25
+		vw_box_limits, vw_diamond_limits);
+		//1.5, 0.05 1.2); //tau, delta, v_max
 
-	Vec2 v_nominal_p_ref(-p_ref.y*request.nominal_command.angular,
-		request.nominal_command.linear + p_ref.x*request.nominal_command.angular);
+	Capsule robot_shape(request.capsule_radius, Vec2(0.0, request.capsule_center_front_y),
+		Vec2(0.0, request.capsule_center_rear_y)); //0.45, 0.05, -0.5
+
+	Vec2 v_nominal_p_ref(-request.reference_point_y*request.nominal_command.angular,
+		request.nominal_command.linear);
 
 	Vec2 v_corrected_p_ref(0.f, 0.f);
 
-	rds_4.computeCorrectedVelocity(robot_shape, p_ref,
+	// compute collision avoidance command
+	rds_5.computeCorrectedVelocity(robot_shape,
 		v_nominal_p_ref, all_moving_objects, &v_corrected_p_ref);
 
-	response.corrected_command.linear = p_ref.x/p_ref.y*v_corrected_p_ref.x + v_corrected_p_ref.y;
-	response.corrected_command.angular = -1.0/p_ref.y*v_corrected_p_ref.x;
-	response.got_it = true;
+	// communicate the result and the underlying representations 
+	response.corrected_command.linear = v_corrected_p_ref.y;
+	response.corrected_command.angular = -1.0/request.reference_point_y*v_corrected_p_ref.x;
+	
+	command_correct_previous_linear = response.corrected_command.linear;
+	command_correct_previous_angular = response.corrected_command.angular;
+
+	call_counter++;
+	response.call_counter = call_counter;
 
 	rds_network_ros::ToGui msg_to_gui;
 	msg_to_gui.nominal_command.linear = request.nominal_command.linear;
 	msg_to_gui.nominal_command.angular = request.nominal_command.angular;
 	msg_to_gui.corrected_command.linear = response.corrected_command.linear;
 	msg_to_gui.corrected_command.angular = response.corrected_command.angular;
-	msg_to_gui.reference_point.x = p_ref.x;
-	msg_to_gui.reference_point.y = p_ref.y;
+	msg_to_gui.reference_point.x = 0.f;
+	msg_to_gui.reference_point.y = request.reference_point_y;
 	msg_to_gui.reference_point_velocity_solution.x = v_corrected_p_ref.x;
 	msg_to_gui.reference_point_velocity_solution.y = v_corrected_p_ref.y;
 	msg_to_gui.reference_point_nominal_velocity.x = v_nominal_p_ref.x;
 	msg_to_gui.reference_point_nominal_velocity.y = v_nominal_p_ref.y;
 	rds_network_ros::HalfPlane2D h_msg;
-	for (auto& h : rds_4.constraints)
+	for (auto& h : rds_5.constraints)
 	{
 		h_msg.normal.x = h.getNormal().x;
 		h_msg.normal.y = h.getNormal().y;
@@ -136,8 +153,21 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 	{
 		c_msg.center.x = mo.circle.center.x;
 		c_msg.center.y = mo.circle.center.y;
-		c_msg.radius = mo.circle.radius + delta;
+		c_msg.radius = mo.circle.radius + request.rds_delta;
 		msg_to_gui.moving_objects.push_back(c_msg);
+	}
+	rds_network_ros::Point2D head_msg, tail_msg;
+	for (auto & mo : all_moving_objects)
+	{
+		if ((mo.velocity.x != 0.f) || (mo.velocity.y != 0.f))
+		{
+			head_msg.x = mo.circle.center.x + mo.velocity.x*request.rds_tau;
+			head_msg.y = mo.circle.center.y + mo.velocity.y*request.rds_tau;
+			tail_msg.x = mo.circle.center.x;
+			tail_msg.y = mo.circle.center.y;
+			msg_to_gui.moving_objects_predictions.push_back(head_msg);
+			msg_to_gui.moving_objects_predictions.push_back(tail_msg);
+		}
 	}
 
 	msg_to_gui.robot_shape.radius = robot_shape.radius();
@@ -163,6 +193,9 @@ RDSNode::RDSNode(ros::NodeHandle* n, AggregatorTwoLRF& agg)
 	, command_correction_server(n->advertiseService("rds_velocity_command_correction",
 		&RDSNode::commandCorrectionService, this))
 	, tf_listener(tf_buffer)
+	, command_correct_previous_linear(0.f)
+	, command_correct_previous_angular(0.f)
+	, call_counter(0)
 {
 	ros::spin();
 }

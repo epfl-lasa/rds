@@ -1,4 +1,17 @@
 VelocityCommand nominal_command
+float32 capsule_center_front_y
+float32 capsule_center_rear_y
+float32 capsule_radius
+float32 reference_point_y
+float32 rds_tau
+float32 rds_delta
+float32 vel_lim_linear_min
+float32 vel_lim_linear_max
+float32 vel_lim_angular_abs_max
+float32 vel_linear_at_angular_abs_max
+float32 acc_limit_linear_abs_max
+float32 acc_limit_angular_abs_max
+float32 dt
 ---
 VelocityCommand corrected_command
-bool got_it
+int32 call_counter

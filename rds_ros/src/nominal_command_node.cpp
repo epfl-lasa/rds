@@ -12,6 +12,19 @@ int main(int argc, char** argv)
 
 	request.nominal_command.linear = 1.0;
 	request.nominal_command.angular = 0.5;
+	request.capsule_center_front_y = 0.05;
+	request.capsule_center_rear_y = -0.5;
+	request.capsule_radius = 0.45;
+	request.reference_point_y = 0.25;
+	request.rds_tau = 1.5;
+	request.rds_delta = 0.05;
+	request.vel_lim_linear_min = 0.5;
+	request.vel_lim_linear_max = 1.5;
+	request.vel_lim_angular_abs_max = 1.0;
+	request.vel_linear_at_angular_abs_max = 0.2;
+	request.acc_limit_linear_abs_max = 0.5;
+	request.acc_limit_angular_abs_max = 0.5;
+	request.dt = 1.0/15.0;
 
 	ros::init(argc, argv, "rds_ros_nominal_command_node");
 	ros::NodeHandle n;
@@ -24,10 +37,10 @@ int main(int argc, char** argv)
 	{
 		t1 = std::chrono::high_resolution_clock::now();
 		c.call(srv);
-		ROS_INFO("Nominal command [%f,%f], corrected command [%f,%f], got_it=%d",
+		ROS_INFO("Nominal command [%f,%f], corrected command [%f,%f], call_counter=%i",
 			request.nominal_command.linear, request.nominal_command.angular,
 			srv.response.corrected_command.linear, srv.response.corrected_command.angular,
-			srv.response.got_it);
+			srv.response.call_counter);
 		ros::spinOnce();
 		t2 = std::chrono::high_resolution_clock::now();
 		std::this_thread::sleep_for(command_cycle_time - std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1));

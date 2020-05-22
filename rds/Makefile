@@ -3,16 +3,16 @@ all: geometry gui demo_geo rds_core build/demo_hierarchy build/demo_hierarchy_rd
 
 FLAGS = -std=c++11 -g -Wall
 
-# Qolo-RDS-4
-qolo_rds: build/lib_rds_4.a 
+# Qolo-RDS-5
+qolo_rds: build/lib_rds_5.a 
 
-build/lib_rds_4.a: build/rds/.hi src/rds_4.cpp src/rds_4.hpp src/capsule.hpp src/capsule.cpp src/geometry.hpp src/distance_minimizer.cpp src/distance_minimizer.hpp src/RVO.cpp src/RVO.hpp
-	g++ $(FLAGS) -c src/rds_4.cpp -o build/rds_4.o
+build/lib_rds_5.a: build/rds/.hi src/rds_5.cpp src/rds_5.hpp src/capsule.hpp src/capsule.cpp src/geometry.hpp src/distance_minimizer.cpp src/distance_minimizer.hpp src/RVO.cpp src/RVO.hpp
+	g++ $(FLAGS) -c src/rds_5.cpp -o build/rds_5.o
 	g++ $(FLAGS) -c src/capsule.cpp -o build/capsule.o
 	g++ $(FLAGS) -c src/RVO.cpp -o build/RVO.o
 	g++ $(FLAGS) -c src/distance_minimizer.cpp -o build/distance_minimizer.o
-	ar rvs build/lib_rds_4.a build/rds_4.o build/capsule.o build/RVO.o build/distance_minimizer.o
-	cp src/rds_4.hpp build/rds
+	ar rvs build/lib_rds_5.a build/rds_5.o build/capsule.o build/RVO.o build/distance_minimizer.o
+	cp src/rds_5.hpp build/rds
 	cp src/capsule.hpp build/rds
 	cp src/geometry.hpp build/rds
 	cp src/distance_minimizer.hpp build/rds
