@@ -12,6 +12,7 @@ float32 vel_linear_at_angular_abs_max
 float32 acc_limit_linear_abs_max
 float32 acc_limit_angular_abs_max
 float32 dt
+bool lrf_point_obstacles
 ---
 VelocityCommand corrected_command
 int32 call_counter
