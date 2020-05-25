@@ -25,6 +25,7 @@ int main(int argc, char** argv)
 	request.acc_limit_linear_abs_max = 0.5;
 	request.acc_limit_angular_abs_max = 0.5;
 	request.dt = 1.0/15.0;
+	request.lrf_point_obstacles = true;
 
 	ros::init(argc, argv, "rds_ros_nominal_command_node");
 	ros::NodeHandle n;

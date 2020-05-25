@@ -80,14 +80,17 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 	rds_network_ros::VelocityCommandCorrectionRDS::Response& response)
 {
 	// prepare pedestrian tracks/ scan points retrieved from recent messages
-	MovingCircle moving_object;
-	moving_object.velocity = Vec2(0.0, 0.0);
-	moving_object.circle.radius = 0.0;
 	std::vector<MovingCircle> all_moving_objects;
-	for (int i = 0; i < m_aggregator_two_lrf.size(); i++)
+	if (request.lrf_point_obstacles)
 	{
-		moving_object.circle.center = m_aggregator_two_lrf.getPoint(i);
-		all_moving_objects.push_back(moving_object);
+		MovingCircle moving_object;
+		moving_object.velocity = Vec2(0.0, 0.0);
+		moving_object.circle.radius = 0.0;
+		for (int i = 0; i < m_aggregator_two_lrf.size(); i++)
+		{
+			moving_object.circle.center = m_aggregator_two_lrf.getPoint(i);
+			all_moving_objects.push_back(moving_object);
+		}
 	}
 	for (auto& pedestrian : m_tracked_persons)
 		all_moving_objects.push_back(pedestrian);
