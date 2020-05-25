@@ -16,9 +16,9 @@ namespace Geometry2D
 		v_box_x_max = -vw_box_limits.w_min*y_p_ref;
 		v_box_y_min = vw_box_limits.v_min;
 		v_box_y_max = vw_box_limits.v_max;
-		constraints_box_limits.push_back(HalfPlane2(Vec2(-1.f, 0.f), v_box_x_min));
+		constraints_box_limits.push_back(HalfPlane2(Vec2(-1.f, 0.f), -v_box_x_min));
 		constraints_box_limits.push_back(HalfPlane2(Vec2(1.f, 0.f), v_box_x_max));
-		constraints_box_limits.push_back(HalfPlane2(Vec2(0.f, -1.f), v_box_y_min));
+		constraints_box_limits.push_back(HalfPlane2(Vec2(0.f, -1.f), -v_box_y_min));
 		constraints_box_limits.push_back(HalfPlane2(Vec2(0.f, 1.f), v_box_y_max));
 		// for diamond limits
 		Vec2 corner_left(-vw_diamond_limits.w_abs_max*y_p_ref, vw_diamond_limits.v_at_w_abs_max);
