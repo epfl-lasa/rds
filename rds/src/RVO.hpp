@@ -26,7 +26,7 @@ struct RVO
 //private:
 	void computeConvexRVO(const Geometry2D::Vec2& relative_position,
 		const Geometry2D::Vec2& relative_velocity_pref, float radius_sum,
-		Geometry2D::HalfPlane2* crvo);
+		Geometry2D::HalfPlane2* crvo, bool orca_style_convex = false);
 private:
 	float tau, delta;
 };

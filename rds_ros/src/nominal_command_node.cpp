@@ -25,7 +25,22 @@ int main(int argc, char** argv)
 	request.acc_limit_linear_abs_max = 0.5;
 	request.acc_limit_angular_abs_max = 0.5;
 	request.dt = 1.0/15.0;
+
+	// shall rds consider lrf measurements?
 	request.lrf_point_obstacles = true;
+
+	// for generating constraints due to raw lrf scan points,
+	// shall rds use the VO-based or the alternative (prior) approach?
+	request.lrf_alternative_rds = false;
+
+	// how shall rds choose the base velocity for determining the convex approximate VO
+	// 0 : use zero velocity (ensures that the final halfplane contains the VO, if the VO does not contain the origin)
+	// 1 : use the velocity which rds computed previously
+	// any other integer: use the nominal velocity (from the current nominal command)
+	request.vo_tangent_base_command = 2;
+
+	// shall rds map the base velocity to the tangent point the same way as ORCA for determining the convex approximate VO?
+	request.vo_tangent_orca_style = false;
 
 	ros::init(argc, argv, "rds_ros_nominal_command_node");
 	ros::NodeHandle n;

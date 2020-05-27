@@ -9,13 +9,14 @@
 using Geometry2D::Vec2;
 using Geometry2D::HalfPlane2;
 using Geometry2D::CircularCorrectionLowerPoints;
+using Geometry2D::CircularCorrection;
 
 int main()
 {
 	VWDiamond lim(-1.f, 1.5, 1.0, 0.25);
-	float y_p = -0.5;
+	float y_p = 0.5;
 
-	CircularCorrectionLowerPoints circular_correction(lim, y_p);
+	CircularCorrection circular_correction(lim, y_p);
 
 	float width = 2.f*std::max(std::max(std::abs(lim.v_max), std::abs(lim.v_min)),
 		lim.w_abs_max*std::abs(y_p));

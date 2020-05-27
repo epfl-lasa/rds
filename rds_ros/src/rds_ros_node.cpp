@@ -80,6 +80,7 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 	rds_network_ros::VelocityCommandCorrectionRDS::Response& response)
 {
 	// prepare pedestrian tracks/ scan points retrieved from recent messages
+	std::vector<MovingCircle> lrf_moving_objects;
 	std::vector<MovingCircle> all_moving_objects;
 	if (request.lrf_point_obstacles)
 	{
@@ -89,6 +90,7 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 		for (int i = 0; i < m_aggregator_two_lrf.size(); i++)
 		{
 			moving_object.circle.center = m_aggregator_two_lrf.getPoint(i);
+			lrf_moving_objects.push_back(moving_object);
 			all_moving_objects.push_back(moving_object);
 		}
 	}
@@ -109,17 +111,37 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 		vw_box_limits, vw_diamond_limits);
 		//1.5, 0.05 1.2); //tau, delta, v_max
 
+	if (request.vo_tangent_base_command != 0)
+	{
+		rds_5.use_conservative_shift = false;
+		if (request.vo_tangent_base_command != 1)
+			rds_5.use_previous_command_as_basis = false;
+	}
+	if (!request.vo_tangent_orca_style)
+		rds_5.use_orca_style_crvo = false;
+
 	Capsule robot_shape(request.capsule_radius, Vec2(0.0, request.capsule_center_front_y),
 		Vec2(0.0, request.capsule_center_rear_y)); //0.45, 0.05, -0.5
 
 	Vec2 v_nominal_p_ref(-request.reference_point_y*request.nominal_command.angular,
 		request.nominal_command.linear);
 
+	Vec2 v_previous_command(-command_correct_previous_angular*request.reference_point_y,
+		command_correct_previous_linear);
+
 	Vec2 v_corrected_p_ref(0.f, 0.f);
 
 	// compute collision avoidance command
-	rds_5.computeCorrectedVelocity(robot_shape,
-		v_nominal_p_ref, all_moving_objects, &v_corrected_p_ref);
+	if (request.lrf_alternative_rds)
+	{
+		rds_5.computeCorrectedVelocity(robot_shape, v_nominal_p_ref, v_previous_command,
+			lrf_moving_objects, m_tracked_persons, &v_corrected_p_ref);
+	}
+	else
+	{
+		rds_5.computeCorrectedVelocity(robot_shape, v_nominal_p_ref, v_previous_command,
+			std::vector<MovingCircle>(), all_moving_objects, &v_corrected_p_ref);
+	}
 
 	// communicate the result and the underlying representations 
 	response.corrected_command.linear = v_corrected_p_ref.y;

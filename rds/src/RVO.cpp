@@ -50,7 +50,7 @@ void RVO::computeCoordinativeVelocityObstacles(const Circle& o_1, const Circle& 
 }
 
 void RVO::computeConvexRVO(const Vec2& relative_position, const Vec2& relative_velocity_pref,
-	float radius_sum, HalfPlane2* crvo)
+	float radius_sum, HalfPlane2* crvo, bool orca_style_convex)
 {
 	float centers_distance = relative_position.norm();
 	float v_c = (centers_distance - radius_sum)/tau;
@@ -136,62 +136,44 @@ void RVO::computeConvexRVO(const Vec2& relative_position, const Vec2& relative_v
 
 	// v_pref is inside the RVO
 	// -> intersect the ray through the origin and v_pref with the cap
-	float v_tol = 1e-10f;
-	Vec2 tangent_point(0.f, 0.f);
-	if (v_tol < relative_velocity_pref.norm())
+	if (!orca_style_convex)
 	{
-		float discriminant = 4.f*(relative_velocity_pref.dot(c_cone_cap)*relative_velocity_pref.dot(c_cone_cap) -
-			relative_velocity_pref.dot(relative_velocity_pref)*(c_cone_cap.dot(c_cone_cap) - v_r*v_r));
-		if (discriminant > 0.f)
+		float v_tol = 1e-10f;
+		Vec2 tangent_point(0.f, 0.f);
+		if (v_tol < relative_velocity_pref.norm())
 		{
-			float scaling = (2.f*relative_velocity_pref.dot(c_cone_cap) - std::sqrt(discriminant))/
-				2.f/relative_velocity_pref.dot(relative_velocity_pref);
-			tangent_point = relative_velocity_pref*scaling;
+			float discriminant = 4.f*(relative_velocity_pref.dot(c_cone_cap)*relative_velocity_pref.dot(c_cone_cap) -
+				relative_velocity_pref.dot(relative_velocity_pref)*(c_cone_cap.dot(c_cone_cap) - v_r*v_r));
+			if (discriminant > 0.f)
+			{
+				float scaling = (2.f*relative_velocity_pref.dot(c_cone_cap) - std::sqrt(discriminant))/
+					2.f/relative_velocity_pref.dot(relative_velocity_pref);
+				tangent_point = relative_velocity_pref*scaling;
+			}
+			else
+			{
+				float scaling = 2.f*relative_velocity_pref.dot(c_cone_cap)/
+					relative_velocity_pref.dot(relative_velocity_pref);
+				tangent_point = relative_velocity_pref*scaling;
+			}
 		}
+		// compute the tangent halfplane
+		*crvo = HalfPlane2(c_cone_cap - tangent_point, 0.f);
+		crvo->shift(crvo->getNormal()*crvo->signedDistance(tangent_point));
+		return;
+	}
+	else
+	{
+		HalfPlane2 h_cut_cap(Vec2(0.f, 0.f), p_tangent_plus, p_tangent_minus);
+		Vec2 tangent_point_cap = c_cone_cap + v_r*(relative_velocity_pref - c_cone_cap).normalized();
+		if (0.f > h_cut_cap.signedDistance(tangent_point_cap))
+		{
+			*crvo = HalfPlane2(c_cone_cap - tangent_point_cap, 0.f);
+			crvo->shift(crvo->getNormal()*crvo->signedDistance(tangent_point_cap));
+		}
+		else if (h_plus.signedDistance(relative_velocity_pref) > h_minus.signedDistance(relative_velocity_pref))
+			*crvo = h_plus;
 		else
-		{
-			float scaling = 2.f*relative_velocity_pref.dot(c_cone_cap)/
-				relative_velocity_pref.dot(relative_velocity_pref);
-			tangent_point = relative_velocity_pref*scaling;
-		}
+			*crvo = h_minus;
 	}
-	// compute the tangent halfplane
-	*crvo = HalfPlane2(c_cone_cap - tangent_point, 0.f);
-	crvo->shift(crvo->getNormal()*crvo->signedDistance(tangent_point));
-	return;
-
-
-/*
-	float c_cone_cap_1st_coord = v_c + v_r; //e_basis_1.dot(c_cone_cap);
-	float v_pref_1st_coord = e_basis_1.dot(relative_velocity_pref);
-	float v_pref_2nd_coord = e_basis_2.dot(relative_velocity_pref);
-	float summand_b = 0.f;
-
-
-	float denominator_b = v_pref_2nd_coord*v_pref_2nd_coord/v_pref_1st_coord/v_pref_1st_coord + 1.f;
-	if ((c_cone_cap_1st_coord*c_cone_cap_1st_coord - v_r*v_r) > denominator_b*v_tol*v_tol)
-
-	{
-	float numerator_b = (c_cone_cap_1st_coord*c_cone_cap_1st_coord - v_r*v_r)*v_pref_1st_coord*v_pref_1st_coord;
-	float denominator_b = (v_pref_2nd_coord*v_pref_2nd_coord + v_pref_1st_coord*v_pref_1st_coord);
-	if (numerator_b > denominator_b*v_tol*v_tol)
-	}
-*/
-
-
-	/*
-	if (v_c < 0.00001f)
-		v_c = 0.00001f;
-
-	float cone_radius = v_c*radius_sum/centers_distance/(1.f - radius_sum/centers_distance);
-
-	if (relative_velocity_pref.norm() > v_c)
-	{
-		float squared_cos_alpha = 1.f - radius_sum*radius_sum/centers_distance/centers_distance;
-		float cos_beta = relative_position.normalized().dot(relative_velocity_pref.normalized());
-		if (cos_beta > std::sqrt(squared_cos_alpha))
-		{
-			//check if within the cone ...
-		}
-	}*/
 }

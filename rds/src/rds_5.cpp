@@ -9,6 +9,9 @@ namespace Geometry2D
 	RDS5::RDS5(float tau, float delta, float y_p_ref, const VWBox& vw_box_limits,
 		const VWDiamond& vw_diamond_limits)
 	: tau(tau), delta(delta), y_p_ref(y_p_ref)
+	, use_previous_command_as_basis(true)
+	, use_orca_style_crvo(true)
+	, use_conservative_shift(true)
 	{
 		// map vw-limits to cartesian velocity constraints for the reference point
 		// for box-limits
@@ -39,12 +42,19 @@ namespace Geometry2D
 		}
 	}
 
-	void RDS5::computeCorrectedVelocity(const Capsule& robot_shape, const Vec2& v_nominal_p_ref,
-		const std::vector<MovingCircle>& objects, Vec2* v_corrected_p_ref)
+	void RDS5::computeCorrectedVelocity(const Capsule& robot_shape,
+			const Vec2& v_nominal_p_ref, const Vec2& v_previous_command,
+			const std::vector<MovingCircle>& static_objects,
+			const std::vector<MovingCircle>& moving_objects,
+			Vec2* v_corrected_p_ref)
 	{
 		Vec2 p_ref(0.f, y_p_ref);
 		std::vector<HalfPlane2> constraints_tmp;
-		generateConstraints(robot_shape, p_ref, v_nominal_p_ref, objects, &constraints_tmp);
+		Vec2 basis_command = v_nominal_p_ref;
+		if (use_previous_command_as_basis)
+			basis_command = v_previous_command;
+		generateVOConstraints(robot_shape, p_ref, basis_command, moving_objects, &constraints_tmp);
+		generateStaticConstraints(robot_shape, p_ref, static_objects, &constraints_tmp);
 		solve(v_nominal_p_ref, constraints_tmp, v_corrected_p_ref);
 		// crop to satisfy the box limits and save their halfplanes (to show that they exist)
 		v_corrected_p_ref->x = std::min(v_box_x_max, std::max(v_box_x_min, v_corrected_p_ref->x));
@@ -53,7 +63,7 @@ namespace Geometry2D
 			constraints.push_back(h);
 	}
 
-	void RDS5::generateConstraints(const Capsule& robot_shape, const Vec2& p_ref, const Vec2& v_nominal_p_ref,
+	void RDS5::generateVOConstraints(const Capsule& robot_shape, const Vec2& p_ref, const Vec2& v_nominal_p_ref,
 		const std::vector<MovingCircle>& objects, std::vector<HalfPlane2>* constraints)
 	{
 		constraints->resize(0);
@@ -82,9 +92,11 @@ namespace Geometry2D
 		Vec2 relative_position = object_point - robot_point;
 		Vec2 relative_velocity_preferred = Vec2(v_nominal_p_ref.x*robot_point.y/p_ref.y,
 			v_nominal_p_ref.x*(p_ref.x - robot_point.x)/p_ref.y + v_nominal_p_ref.y) - object_velocity;
+		if (use_conservative_shift)
+			relative_velocity_preferred = -1.f*object_velocity;
 		HalfPlane2 crvo;
-		crvo_computer.computeConvexRVO(relative_position, relative_velocity_preferred, radius_sum, &crvo);
-
+		crvo_computer.computeConvexRVO(relative_position, relative_velocity_preferred, radius_sum, &crvo,
+			use_orca_style_crvo);
 		crvo.shift(object_velocity);
 		if (crvo.getOffset() < 0.f)
 			crvo.shift(crvo.getNormal()*(-crvo.getOffset()));
@@ -109,6 +121,43 @@ namespace Geometry2D
 				constraints->push_back(HalfPlane2(n_constraint_tmp_minus, b/n_constraint_tmp_minus.norm()));
 		}
 	}
+
+	void RDS5::generateStaticConstraints(const Capsule& robot_shape, const Vec2& p_ref,
+		const std::vector<MovingCircle>& static_objects, std::vector<HalfPlane2>* constraints)
+	{
+		for (const auto& obj : static_objects)
+		{
+			Vec2 robot_point;
+			robot_shape.closestMidLineSegmentPoint(obj.circle.center, &robot_point);
+			float radius_sum = robot_shape.radius() + obj.circle.radius + delta;
+			if ((robot_point.x == 0.f) && (p_ref.x == 0.f))
+			{
+				float sigma = std::max(1.f, std::abs(robot_point.y/p_ref.y));
+				float v_robot_point_radial_max = sigma*v_p_ref_radial_max;
+				if (((robot_point - obj.circle.center).norm() - radius_sum)/tau > v_robot_point_radial_max + 0.01f)
+					continue;
+			}
+			Vec2 n = (obj.circle.center - robot_point).normalized();
+			float b = ((robot_point - obj.circle.center).norm() - radius_sum)/tau;
+			Vec2 n_constraint_tmp(n.x*robot_point.y/p_ref.y + n.y*(p_ref.x - robot_point.x)/p_ref.y, n.y);
+			if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp.norm() > b)
+				constraints->push_back(HalfPlane2(n_constraint_tmp, b/n_constraint_tmp.norm()));
+			float normal_limit = 1.f*robot_shape.radius()/tau/v_p_ref_radial_max;
+			if (std::abs(n_constraint_tmp.x) < normal_limit)
+			{
+				float shift_abs = normal_limit - std::abs(n_constraint_tmp.x);
+				Vec2 n_constraint_tmp_plus(n.x*(robot_point.y + shift_abs)/
+					p_ref.y + n.y*(p_ref.x - robot_point.x)/p_ref.y, n.y);
+				Vec2 n_constraint_tmp_minus(n.x*(robot_point.y - shift_abs)/
+					p_ref.y + n.y*(p_ref.x - robot_point.x)/p_ref.y, n.y);
+				if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp_plus.norm() > b)
+					constraints->push_back(HalfPlane2(n_constraint_tmp_plus, b/n_constraint_tmp_plus.norm()));
+				if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp_minus.norm() > b)
+					constraints->push_back(HalfPlane2(n_constraint_tmp_minus, b/n_constraint_tmp_minus.norm()));
+			}
+		}
+	}
+
 	
 	void RDS5::solve(const Vec2& v_nominal, std::vector<HalfPlane2>& constraints_tmp, Vec2* v_corrected)
 	{
