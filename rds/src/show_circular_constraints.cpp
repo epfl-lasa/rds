@@ -24,6 +24,7 @@ int main()
 	gui.halfplanes = &all_constraints;
 	std::vector<Vec2> origin(1);
 	gui.points = &origin;
+	gui.activateHalfplaneAreaRendering();
 
 	float theta = 0.f;
 	Vec2 n_0(1.f, 1.f);
