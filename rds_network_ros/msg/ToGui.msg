@@ -7,3 +7,4 @@ HalfPlane2D[] reference_point_velocity_constraints
 Circle[] moving_objects
 Point2D[] moving_objects_predictions
 Capsule robot_shape
+Circle[] bounding_circles

@@ -33,7 +33,7 @@ int main(int argc, char** argv)
 	// shall rds use the VO-based or the alternative (prior) approach?
 	request.lrf_alternative_rds = false;
 
-	// how shall rds choose the base velocity for determining the convex approximate VO
+	// how shall rds choose the base velocity for determining the convex approximate VO?
 	// 0 : use zero velocity (ensures that the final halfplane contains the VO, if the VO does not contain the origin)
 	// 1 : use the velocity which rds computed previously
 	// any other integer: use the nominal velocity (from the current nominal command)
@@ -41,6 +41,11 @@ int main(int argc, char** argv)
 
 	// shall rds map the base velocity to the tangent point the same way as ORCA for determining the convex approximate VO?
 	request.vo_tangent_orca_style = false;
+
+	// shall rds work with bounding circles or find per object the closest incircle in the capsule?
+	// any integer n > 2 : use n bounding circles
+	// any integer <= 2 : use local capsule incircles
+	request.bounding_circles = 0;
 
 	ros::init(argc, argv, "rds_ros_nominal_command_node");
 	ros::NodeHandle n;

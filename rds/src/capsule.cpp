@@ -32,6 +32,11 @@ namespace Geometry2D
 	void BoundingCircles::fit(const Capsule& capsule, float colliding_objects_radius)
 	{
 		unsigned int n_splits_mid_segment = m_circles.size() - 3;
+		if (n_splits_mid_segment < 0)
+		{
+			m_circles.resize(0);
+			return;
+		}
 		m_circles.front() = AdditionalPrimitives2D::Circle(capsule.center_a(), capsule.radius());
 		m_circles.back() = AdditionalPrimitives2D::Circle(capsule.center_b(), capsule.radius());
 		float A = (capsule.center_a() - capsule.center_b()).norm()/(n_splits_mid_segment + 1)/2.f;

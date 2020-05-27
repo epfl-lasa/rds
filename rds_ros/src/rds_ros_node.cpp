@@ -120,6 +120,8 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 	if (!request.vo_tangent_orca_style)
 		rds_5.use_orca_style_crvo = false;
 
+	rds_5.n_bounding_circles = request.bounding_circles;
+
 	Capsule robot_shape(request.capsule_radius, Vec2(0.0, request.capsule_center_front_y),
 		Vec2(0.0, request.capsule_center_rear_y)); //0.45, 0.05, -0.5
 
@@ -200,6 +202,18 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 	msg_to_gui.robot_shape.center_a.y = robot_shape.center_a().y;
 	msg_to_gui.robot_shape.center_b.x = robot_shape.center_b().x;
 	msg_to_gui.robot_shape.center_b.y = robot_shape.center_b().y;
+
+	if (rds_5.n_bounding_circles > 2)
+	{
+		rds_network_ros::Circle bc_msg;
+		for (const auto& bc : rds_5.bounding_circles.circles())
+		{
+			bc_msg.center.x = bc.center.x;
+			bc_msg.center.y = bc.center.y;
+			bc_msg.radius = bc.radius;
+			msg_to_gui.bounding_circles.push_back(bc_msg);
+		}
+	}
 
 	publisher_for_gui.publish(msg_to_gui);
 

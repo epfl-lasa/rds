@@ -31,6 +31,8 @@ namespace Geometry2D
 
 		const float tau, delta, y_p_ref;
 		bool use_previous_command_as_basis, use_orca_style_crvo, use_conservative_shift;
+		int n_bounding_circles;
+		BoundingCircles bounding_circles;
 
 		std::vector<Geometry2D::HalfPlane2> constraints_box_limits;
 		std::vector<Geometry2D::HalfPlane2> constraints_diamond_limits;

@@ -16,6 +16,7 @@ bool lrf_point_obstacles
 bool lrf_alternative_rds
 int32 vo_tangent_base_command
 bool vo_tangent_orca_style
+int32 bounding_circles
 ---
 VelocityCommand corrected_command
 int32 call_counter

@@ -39,6 +39,12 @@ void RDSGUIROSNode::toGuiMessageCallback(const rds_network_ros::ToGui::ConstPtr&
 		gui_work_space.circles_colors.push_back(yellow);
 	}
 
+	for (auto& c_msg : msg.bounding_circles)
+	{
+		work_space_circles.push_back(Circle(Vec2(c_msg.center.x, c_msg.center.y), c_msg.radius));
+		gui_work_space.circles_colors.push_back(blue);
+	}
+
 	work_space_arrows.resize(msg.moving_objects_predictions.size()/2);
 	for (unsigned int i = 0; i < work_space_arrows.size(); i++)
 	{

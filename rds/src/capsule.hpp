@@ -31,6 +31,7 @@ namespace Geometry2D
 
 	struct BoundingCircles
 	{
+		BoundingCircles() { }
 		BoundingCircles(unsigned int n_splits_mid_segment) : m_circles(n_splits_mid_segment + 3) { }
 
 		void fit(const Capsule& capsule, float colliding_objects_radius);

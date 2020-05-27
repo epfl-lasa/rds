@@ -12,6 +12,7 @@ namespace Geometry2D
 	, use_previous_command_as_basis(true)
 	, use_orca_style_crvo(true)
 	, use_conservative_shift(true)
+	, n_bounding_circles(0)
 	{
 		// map vw-limits to cartesian velocity constraints for the reference point
 		// for box-limits
@@ -48,6 +49,16 @@ namespace Geometry2D
 			const std::vector<MovingCircle>& moving_objects,
 			Vec2* v_corrected_p_ref)
 	{
+		if (n_bounding_circles > 2)
+		{
+			bounding_circles = BoundingCircles(n_bounding_circles - 3);
+			bounding_circles.fit(robot_shape, delta);
+			for (const auto& c : bounding_circles.circles())
+			{
+				if (std::abs(c.center.y) < 0.05f)
+					throw "A bounding circle's center is to close to the wheel axle";
+			}
+		}
 		Vec2 p_ref(0.f, y_p_ref);
 		std::vector<HalfPlane2> constraints_tmp;
 		Vec2 basis_command = v_nominal_p_ref;
@@ -69,10 +80,21 @@ namespace Geometry2D
 		constraints->resize(0);
 		for (std::vector<HalfPlane2>::size_type i = 0; i != objects.size(); i++)
 		{
-			Vec2 pt_segment;
-			robot_shape.closestMidLineSegmentPoint(objects[i].circle.center, &pt_segment);
-			generateAndAddConstraint(pt_segment, robot_shape.radius(), objects[i].circle.center,
-				objects[i].circle.radius, objects[i].velocity, p_ref, v_nominal_p_ref, constraints);
+			if (n_bounding_circles > 2)
+			{
+				for (const auto& c : bounding_circles.circles())
+				{
+					generateAndAddConstraint(c.center, c.radius, objects[i].circle.center,
+						objects[i].circle.radius, objects[i].velocity, p_ref, v_nominal_p_ref, constraints);
+				}
+			}
+			else
+			{
+				Vec2 pt_segment;
+				robot_shape.closestMidLineSegmentPoint(objects[i].circle.center, &pt_segment);
+				generateAndAddConstraint(pt_segment, robot_shape.radius(), objects[i].circle.center,
+					objects[i].circle.radius, objects[i].velocity, p_ref, v_nominal_p_ref, constraints);
+			}
 		}
 	}
 
@@ -127,33 +149,71 @@ namespace Geometry2D
 	{
 		for (const auto& obj : static_objects)
 		{
-			Vec2 robot_point;
-			robot_shape.closestMidLineSegmentPoint(obj.circle.center, &robot_point);
-			float radius_sum = robot_shape.radius() + obj.circle.radius + delta;
-			if ((robot_point.x == 0.f) && (p_ref.x == 0.f))
+			if (n_bounding_circles > 2)
 			{
-				float sigma = std::max(1.f, std::abs(robot_point.y/p_ref.y));
-				float v_robot_point_radial_max = sigma*v_p_ref_radial_max;
-				if (((robot_point - obj.circle.center).norm() - radius_sum)/tau > v_robot_point_radial_max + 0.01f)
-					continue;
+				for (const auto& c : bounding_circles.circles())
+				{
+					Vec2 robot_point = c.center;
+					float robot_radius = c.radius;
+					robot_shape.closestMidLineSegmentPoint(obj.circle.center, &robot_point);
+					float radius_sum = robot_radius + obj.circle.radius + delta;
+					if ((robot_point.x == 0.f) && (p_ref.x == 0.f))
+					{
+						float sigma = std::max(1.f, std::abs(robot_point.y/p_ref.y));
+						float v_robot_point_radial_max = sigma*v_p_ref_radial_max;
+						if (((robot_point - obj.circle.center).norm() - radius_sum)/tau > v_robot_point_radial_max + 0.01f)
+							continue;
+					}
+					Vec2 n = (obj.circle.center - robot_point).normalized();
+					float b = ((robot_point - obj.circle.center).norm() - radius_sum)/tau;
+					Vec2 n_constraint_tmp(n.x*robot_point.y/p_ref.y + n.y*(p_ref.x - robot_point.x)/p_ref.y, n.y);
+					if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp.norm() > b)
+						constraints->push_back(HalfPlane2(n_constraint_tmp, b/n_constraint_tmp.norm()));
+					float normal_limit = 1.f*robot_radius/tau/v_p_ref_radial_max;
+					if (std::abs(n_constraint_tmp.x) < normal_limit)
+					{
+						float shift_abs = normal_limit - std::abs(n_constraint_tmp.x);
+						Vec2 n_constraint_tmp_plus(n.x*(robot_point.y + shift_abs)/
+							p_ref.y + n.y*(p_ref.x - robot_point.x)/p_ref.y, n.y);
+						Vec2 n_constraint_tmp_minus(n.x*(robot_point.y - shift_abs)/
+							p_ref.y + n.y*(p_ref.x - robot_point.x)/p_ref.y, n.y);
+						if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp_plus.norm() > b)
+							constraints->push_back(HalfPlane2(n_constraint_tmp_plus, b/n_constraint_tmp_plus.norm()));
+						if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp_minus.norm() > b)
+							constraints->push_back(HalfPlane2(n_constraint_tmp_minus, b/n_constraint_tmp_minus.norm()));
+					}
+				}
 			}
-			Vec2 n = (obj.circle.center - robot_point).normalized();
-			float b = ((robot_point - obj.circle.center).norm() - radius_sum)/tau;
-			Vec2 n_constraint_tmp(n.x*robot_point.y/p_ref.y + n.y*(p_ref.x - robot_point.x)/p_ref.y, n.y);
-			if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp.norm() > b)
-				constraints->push_back(HalfPlane2(n_constraint_tmp, b/n_constraint_tmp.norm()));
-			float normal_limit = 1.f*robot_shape.radius()/tau/v_p_ref_radial_max;
-			if (std::abs(n_constraint_tmp.x) < normal_limit)
+			else
 			{
-				float shift_abs = normal_limit - std::abs(n_constraint_tmp.x);
-				Vec2 n_constraint_tmp_plus(n.x*(robot_point.y + shift_abs)/
-					p_ref.y + n.y*(p_ref.x - robot_point.x)/p_ref.y, n.y);
-				Vec2 n_constraint_tmp_minus(n.x*(robot_point.y - shift_abs)/
-					p_ref.y + n.y*(p_ref.x - robot_point.x)/p_ref.y, n.y);
-				if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp_plus.norm() > b)
-					constraints->push_back(HalfPlane2(n_constraint_tmp_plus, b/n_constraint_tmp_plus.norm()));
-				if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp_minus.norm() > b)
-					constraints->push_back(HalfPlane2(n_constraint_tmp_minus, b/n_constraint_tmp_minus.norm()));
+				Vec2 robot_point;
+				robot_shape.closestMidLineSegmentPoint(obj.circle.center, &robot_point);
+				float radius_sum = robot_shape.radius() + obj.circle.radius + delta;
+				if ((robot_point.x == 0.f) && (p_ref.x == 0.f))
+				{
+					float sigma = std::max(1.f, std::abs(robot_point.y/p_ref.y));
+					float v_robot_point_radial_max = sigma*v_p_ref_radial_max;
+					if (((robot_point - obj.circle.center).norm() - radius_sum)/tau > v_robot_point_radial_max + 0.01f)
+						continue;
+				}
+				Vec2 n = (obj.circle.center - robot_point).normalized();
+				float b = ((robot_point - obj.circle.center).norm() - radius_sum)/tau;
+				Vec2 n_constraint_tmp(n.x*robot_point.y/p_ref.y + n.y*(p_ref.x - robot_point.x)/p_ref.y, n.y);
+				if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp.norm() > b)
+					constraints->push_back(HalfPlane2(n_constraint_tmp, b/n_constraint_tmp.norm()));
+				float normal_limit = 1.f*robot_shape.radius()/tau/v_p_ref_radial_max;
+				if (std::abs(n_constraint_tmp.x) < normal_limit)
+				{
+					float shift_abs = normal_limit - std::abs(n_constraint_tmp.x);
+					Vec2 n_constraint_tmp_plus(n.x*(robot_point.y + shift_abs)/
+						p_ref.y + n.y*(p_ref.x - robot_point.x)/p_ref.y, n.y);
+					Vec2 n_constraint_tmp_minus(n.x*(robot_point.y - shift_abs)/
+						p_ref.y + n.y*(p_ref.x - robot_point.x)/p_ref.y, n.y);
+					if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp_plus.norm() > b)
+						constraints->push_back(HalfPlane2(n_constraint_tmp_plus, b/n_constraint_tmp_plus.norm()));
+					if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp_minus.norm() > b)
+						constraints->push_back(HalfPlane2(n_constraint_tmp_minus, b/n_constraint_tmp_minus.norm()));
+				}
 			}
 		}
 	}
