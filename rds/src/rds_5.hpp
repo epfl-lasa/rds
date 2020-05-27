@@ -51,6 +51,10 @@ namespace Geometry2D
 		void generateStaticConstraints(const Capsule& robot_shape, const Vec2& p_ref,
 			const std::vector<MovingCircle>& static_objects, std::vector<HalfPlane2>* constraints);
 
+		void generateAndAddStaticConstraint(const Vec2& robot_point,
+			float robot_radius, const Vec2& object_point, float object_radius,
+			const Vec2& p_ref, std::vector<HalfPlane2>* constraints);
+
 		void solve(const Vec2& v_nominal, std::vector<HalfPlane2>& constraints, Vec2* v_corrected);
 	};
 }

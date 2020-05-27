@@ -153,71 +153,51 @@ namespace Geometry2D
 			{
 				for (const auto& c : bounding_circles.circles())
 				{
-					Vec2 robot_point = c.center;
-					float robot_radius = c.radius;
-					robot_shape.closestMidLineSegmentPoint(obj.circle.center, &robot_point);
-					float radius_sum = robot_radius + obj.circle.radius + delta;
-					if ((robot_point.x == 0.f) && (p_ref.x == 0.f))
-					{
-						float sigma = std::max(1.f, std::abs(robot_point.y/p_ref.y));
-						float v_robot_point_radial_max = sigma*v_p_ref_radial_max;
-						if (((robot_point - obj.circle.center).norm() - radius_sum)/tau > v_robot_point_radial_max + 0.01f)
-							continue;
-					}
-					Vec2 n = (obj.circle.center - robot_point).normalized();
-					float b = ((robot_point - obj.circle.center).norm() - radius_sum)/tau;
-					Vec2 n_constraint_tmp(n.x*robot_point.y/p_ref.y + n.y*(p_ref.x - robot_point.x)/p_ref.y, n.y);
-					if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp.norm() > b)
-						constraints->push_back(HalfPlane2(n_constraint_tmp, b/n_constraint_tmp.norm()));
-					float normal_limit = 1.f*robot_radius/tau/v_p_ref_radial_max;
-					if (std::abs(n_constraint_tmp.x) < normal_limit)
-					{
-						float shift_abs = normal_limit - std::abs(n_constraint_tmp.x);
-						Vec2 n_constraint_tmp_plus(n.x*(robot_point.y + shift_abs)/
-							p_ref.y + n.y*(p_ref.x - robot_point.x)/p_ref.y, n.y);
-						Vec2 n_constraint_tmp_minus(n.x*(robot_point.y - shift_abs)/
-							p_ref.y + n.y*(p_ref.x - robot_point.x)/p_ref.y, n.y);
-						if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp_plus.norm() > b)
-							constraints->push_back(HalfPlane2(n_constraint_tmp_plus, b/n_constraint_tmp_plus.norm()));
-						if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp_minus.norm() > b)
-							constraints->push_back(HalfPlane2(n_constraint_tmp_minus, b/n_constraint_tmp_minus.norm()));
-					}
+					generateAndAddStaticConstraint(c.center, c.radius, obj.circle.center,
+						obj.circle.radius, p_ref, constraints);
 				}
 			}
 			else
 			{
 				Vec2 robot_point;
 				robot_shape.closestMidLineSegmentPoint(obj.circle.center, &robot_point);
-				float radius_sum = robot_shape.radius() + obj.circle.radius + delta;
-				if ((robot_point.x == 0.f) && (p_ref.x == 0.f))
-				{
-					float sigma = std::max(1.f, std::abs(robot_point.y/p_ref.y));
-					float v_robot_point_radial_max = sigma*v_p_ref_radial_max;
-					if (((robot_point - obj.circle.center).norm() - radius_sum)/tau > v_robot_point_radial_max + 0.01f)
-						continue;
-				}
-				Vec2 n = (obj.circle.center - robot_point).normalized();
-				float b = ((robot_point - obj.circle.center).norm() - radius_sum)/tau;
-				Vec2 n_constraint_tmp(n.x*robot_point.y/p_ref.y + n.y*(p_ref.x - robot_point.x)/p_ref.y, n.y);
-				if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp.norm() > b)
-					constraints->push_back(HalfPlane2(n_constraint_tmp, b/n_constraint_tmp.norm()));
-				float normal_limit = 1.f*robot_shape.radius()/tau/v_p_ref_radial_max;
-				if (std::abs(n_constraint_tmp.x) < normal_limit)
-				{
-					float shift_abs = normal_limit - std::abs(n_constraint_tmp.x);
-					Vec2 n_constraint_tmp_plus(n.x*(robot_point.y + shift_abs)/
-						p_ref.y + n.y*(p_ref.x - robot_point.x)/p_ref.y, n.y);
-					Vec2 n_constraint_tmp_minus(n.x*(robot_point.y - shift_abs)/
-						p_ref.y + n.y*(p_ref.x - robot_point.x)/p_ref.y, n.y);
-					if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp_plus.norm() > b)
-						constraints->push_back(HalfPlane2(n_constraint_tmp_plus, b/n_constraint_tmp_plus.norm()));
-					if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp_minus.norm() > b)
-						constraints->push_back(HalfPlane2(n_constraint_tmp_minus, b/n_constraint_tmp_minus.norm()));
-				}
+				generateAndAddStaticConstraint(robot_point, robot_shape.radius(),
+					obj.circle.center, obj.circle.radius, p_ref, constraints);
 			}
 		}
 	}
 
+	void RDS5::generateAndAddStaticConstraint(const Vec2& robot_point,
+		float robot_radius, const Vec2& object_point, float object_radius,
+		const Vec2& p_ref, std::vector<HalfPlane2>* constraints)
+	{
+		float radius_sum = robot_radius + object_radius + delta;
+		if ((robot_point.x == 0.f) && (p_ref.x == 0.f))
+		{
+			float sigma = std::max(1.f, std::abs(robot_point.y/p_ref.y));
+			float v_robot_point_radial_max = sigma*v_p_ref_radial_max;
+			if (((robot_point - object_point).norm() - radius_sum)/tau > v_robot_point_radial_max + 0.01f)
+				return;
+		}
+		Vec2 n = (object_point - robot_point).normalized();
+		float b = ((robot_point - object_point).norm() - radius_sum)/tau;
+		Vec2 n_constraint_tmp(n.x*robot_point.y/p_ref.y + n.y*(p_ref.x - robot_point.x)/p_ref.y, n.y);
+		if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp.norm() > b)
+			constraints->push_back(HalfPlane2(n_constraint_tmp, b/n_constraint_tmp.norm()));
+		float normal_limit = 1.f*robot_radius/tau/v_p_ref_radial_max;
+		if (std::abs(n_constraint_tmp.x) < normal_limit)
+		{
+			float shift_abs = normal_limit - std::abs(n_constraint_tmp.x);
+			Vec2 n_constraint_tmp_plus(n.x*(robot_point.y + shift_abs)/
+				p_ref.y + n.y*(p_ref.x - robot_point.x)/p_ref.y, n.y);
+			Vec2 n_constraint_tmp_minus(n.x*(robot_point.y - shift_abs)/
+				p_ref.y + n.y*(p_ref.x - robot_point.x)/p_ref.y, n.y);
+			if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp_plus.norm() > b)
+				constraints->push_back(HalfPlane2(n_constraint_tmp_plus, b/n_constraint_tmp_plus.norm()));
+			if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp_minus.norm() > b)
+				constraints->push_back(HalfPlane2(n_constraint_tmp_minus, b/n_constraint_tmp_minus.norm()));
+		}
+	}
 	
 	void RDS5::solve(const Vec2& v_nominal, std::vector<HalfPlane2>& constraints_tmp, Vec2* v_corrected)
 	{
