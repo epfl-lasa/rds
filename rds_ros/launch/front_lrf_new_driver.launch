@@ -9,13 +9,13 @@
   <arg name="frame_id" default="tf_front_lidar" />
   <arg name="manager" default="$(arg frame_id)_nodelet_manager" />
   <arg name="max_range" default="50.0" />
-  <arg name="min_range" default="0.3" />
+  <arg name="min_range" default="0.4" />
   <arg name="pcap" default="" />
   <arg name="port" default="2368" />
   <arg name="read_fast" default="false" />
   <arg name="read_once" default="false" />
   <arg name="repeat_delay" default="0.0" />
-  <arg name="rpm" default="600.0" />
+  <arg name="rpm" default="900.0" />
   <arg name="cut_angle" default="-0.01" />
   <arg name="laserscan_ring" default="7" />
   <arg name="laserscan_resolution" default="0.007" />
@@ -38,7 +38,7 @@
       <arg name="cut_angle" value="$(arg cut_angle)"/>
     </include>
 
-    <!-- start cloud nodelet -->
+    <!-- start cloud nodelet 
     <include file="$(find velodyne_pointcloud)/launch/cloud_nodelet.launch">
       <arg name="model" value="VLP16"/>
       <arg name="calibration" value="$(arg calibration)"/>
@@ -48,7 +48,7 @@
       <arg name="max_range" value="$(arg max_range)"/>
       <arg name="min_range" value="$(arg min_range)"/>
       <arg name="organize_cloud" value="$(arg organize_cloud)"/>
-    </include>
+    </include> -->
     
     <!-- start laserscan nodelet -->
     <include file="$(find velodyne_pointcloud)/launch/laserscan_nodelet.launch">

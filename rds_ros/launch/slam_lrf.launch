@@ -1,7 +1,6 @@
 <launch>
   
   <include file="$(find rds_ros)/launch/front_lrf_cloud.launch"/>
-  <node name="rds_ros" pkg="rds_ros" type="rds_ros_node"/>
 
   <include file="$(find hector_mapping)/launch/mapping_qolo.launch"/>
 
