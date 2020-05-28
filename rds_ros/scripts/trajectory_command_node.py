@@ -16,9 +16,10 @@ from scipy.interpolate import UnivariateSpline
 #import matplotlib.pyplot as plt
  
 trajectory_xyt = np.array([
-   [ 0.3, 0.0,  0.0], # accelerating
-   [ 1.3, 0.0,  5.0],
-   [ 2.3, 0.0, 10.0] # decelerating
+   [ 0.0, 0.0,  0.0], # accelerating
+   [ 3.0, 0.0,  6.0],
+   [ 6.0, 0.0, 15.0],
+   [ 10.0, 0.0, 25.0]
    ])
 # trajectory_xyt = np.array([
 #    [ 0.0, 0.0,  0.0], # accelerating
@@ -83,6 +84,7 @@ def feedforward_feedback_controller(t):
    global previous_command_angular
    global trajectory_spline
    global trajectory_spline_derivative
+   
    try:
       (x, y, phi) = get_pose()
       t_lost_tf = -1.0
@@ -99,8 +101,8 @@ def feedforward_feedback_controller(t):
          [trajectory_spline_derivative[1](t)]])
       position_setpoint = np.array([[trajectory_spline[0](t)],
          [trajectory_spline[1](t)]])
-      feedback_velocity = 0.25*(position_setpoint - p_ref_global)
-      v_norm_max = 1.2
+      feedback_velocity = 0.1*(position_setpoint - p_ref_global)
+      v_norm_max = 1.0
       v_norm_actual = np.linalg.norm(feedback_velocity)
       if (v_norm_actual > v_norm_max):
          feedback_velocity = feedback_velocity/v_norm_actual*v_norm_max
@@ -131,49 +133,24 @@ def feedforward_feedback_controller(t):
 
 def publish_command(command_linear, command_angular, t):
    global data_remote, command_publisher
-   
    Ctime = round(time.clock(),4)
    data_remote.data = [Ctime,command_linear,command_angular]
-   # msg.data = np.array([
-   #    rospy.get_rostime(),
-   #    command_linear,
-   #    command_angular])
    command_publisher.publish(data_remote)
    rospy.loginfo(data_remote)
 
-# def rds_service(t):
-#    # print "Waiting for RDS Service"
-
-#    rospy.wait_for_service('rds_velocity_command_correction')
-#    # try:
-#    RDS = rospy.ServiceProxy('rds_velocity_command_correction',
-#       VelocityCommandCorrectionRDS)
-
-#    request = VelocityCommandCorrectionRDSRequest()
-
-#    (Trajectory_V, Trajectory_W) = feedforward_feedback_controller(t)
-
-#    request.nominal_command.linear = Trajectory_V;
-#    request.nominal_command.angular = Trajectory_W;
-
-#    response = RDS(request)
-#    Output_V = round(response.corrected_command.linear, 4)
-#    Output_W = round(response.corrected_command.angular, 4)
-
-#    publish_command(Output_V, Output_W, t)
 
 def trajectory_service(t):
    # print "Waiting for RDS Service"
-   # try:
-   (Trajectory_V, Trajectory_W) = feedforward_feedback_controller(t)
-   publish_command(Trajectory_V, Trajectory_W, t)
-   # except:
-        # publish_command(0., 0., 0.)
-        # print ('Trajectory Error Stopping [0 0]')
+   try:
+      (Trajectory_V, Trajectory_W) = feedforward_feedback_controller(t)
+      publish_command(Trajectory_V, Trajectory_W, t)
+   except:
+        publish_command(0., 0., 0.)
+        print ('Trajectory Stopping [0 0]')
 
 
 def main():
-   global tf_listener, command_publisher, data_remote
+   global tf_listener, command_publisher, data_remote, trajectory_xyt
    rospy.init_node('qolo_trajectory_tracking')
    tf_listener = tf.TransformListener()
    command_publisher = rospy.Publisher('qolo/remote_commands',Float32MultiArray, queue_size=1)
@@ -183,9 +160,15 @@ def main():
    data_remote.layout.dim[0].size = 3
    data_remote.data = [0]*3
 
+   end_time = trajectory_xyt[-1][2]
+   print('Trajectory time: ',end_time)
    start_time = time.time()
    while not rospy.is_shutdown():
-      trajectory_service(time.time() - start_time)
+      current_t = time.time() - start_time
+      if current_t <= end_time:
+         trajectory_service(current_t)
+      else:
+         publish_command(0., 0., 0.)
 
 if __name__ == '__main__':
    main()

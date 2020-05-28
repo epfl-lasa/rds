@@ -15,7 +15,7 @@
   <arg name="read_fast" default="false" />
   <arg name="read_once" default="false" />
   <arg name="repeat_delay" default="0.0" />
-  <arg name="rpm" default="600.0" />
+  <arg name="rpm" default="1200.0" />
   <arg name="cut_angle" default="-0.01" />
   <arg name="laserscan_ring" default="8" />
   <arg name="laserscan_resolution" default="0.007" />
