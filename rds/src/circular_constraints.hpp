@@ -38,6 +38,24 @@ namespace Geometry2D
 		std::vector<HalfPlane2> constraints_velocity_limits;
 		CircularCorrectionLowerPoints circular_correction_lower_points;
 	};
+
+	struct CircularCorrectionCapsuleCap
+	{
+		CircularCorrectionCapsuleCap(float y_center_front,
+			float y_center_back, const VWDiamond& vw_diamond_limits);
+
+		void createCircularConstraints(const HalfPlane2& constraint,
+			float tau, std::vector<HalfPlane2>* circular_constraints);	
+
+		const std::vector<HalfPlane2>& getConstraintsVelocityLimits() const;
+
+		const float y_center_front, y_center_back;
+		const VWDiamond vw_diamond_limits;
+
+		struct CircularCorrectionCapException { };
+	private:
+		CircularCorrection circular_correction;
+	};
 }
 
 #endif

@@ -218,4 +218,34 @@ namespace Geometry2D
 			return;
 		}
 	}
+
+	CircularCorrectionCapsuleCap::CircularCorrectionCapsuleCap(float y_center_front,
+		float y_center_back, const VWDiamond& vw_diamond_limits)
+		: y_center_front(y_center_front)
+		, y_center_back(y_center_back)
+		, vw_diamond_limits(vw_diamond_limits)
+		, circular_correction(vw_diamond_limits, y_center_front)
+	{
+		if ((y_center_front < 0.03f) || (y_center_front < y_center_back))
+			throw CircularCorrectionCapException();
+	}
+
+	const std::vector<HalfPlane2>& CircularCorrectionCapsuleCap::getConstraintsVelocityLimits() const
+	{
+		return circular_correction.getConstraintsVelocityLimits();
+	}
+
+	void CircularCorrectionCapsuleCap::createCircularConstraints(const HalfPlane2& constraint,
+		float tau, std::vector<HalfPlane2>* circular_constraints)
+	{
+		HalfPlane2 constraint_shifted(constraint);
+		if (constraint.getNormal().y < 0.f)
+		{
+			float shift = constraint.getNormal().y*(y_center_front
+				- y_center_back)/tau;
+			constraint_shifted.shift(shift*constraint.getNormal());
+		}
+		circular_correction.createCircularConstraints(constraint_shifted,
+			tau, circular_constraints);
+	}
 }
