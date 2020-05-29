@@ -152,7 +152,7 @@ void RVO::computeConvexRVO(const Vec2& relative_position, const Vec2& relative_v
 			}
 			else
 			{
-				float scaling = 2.f*relative_velocity_pref.dot(c_cone_cap)/
+				float scaling = relative_velocity_pref.dot(c_cone_cap)/
 					relative_velocity_pref.dot(relative_velocity_pref);
 				tangent_point = relative_velocity_pref*scaling;
 			}
