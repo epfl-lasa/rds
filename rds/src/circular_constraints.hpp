@@ -44,8 +44,8 @@ namespace Geometry2D
 		CircularCorrectionCapsuleCap(float y_center_front,
 			float y_center_back, const VWDiamond& vw_diamond_limits);
 
-		void createCircularConstraints(const HalfPlane2& constraint,
-			float tau, std::vector<HalfPlane2>* circular_constraints);	
+		void createCircularConstraints(const HalfPlane2& constraint, float tau_original,
+			float tau_circular, std::vector<HalfPlane2>* circular_constraints);	
 
 		const std::vector<HalfPlane2>& getConstraintsVelocityLimits() const;
 
@@ -54,7 +54,7 @@ namespace Geometry2D
 
 		struct CircularCorrectionCapException { };
 	private:
-		CircularCorrection circular_correction;
+		CircularCorrection circular_correction, circular_correction_back;
 	};
 }
 

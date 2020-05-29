@@ -225,8 +225,10 @@ namespace Geometry2D
 		, y_center_back(y_center_back)
 		, vw_diamond_limits(vw_diamond_limits)
 		, circular_correction(vw_diamond_limits, y_center_front)
+		, circular_correction_back(vw_diamond_limits, y_center_back)
 	{
-		if ((y_center_front < 0.03f) || (y_center_front < y_center_back))
+		if ((y_center_front < 0.03f) || 
+			(y_center_back > -0.03f))
 			throw CircularCorrectionCapException();
 	}
 
@@ -236,16 +238,28 @@ namespace Geometry2D
 	}
 
 	void CircularCorrectionCapsuleCap::createCircularConstraints(const HalfPlane2& constraint,
-		float tau, std::vector<HalfPlane2>* circular_constraints)
+		float tau_original, float tau_circular,
+		std::vector<HalfPlane2>* circular_constraints)
 	{
+		std::vector<HalfPlane2> circular_constraints_front, circular_constraints_back;
 		HalfPlane2 constraint_shifted(constraint);
 		if (constraint.getNormal().y < 0.f)
 		{
 			float shift = constraint.getNormal().y*(y_center_front
-				- y_center_back)/tau;
+				- y_center_back)/tau_original;
 			constraint_shifted.shift(shift*constraint.getNormal());
 		}
 		circular_correction.createCircularConstraints(constraint_shifted,
-			tau, circular_constraints);
+			tau_circular, &circular_constraints_front);
+		circular_correction_back.createCircularConstraints(constraint_shifted,
+			tau_circular, &circular_constraints_back);
+		
+		for (auto& c : circular_constraints_front)
+			circular_constraints->push_back(c);
+		for (auto& c : circular_constraints_back)
+		{
+			Vec2 n_tmp(c.getNormal().x*y_center_back/y_center_front, c.getNormal().y);
+			circular_constraints->push_back(HalfPlane2(n_tmp, c.getOffset()/n_tmp.norm()));
+		}
 	}
 }
