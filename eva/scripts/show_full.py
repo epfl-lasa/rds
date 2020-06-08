@@ -62,11 +62,33 @@ plt.show()
 
 ###################################################################
 
-t = command_mat['data'][:, 0]
-v_nominal = command_mat['data'][:, 1]
-w_nominal = command_mat['data'][:, 2]
-v_corrected = command_mat['data'][:, 3]
-w_corrected = command_mat['data'][:, 4]
+# for bag 17:
+sub_range = np.arange(150, 300, 1)
+plot_lrf = True
+
+# for bag 01:
+sub_range = np.arange(370, 500, 1)
+plot_lrf = False
+
+# for bag 04:
+sub_range = np.arange(260, 450, 1)
+plot_lrf = False
+
+# for bag 06:
+sub_range = np.arange(200, 600, 1)
+plot_lrf = False
+
+# for bag 09:
+sub_range = np.arange(500, 900, 1)
+plot_lrf = False
+
+###################################################################
+
+t = command_mat['data'][sub_range, 0]
+v_nominal = command_mat['data'][sub_range, 1]
+w_nominal = command_mat['data'][sub_range, 2]
+v_corrected = command_mat['data'][sub_range, 3]
+w_corrected = command_mat['data'][sub_range, 4]
 
 ax1 = plt.subplot(211)
 ax2 = plt.subplot(212, sharex=ax1)
@@ -83,8 +105,8 @@ plt.show()
 
 ###################################################################
 
-track_ob = tracker_mat['data']
-lrf_ob = lrf_mat['data']
+track_ob = tracker_mat['data'][sub_range, :]
+lrf_ob = lrf_mat['data'][sub_range, :]
 
 track_ob_global = np.empty(track_ob.shape)
 track_ob_global[:] = np.nan
@@ -146,6 +168,12 @@ plt.quiver(xy_p_ref[v_sampler, 0], xy_p_ref[v_sampler, 1], v_cartesian_corrected
 plt.scatter(xy_p_ref[:, 0], xy_p_ref[:, 1], c=t/(t_upper-t_lower), cmap=cm.hot, marker='o', edgecolors='k')
 plt.scatter(track_ob_global[:,0], track_ob_global[:,1], c=t/(t_upper-t_lower), cmap=cm.hot, marker='s', edgecolors='g')
 plt.scatter(track_ob_global[:,2], track_ob_global[:,3], c=t/(t_upper-t_lower), cmap=cm.hot, marker='x')
+
+if plot_lrf:
+	even = np.arange(0, lrf_ob_global.shape[1], 2)
+	odd = np.arange(1, lrf_ob_global.shape[1], 2)
+	plt.scatter(lrf_ob_global[:, even].flatten(), lrf_ob_global[:, odd].flatten())
+
 ax = plt.gca()
 ax.set_aspect('equal')
 ax.set_ylabel('y [m]')

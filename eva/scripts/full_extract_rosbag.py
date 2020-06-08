@@ -87,7 +87,9 @@ def callbackToGui(msg):
 	for i in range(n_lrf_objects):
 		if i*2 + 1 >= lrf_objects_data.shape[1]:
 			print('More lrf-objects than expected')
-			break 
+			break
+		if msg.moving_objects[i].radius > 0.1:
+			break # in case not every tracker object had a non-zero velocity (oh that object will be lost)
 		lrf_objects_data[counter, i*2] = msg.moving_objects[i].center.x
 		lrf_objects_data[counter, i*2 + 1] = msg.moving_objects[i].center.y
 	counter += 1
