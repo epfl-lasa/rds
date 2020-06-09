@@ -1,6 +1,5 @@
 #include "rds_ros_node.hpp"
 
-#include <rds/geometry.hpp>
 #include <rds/capsule.hpp>
 
 #include <rds_network_ros/ToGui.h>
@@ -16,6 +15,35 @@
 using Geometry2D::Vec2;
 using Geometry2D::Capsule;
 using AdditionalPrimitives2D::Circle;
+
+
+PersonTracks::PersonTracks(const frame_msgs::TrackedPersons::ConstPtr& tracks_msg)
+	: time(std::chrono::high_resolution_clock::now())
+	, frame_id(tracks_msg->header.frame_id)
+	, delay(1.f)
+{
+	MovingObject3 pers_global;
+	for (const auto& track : tracks_msg->tracks)
+	{
+		pers_global.position.setX(track.pose.pose.position.x);
+		pers_global.position.setY(track.pose.pose.position.y);
+		pers_global.position.setZ(track.pose.pose.position.z);
+		pers_global.velocity.setX(track.twist.twist.linear.x);
+		pers_global.velocity.setY(track.twist.twist.linear.y);
+		pers_global.velocity.setZ(track.twist.twist.linear.z);
+		persons_global.push_back(pers_global);
+	}
+	for (auto& pers : persons_global)
+		pers.position += delay*pers.velocity;
+}
+
+void PersonTracks::updatePositions(const std::chrono::time_point<std::chrono::high_resolution_clock>& time_now)
+{
+	std::chrono::duration<double> t_step_duration(time_now - time);
+	time = time_now;
+	for (auto& pers : persons_global)
+		pers.position += t_step_duration.count()*pers.velocity;
+}
 
 int RDSNode::obtainTf(const std::string& frame_id_1, const std::string& frame_id_2, tf2::Transform* tf)
 {
@@ -47,33 +75,33 @@ int RDSNode::obtainTf(const std::string& frame_id_1, const std::string& frame_id
 
 void RDSNode::callbackTracker(const frame_msgs::TrackedPersons::ConstPtr& tracks_msg)
 {
-	tf2::Transform tf;
+	m_person_tracks = PersonTracks(tracks_msg);
+}
 
-	int error_tf_lookup = obtainTf("tf_rds", tracks_msg->header.frame_id, &tf);
+int RDSNode::makeLocalPersons(const std::vector<MovingObject3>& persons_global,
+	const std::string& tracks_frame_id, std::vector<MovingCircle>* persons_local)
+{
+	tf2::Transform tf;
+	int error_tf_lookup = obtainTf("tf_rds", tracks_frame_id, &tf);
 	if (error_tf_lookup)
-		return;
+		return 1;
 	tf2::Transform tf_only_rotation(tf.getRotation());
 
-	m_tracked_persons.resize(0);
-	tf2::Vector3 position_global, position_local, velocity_global, velocity_local;
-	for (const auto& track : tracks_msg->tracks)
+	if (persons_global.size() != persons_local->size())
+		persons_local->resize(persons_global.size());
+
+	tf2::Vector3 position_local, velocity_local;
+	for (unsigned int i = 0; i != persons_global.size(); i++)
 	{
-		position_global.setX(track.pose.pose.position.x);
-		position_global.setY(track.pose.pose.position.y);
-		position_global.setZ(track.pose.pose.position.z);
-
-		position_local = tf*position_global;
-
-		velocity_global.setX(track.twist.twist.linear.x);
-		velocity_global.setY(track.twist.twist.linear.y);
-		velocity_global.setZ(track.twist.twist.linear.z);
-
-		velocity_local = tf_only_rotation*velocity_global;
-
-		m_tracked_persons.push_back(MovingCircle(
-			Circle(Vec2(position_local.getX(), position_local.getY()), 0.3), //radius=0.3 (default)
-			Vec2(velocity_local.getX(), velocity_local.getY())));
+		position_local = tf*persons_global[i].position;
+		velocity_local = tf_only_rotation*persons_global[i].velocity;
+		(*persons_local)[i].circle.center.x = position_local.getX();
+		(*persons_local)[i].circle.center.y = position_local.getY();
+		(*persons_local)[i].circle.radius = 0.3f;
+		(*persons_local)[i].velocity.x = velocity_local.getX();
+		(*persons_local)[i].velocity.y = velocity_local.getY();
 	}
+	return 0;
 }
 
 bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectionRDS::Request& request,
@@ -94,7 +122,12 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 			all_moving_objects.push_back(moving_object);
 		}
 	}
-	for (auto& pedestrian : m_tracked_persons)
+
+	m_person_tracks.updatePositions(std::chrono::high_resolution_clock::now());
+	if (makeLocalPersons(m_person_tracks.getPersonsGlobal(),
+		m_person_tracks.getFrameId(), &m_person_tracks.persons_local) != 0)
+		ROS_WARN("Using old local person positions (could be none).");
+	for (auto& pedestrian : m_person_tracks.persons_local)
 		all_moving_objects.push_back(pedestrian);
 
 	// parse service parameters

@@ -18,6 +18,29 @@
 #include <vector>
 #include <string>
 
+#include <chrono>
+
+struct MovingObject3
+{
+	tf2::Vector3 position, velocity;
+};
+
+struct PersonTracks
+{
+	PersonTracks() { }
+	PersonTracks(const frame_msgs::TrackedPersons::ConstPtr& tracker_message);
+	void updatePositions(const std::chrono::time_point<std::chrono::high_resolution_clock>& time_now);
+	const std::vector<MovingObject3>& getPersonsGlobal() const { return persons_global; }
+	const std::string& getFrameId() const { return frame_id; }
+
+	std::vector<MovingCircle> persons_local;
+private:
+	std::vector<MovingObject3> persons_global;
+	std::chrono::time_point<std::chrono::high_resolution_clock> time;
+	std::string frame_id;
+	float delay;
+};
+
 struct RDSNode
 {
 	RDSNode(ros::NodeHandle* n, AggregatorTwoLRF& agg);
@@ -29,6 +52,9 @@ struct RDSNode
 
 	int obtainTf(const std::string& frame_id_1, const std::string& frame_id_2, tf2::Transform* tf);
 
+	int makeLocalPersons(const std::vector<MovingObject3>& persons_global,
+		const std::string& tracks_frame_id, std::vector<MovingCircle>* persons_local);
+
 	AggregatorTwoLRF& m_aggregator_two_lrf;
 	ros::Subscriber subscriber_lrf_front;
 	ros::Subscriber subscriber_lrf_rear;
@@ -36,6 +62,7 @@ struct RDSNode
 	ros::Publisher publisher_for_gui;
 	ros::ServiceServer command_correction_server;
 	std::vector<MovingCircle> m_tracked_persons;
+	PersonTracks m_person_tracks;
 	tf2_ros::Buffer tf_buffer;
 	tf2_ros::TransformListener tf_listener;
 	float command_correct_previous_linear, command_correct_previous_angular;
