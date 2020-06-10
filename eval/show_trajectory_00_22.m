@@ -108,7 +108,9 @@ ylabel('normalized shortest distance [m/s]')
 %     idt2 = find(time>= 402, 1);
 
     trange = idt1:idt2;    
+%     User input Commnads
     Command_U = commands(2:3,trange);
+%     Robot Commnads
     Command_R = commands(4:5,trange);
     
     [linear_diff,heading,disagreement ,Contribution] = similarity(Command_U ,Command_R, Vel_max, Omega_max);
@@ -120,14 +122,14 @@ ylabel('normalized shortest distance [m/s]')
     fluency
 %%
     figure(nfig)
-    subplot(2,1,1),plot(time,Command_U(1,:));
+    subplot(2,1,1),plot(time(trange)-time(idt1),Command_U(1,:));
     hold on;
     grid on;
-    subplot(2,1,1),plot(time,Command_R(1,:))
+    subplot(2,1,1),plot(time(trange)-time(idt1),Command_R(1,:))
     title('Linear Speed')
     
-    subplot(2,1,2),plot(time,Command_U(2,:));
+    subplot(2,1,2),plot(time(trange)-time(idt1),Command_U(2,:));
     hold on;
     grid on;
-    subplot(2,1,2),plot(time,Command_R(2,:))
+    subplot(2,1,2),plot(time(trange)-time(idt1),Command_R(2,:))
     title('Angular Speed')

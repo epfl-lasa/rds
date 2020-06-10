@@ -20,7 +20,7 @@ using AdditionalPrimitives2D::Circle;
 PersonTracks::PersonTracks(const frame_msgs::TrackedPersons::ConstPtr& tracks_msg)
 	: time(std::chrono::high_resolution_clock::now())
 	, frame_id(tracks_msg->header.frame_id)
-	, delay(1.f)
+	, delay(0.1f)
 {
 	MovingObject3 pers_global;
 	for (const auto& track : tracks_msg->tracks)

@@ -39,7 +39,7 @@
 
     </include>
 
-    <!-- start cloud nodelet 
+    <!-- start cloud nodelet -->
     <include file="$(find velodyne_pointcloud)/launch/cloud_nodelet.launch">
       <arg name="model" value="VLP16"/>
       <arg name="calibration" value="$(arg calibration)"/>
@@ -51,7 +51,7 @@
       <param name="topic" value="/vlp16_front/velodyne_points" />
       <param name="wait_time" value="2.0" />
     </include>
-      -->
+
     
     <!-- start laserscan nodelet -->
     <include file="$(find velodyne_pointcloud)/launch/laserscan_nodelet.launch">
