@@ -89,8 +89,8 @@ sub_range = np.arange(700, 1000, 1)
 plot_lrf = False
 
 # for backwards_04
-sub_range = np.arange(0, 300, 1)
-plot_lrf = False
+#sub_range = np.arange(0, 300, 1)
+#plot_lrf = False
 
 
 ###################################################################
@@ -127,6 +127,12 @@ lrf_ob_global[:] = np.nan
 shortest_distance_first_track = np.empty([track_ob.shape[0], 1])
 shortest_distance_first_track[:] = np.nan
 
+shortest_distance_track_all = np.empty([track_ob.shape[0], 1])
+shortest_distance_track_all[:] = np.nan
+
+shortest_distance_lrf_all = np.empty([track_ob.shape[0], 1])
+shortest_distance_lrf_all[:] = np.nan
+
 recent_track_value = 1234567.89
 
 xy_p_ref = np.empty([t.shape[0], 2])
@@ -158,6 +164,10 @@ for i in range(track_ob.shape[0]):
 		if np.isnan(lrf_ob[i, j*2]):
 			break
 		lrf_ob_global[i, j*2:(j + 1)*2] = np.matmul(rotation_matrix, lrf_ob[i, j*2:(j + 1)*2]) + translation_vector
+		
+		min_dist = capsule.distance(lrf_ob[i, j*2], lrf_ob[i, j*2 + 1])
+		if np.isnan(shortest_distance_lrf_all[i, 0]) or (shortest_distance_lrf_all[i, 0] > min_dist):
+			shortest_distance_lrf_all[i, 0] = min_dist
 
 	if recent_track_value == track_ob[i, 0]:
 		continue
@@ -169,8 +179,11 @@ for i in range(track_ob.shape[0]):
 			break
 		track_ob_global[i, j*4:j*4+2] = np.matmul(rotation_matrix, track_ob[i, j*4:j*4+2]) + translation_vector
 		track_ob_global[i, j*4+2:(j + 1)*4] = np.matmul(rotation_matrix, track_ob[i, j*4+2:(j + 1)*4]) + translation_vector
+		min_dist = capsule.distance(track_ob[i, j*4], track_ob[i, j*4+1])
+		if np.isnan(shortest_distance_track_all[i, 0]) or (shortest_distance_track_all[i, 0] > min_dist):
+			shortest_distance_track_all[i, 0] = min_dist
 		if j == 0:
-			shortest_distance_first_track[i, 0] = capsule.distance(track_ob[i, 0], track_ob[i, 1])
+			shortest_distance_first_track[i, 0] = min_dist
 
 v_scale = 1.0
 v_sampler = np.arange(0, t.shape[0], 20)
@@ -200,3 +213,16 @@ ax.set_ylabel('distance [m]')
 ax.set_xlabel('t [s]')
 ax.set_title('Shortest distance')
 plt.show()
+
+#################################################################################################
+
+# write out
+
+sio.savemat('xy_p_ref.mat', {'data' : xy_p_ref})
+sio.savemat('v_cartesian_nominal_p_ref.mat', {'data' : v_cartesian_nominal_p_ref})
+sio.savemat('v_cartesian_corrected_p_ref.mat', {'data' : v_cartesian_corrected_p_ref})
+sio.savemat('shortest_distance_lrf_all.mat', {'data' : shortest_distance_lrf_all})
+sio.savemat('shortest_distance_first_track.mat', {'data' : shortest_distance_first_track})
+sio.savemat('shortest_distance_track_all.mat', {'data' : shortest_distance_track_all})
+sio.savemat('track_ob_global.mat', {'data' : track_ob_global})
+sio.savemat('lrf_ob_global.mat', {'data' : lrf_ob_global})
