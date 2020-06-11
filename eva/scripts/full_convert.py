@@ -85,13 +85,32 @@ plot_lrf = False
 
 # for jun_10
 # for overcoming_03
-sub_range = np.arange(700, 1000, 1)
-plot_lrf = False
-
-# for backwards_04
-#sub_range = np.arange(0, 300, 1)
+#sub_range = np.arange(700, 1000, 1)
 #plot_lrf = False
 
+# for backwards_04
+sub_range = np.arange(0, 300, 1)
+plot_lrf = False
+
+# for ntersection_01
+#sub_range = np.arange(120, 580, 1)
+#plot_lrf = False
+
+# for ntersection_04
+#sub_range = np.arange(0, command_mat['data'].shape[0], 1)
+#plot_lrf = False
+
+# for ntersection_05
+#sub_range = np.arange(0, 500, 1)
+#plot_lrf = True
+
+# for ntersection_06
+#sub_range = np.arange(0, command_mat['data'].shape[0], 1)
+#plot_lrf = False
+
+# ...
+#sub_range = np.arange(0, command_mat['data'].shape[0], 1)
+#plot_lrf = False
 
 ###################################################################
 
@@ -218,11 +237,11 @@ plt.show()
 
 # write out
 
-sio.savemat('xy_p_ref.mat', {'data' : xy_p_ref})
-sio.savemat('v_cartesian_nominal_p_ref.mat', {'data' : v_cartesian_nominal_p_ref})
-sio.savemat('v_cartesian_corrected_p_ref.mat', {'data' : v_cartesian_corrected_p_ref})
-sio.savemat('shortest_distance_lrf_all.mat', {'data' : shortest_distance_lrf_all})
-sio.savemat('shortest_distance_first_track.mat', {'data' : shortest_distance_first_track})
-sio.savemat('shortest_distance_track_all.mat', {'data' : shortest_distance_track_all})
-sio.savemat('track_ob_global.mat', {'data' : track_ob_global})
-sio.savemat('lrf_ob_global.mat', {'data' : lrf_ob_global})
+sio.savemat('t_xy_p_ref.mat', {'data' : np.concatenate((t[:,None], xy_p_ref), axis=1)})
+sio.savemat('t_v_cartesian_nominal_p_ref.mat', {'data' : np.concatenate((t[:,None], v_cartesian_nominal_p_ref), axis=1)})
+sio.savemat('t_v_cartesian_corrected_p_ref.mat', {'data' : np.concatenate((t[:,None], v_cartesian_corrected_p_ref), axis=1)})
+sio.savemat('t_shortest_distance_lrf_all.mat', {'data' : np.concatenate((t[:,None], shortest_distance_lrf_all), axis=1)})
+sio.savemat('t_shortest_distance_first_track.mat', {'data' : np.concatenate((t[:,None], shortest_distance_first_track), axis=1)})
+sio.savemat('t_shortest_distance_track_all.mat', {'data' : np.concatenate((t[:,None], shortest_distance_track_all), axis=1)})
+sio.savemat('t_track_ob_global.mat', {'data' : np.concatenate((t[:,None], track_ob_global), axis=1)})
+sio.savemat('t_lrf_ob_global.mat', {'data' : np.concatenate((t[:,None], lrf_ob_global), axis=1)})
