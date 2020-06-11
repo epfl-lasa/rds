@@ -1,0 +1,20 @@
+command.mat								// commands // full time vector, nominal linear, nominal angular, corr. lin., corr. ang.
+lrf_ob_global.mat						// 
+lrf_object.mat							// local lrf points// [missing full time vector, ] lrf_pt_1_x, lrf_pt_1_y, ..., NaN, ...
+pose.mat								//
+shortest_distance_first_track.mat		//
+shortest_distance_lrf_all.mat			//
+shortest_distance_track_all.mat			//
+t_lrf_ob_global.mat						// global lrf pts // subrange time vector, lrf_pt_1_x, lrf_pt_1_y, ..., NaN, ...
+tracker_object.mat						// local track objects // [missing full time vector, ] track_obj_1_x, track_obj_1_y, track_obj_1_v_x, track_obj_1_v_y, ..., NaN, ...
+track_ob_global.mat						//
+t_shortest_distance_first_track.mat		// distance // subrange time vector, distance to first tracker object
+t_shortest_distance_lrf_all.mat			// distance // subrange time vector, min. distance to all lrf points
+t_shortest_distance_track_all.mat		// distance // subrange time vector, min. distance to all tracker objects
+t_track_ob_global.mat					// global track objects // subrange time vector, track_obj_1_x, track_obj_1_y, track_obj_1_v_x, track_obj_1_v_y, ..., NaN, ...
+t_v_cartesian_corrected_p_ref.mat		// velocity // subrange time vector, v_corr_x, v_corr_y
+t_v_cartesian_nominal_p_ref.mat			// velocity // subrange time vector, v_nom_x, v_nom_y
+t_xy_p_ref.mat							// position // subrange time vector, x, y
+v_cartesian_corrected_p_ref.mat			//
+v_cartesian_nominal_p_ref.mat			//
+xy_p_ref.mat							//
