@@ -12,12 +12,15 @@ clear all; close all; clc;
     CLEAR_PLOT = 0;
     PLOT_FLAG = 1;
     RECORD_FLAG = 0;
+    Omega_max = 0.8;    % Using the test maximum values [ real maximum 1.04]
+    Vel_max = 0.8;  % Use the test maximum [real max value 1.5]
+    
 % Get all available datasets
 %     filenames = loadDataNames();
     filenames = dir(fullfile(pwd,'jun_10_1'));
 % Select datase to evaluate (number from 3 to N)
     datasetNumber = 5; 
-    dataset = filenames(5).name;
+    dataset = filenames(datasetNumber).name;
     data_folder = fullfile(pwd,'jun_10_1',dataset);
     plot_folder = fullfile(pwd,'Plot', dataset);
 %     test_folders = dir(fullfile(data_folder))';
@@ -30,14 +33,27 @@ clear all; close all; clc;
 %      dataTypeNumber = 5;
 %     load(fullfile(test_data(dataTypeNumber).name,'command.mat'));
 
+
+%% Evaluating metrics to the set test
+
     load(fullfile(data_folder,'command.mat'));
-    time = data(:,1);
-    Command_U = commands(2:3,trange);
-    time = data(:,3);
-    time = data(:,4);
-    time = data(:,5);
-% v_nominal = command_mat['data'][sub_range, 1]
-% w_nominal = command_mat['data'][sub_range, 2]
-% v_corrected = command_mat['data'][sub_range, 3]
-% w_corrected = command_mat['data'][sub_range, 4]
+    time = data(:,1)';
+    Command_U = data(:,2:3)';
+    Command_R = data(:,4:5)';
+    
+    [linear_diff,directional_agreement,disagreement ,Contribution] = similarity(Command_U ,Command_R, Vel_max, Omega_max);
+    directional_agreement
+    [fluency] = user_fluency(Command_U, Vel_max, Omega_max)
+    Contribution_score = [mean(Contribution); std(Contribution)]
+    
+    load(fullfile(data_folder,'lrf_object.mat'));
+    lrf_points=data;
+    for ii=1:size(lrf_points,1)
+    iend = find(isnan(lrf_points(1,:)),1);
+        for jj=1:iend-1
+            points_distance(jj) = norm(lrf_points(jj),lrf_points(jj+1));
+        end
+        closest_point(ii) = min(points_distance);
+        mean_point(ii) = min(points_distance);
+    end
 
