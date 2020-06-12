@@ -11,7 +11,7 @@ typedef Window::sdlColor GuiColor;
 class GUI
 {
 public: 
-	GUI(const char* title, float window_size_in_distance_units, unsigned int window_size_in_pixels = 1000);
+	GUI(const char* title, float window_size_in_distance_units, unsigned int window_size_in_pixels = 1000, bool hide = false);
 
 	~GUI();
 
@@ -34,6 +34,8 @@ public:
 	{
 		window->render_feasible_region = true;
 	}
+
+	bool hide;
 
 private:
 	Window* window;

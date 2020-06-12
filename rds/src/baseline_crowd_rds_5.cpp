@@ -9,6 +9,7 @@
 #include <iostream>
 #include <string>
 #include <cstdio>
+#include <fstream>
 #include <vector>
 
 using Geometry2D::Vec2;
@@ -16,6 +17,9 @@ using Geometry2D::Capsule;
 using AdditionalPrimitives2D::Circle;
 using Geometry2D::BoundingCircles;
 using AdditionalPrimitives2D::Polygon;
+
+const bool with_gui = false;
+const bool save_result = true;
 
 const float dt = 0.05f;
 
@@ -91,7 +95,7 @@ void update_mean(double *mean, double value, double time)
 struct GuiWrap
 {
 	GuiWrap(const CrowdRdsOrcaSimulator& sim, float track_from_time)
-	: m_gui("RDS-ORCA Simulator", 20.f, 1200)
+	: m_gui("RDS-ORCA Simulator", 20.f, 1200, !(with_gui))
 	, m_bounding_circles(sim.getBoundingCirclesRobot())
 	, m_track_from_time(track_from_time)
 	{
@@ -198,7 +202,10 @@ struct GuiWrap
 		if (arena.contains(p_ref_global))
 			robot_log.time_insde_arena += dt;
 
-		return (m_gui.update() == 0);
+		if (with_gui)
+			return (m_gui.update() == 0);
+		else
+			return true;
 	}
 
 	GUI m_gui;
@@ -256,7 +263,8 @@ int main()
 
 	int robot_index;
 	CrowdRdsOrcaSimulator* sim;
-	for (unsigned int sample_index = 0; sample_index != 50; ++sample_index)
+	const unsigned int n_samples = 50;
+	for (unsigned int sample_index = 0; sample_index != n_samples; ++sample_index)
 	{
 		robot_index = sample_index*3;
 
@@ -276,8 +284,11 @@ int main()
 			std::chrono::high_resolution_clock::time_point t_gui_update = std::chrono::high_resolution_clock::now();
 			do
 			{
-				std::this_thread::sleep_for(gui_cycle_time - std::chrono::duration_cast<std::chrono::milliseconds>(
-					std::chrono::high_resolution_clock::now() - t_gui_update));
+				if (with_gui)
+				{
+					std::this_thread::sleep_for(gui_cycle_time - std::chrono::duration_cast<std::chrono::milliseconds>(
+						std::chrono::high_resolution_clock::now() - t_gui_update));
+				}
 				t_gui_update = std::chrono::high_resolution_clock::now();
 				sim->step(dt);
 				sim->checkRobotCollisions();
@@ -383,6 +394,20 @@ int main()
 		std::sprintf(std_str, "%10.6f", metric_std_values[i]);
 		std::cout << metric_names[i] << ":   mean =" << mean_str;
 		std::cout << "   std =" << std_str << std::endl;
+	}
+
+	if (save_result)
+	{
+		std::ofstream csv_file("metrics_evaluation.csv", std::ios::trunc);
+		csv_file << metric_names[0];
+		for (unsigned int j = 1; j != metric_names.size(); j++)
+			csv_file << "; " << metric_names[j];
+		for (unsigned int i = 0; i != metric_values[0].size(); ++i)
+		{
+			csv_file << std::endl << metric_values[0][i];
+			for (unsigned int j = 1; j != metric_values.size(); j++)
+				csv_file << "; " << metric_values[j][i];
+		}
 	}
 
 	return 0;
