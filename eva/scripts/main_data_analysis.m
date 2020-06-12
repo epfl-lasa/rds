@@ -16,12 +16,16 @@ clear all; close all; clc;
     Vel_max = 0.8;  % Use the test maximum [real max value 1.5]
     
 % Get all available datasets
-%     filenames = loadDataNames();
-    filenames = dir(fullfile(pwd,'jun_10_1'));
-% Select datase to evaluate (number from 3 to N)
-    datasetNumber = 5; 
+    dataDate='jun_10_1';
+    % % % 5 - overcoming / 6 - backwards / 8 - intersection / 
+%     dataDate='jun_10_2';
+%     datasetNumber = 8; 
+    % % % 7 - intersection / 10 - narrow corridor
+    datasetNumber = 8; 
+    
+    filenames = dir(fullfile(pwd,dataDate));
     dataset = filenames(datasetNumber).name;
-    data_folder = fullfile(pwd,'jun_10_1',dataset);
+    data_folder = fullfile(pwd,dataDate,dataset);
     plot_folder = fullfile(pwd,'Plot', dataset);
 %     test_folders = dir(fullfile(data_folder))';
     
@@ -41,52 +45,84 @@ clear all; close all; clc;
     Command_U = data(:,2:3)';
     Command_R = data(:,4:5)';
     
-    [linear_diff,directional_agreement,disagreement ,Contribution] = similarity(Command_U ,Command_R, Vel_max, Omega_max);
-    directional_agreement
-    [fluency] = user_fluency(Command_U, Vel_max, Omega_max)
-    Contribution_score = [mean(Contribution); std(Contribution)]
+    [results.linear_diff,results.directional_agreement,results.disagreement ,Contribution] = similarity(Command_U ,Command_R, Vel_max, Omega_max);
+    results.fluency = user_fluency(Command_U, Vel_max, Omega_max);
+    results.Contribution_score = [mean(Contribution); std(Contribution)];
     
 %% Loading lrf points and evaluation of mean and minimal distance 
 
-    load(fullfile(data_folder,'lrf_object.mat'));
-    lrf_points=data;
-    for ii=1:size(lrf_points,1)
-    iend = find(isnan(lrf_points(ii,:)),1);
-        kk=0;
-        for jj=1:2:iend-2
-            kk = kk+1;
-            points_distance(kk) = norm(lrf_points(ii,jj),lrf_points(ii,jj+1));
-        end
-        closest_point(ii) = min(points_distance);
-        mean_distance(ii) = mean(points_distance);
-%         clear points_distance;
+%     load(fullfile(data_folder,'lrf_object.mat'));
+%     lrf_points=data;
+%     for ii=1:size(lrf_points,1)
+%     iend = find(isnan(lrf_points(ii,:)),1);
+%         kk=0;
+%         for jj=1:2:iend-2
+%             kk = kk+1;
+%             points_distance(kk) = norm(lrf_points(ii,jj),lrf_points(ii,jj+1));
+%         end
+%         closest_point(ii) = min(points_distance);
+%         mean_distance(ii) = mean(points_distance);
+% %         clear points_distance;
+%     end
+    load(fullfile(data_folder,'t_shortest_distance_lrf_all.mat'));    
+    if isnan(data(1,2))
+        load(fullfile(data_folder,'t_shortest_distance_track_all.mat'));    
     end
-
-%% Loading tracker objects and analyzing risk measurement
-    % A time window for analyzing the risk in the inmedieate future
-    t_window = 30; 
-
-   load(fullfile(data_folder,'tracker_object.mat'));
-    tracker_object=data;
-    for ii=1:size(tracker_object,1)
-    iend = find(isnan(tracker_object(ii,:)),1);
-        kk=0;
-        for jj=1:4:iend-4
-            kk = kk+1;
-            object_location(kk) = norm(tracker_object(ii,jj),tracker_object(ii,jj+1));
-            object_vel(kk) = norm(tracker_object(ii,jj+2),tracker_object(ii,jj+3));
-            angle_R = atan2(Command_R(1,:),Command_R(2,:))
-            
-            robot_line = [0, 0; Command_R(1)*t_window, Command_R(2)*t_window];
-        end
-
-
-        [xi,yi] = polyxpoly(x,y,box,ybox);
-
-        closest_point(ii) = min(points_distance);
-        mean_distance(ii) = mean(points_distance);
-%         clear points_distance;
-    end
-
+%     time_dist = 
+    closest_dist = data(~isnan(data(:,2)),2);
+    results.min_object = [mean(closest_dist); std(closest_dist)];
     
+        closest_dist = data(~isnan(data(:,2)),2);
+        results.min_object = [mean(closest_dist); std(closest_dist)];
+    
+    %%  Exporting results to tables
+    indx=1;
+    meanTable = 100.*[results.linear_diff(indx); results.directional_agreement(indx);...
+                        results.disagreement(indx);results.fluency(indx);...
+                        results.Contribution_score(indx); results.min_object(indx) ];
+    meanTable = round(meanTable,2)
+	indx=2;
+    stdTable = 100.*[   results.linear_diff(indx); 
+                        results.directional_agreement(indx);
+                        results.disagreement(indx);
+                        results.fluency(indx);
+                        results.Contribution_score(indx); 
+                        results.min_object(indx) ];
+    stdTable = round(stdTable,2)
+    
+    if RECORD_FLAG
+        if ~exist(plot_folder, 'dir')
+            mkdir(plot_folder)
+        end
+        save(strcat(plot_folder,'results.mat'),'results')
+    end
+     
+   
+% %% Loading tracker objects and analyzing risk measurement
+%     % A time window for analyzing the risk in the inmedieate future
+%     t_window = 30; 
+% 
+%    load(fullfile(data_folder,'tracker_object.mat'));
+%     tracker_object=data;
+%     for ii=1:size(tracker_object,1)
+%     iend = find(isnan(tracker_object(ii,:)),1);
+%         kk=0;
+%         for jj=1:4:iend-4
+%             kk = kk+1;
+%             object_location(kk,:) = [tracker_object(ii,jj), tracker_object(ii,jj+1)];
+%             object_vel(kk,:) = [ tracker_object(ii,jj+2), tracker_object(ii,jj+3)];
+%             angle_R = atan2(Command_R(1,:),Command_R(2,:));
+%             Vx = Command_R(1,:)*cos(angle_R); Vy = Command_R(1,:)*sin(angle_R); 
+%             robot_line = [0, 0; Vx*t_window, Vy*t_window];
+%             object_line = [object_location(kk)];
+%         end
+% 
+%         [xi,yi] = polyxpoly(x,y,box,ybox);
+% 
+%         closest_point(ii) = min(points_distance);
+%         mean_distance(ii) = mean(points_distance);
+% %         clear points_distance;
+%     end
+% 
+%     
 
