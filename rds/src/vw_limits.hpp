@@ -10,6 +10,7 @@ struct VWBox
 
 struct VWDiamond
 {
+	VWDiamond() : v_min(0.f), v_max(0.f), w_abs_max(0.f), v_at_w_abs_max(0.f) { }
 	VWDiamond(float v_min, float v_max, float w_abs_max, float v_at_w_abs_max)
 		: v_min(v_min), v_max(v_max), w_abs_max(w_abs_max), v_at_w_abs_max(v_at_w_abs_max) { }
 	float v_min, v_max, w_abs_max, v_at_w_abs_max;

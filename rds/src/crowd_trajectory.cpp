@@ -6,7 +6,7 @@
 using Geometry2D::Vec2;
 
 CrowdTrajectory::CrowdTrajectory(const char* data_file_name, float frame_rate, float scaling)
-	: m_time_shift(0.f)
+	: m_time_shift(0.f), m_duration(-1.f)
 {
 	std::ifstream data_file(data_file_name);
 	float pos_x, pos_y;
@@ -56,15 +56,50 @@ CrowdTrajectory::CrowdTrajectory(const char* data_file_name, float frame_rate, f
 void CrowdTrajectory::getPedestrianPositionAtTime(unsigned int i, float t,
 	Vec2* p) const
 {
-	p->x = m_x_splines[i](t + m_time_shift);
-	p->y = m_y_splines[i](t + m_time_shift);
+	if (i >= 666)
+	{
+		p->x = 100000.f;
+		p->y = 100000.f;
+		return;
+	}
+	float weight_trajectory = 1.f;
+	float weight_standstill = 0.f;
+	if (m_duration > 0.f)
+	{
+		if (t >= m_duration)
+		{
+			weight_trajectory = 0.f;
+			weight_standstill = 1.f;
+		}
+		else if (t >= m_duration - m_deceleration_period)
+		{
+			weight_trajectory = (m_duration - t)/m_deceleration_period;
+			weight_standstill = 1.f - weight_trajectory;
+		}
+	}
+	p->x = weight_trajectory*m_x_splines[i](t + m_time_shift) + weight_standstill*m_x_splines[i](m_duration + m_time_shift);
+	p->y = weight_trajectory*m_y_splines[i](t + m_time_shift) + weight_standstill*m_y_splines[i](m_duration + m_time_shift);
 }
 
 void CrowdTrajectory::getPedestrianVelocityAtTime(unsigned int i, float t,
 	Vec2* v) const
 {
-	v->x = m_x_splines[i].deriv(1, t + m_time_shift);
-	v->y = m_y_splines[i].deriv(1, t + m_time_shift);
+	if (i >= 666)
+	{
+		v->x = 0.f;
+		v->y = 0.f;
+		return;
+	}
+	float weight_trajectory = 1.f;
+	if (m_duration > 0.f)
+	{
+		if (t >= m_duration)
+			weight_trajectory = 0.f;
+		else if (t >= m_duration - m_deceleration_period)
+			weight_trajectory = (m_duration - t)/m_deceleration_period;
+	}
+	v->x = weight_trajectory*m_x_splines[i].deriv(1, t + m_time_shift);
+	v->y = weight_trajectory*m_y_splines[i].deriv(1, t + m_time_shift);
 }
 
 void CrowdTrajectory::addPedestrianTrajectory(const std::vector<Knot>& spline_data)

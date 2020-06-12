@@ -10,7 +10,7 @@ import matplotlib.cm as cm
 import capsule_distance
 
 capsule = capsule_distance.Capsule(0.051, -0.5, 0.45)
-y_reference_point = 0.2
+y_reference_point = 0.18
 
 command_file_name = 'command.mat'
 tracker_file_name = 'tracker_object.mat'

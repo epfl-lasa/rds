@@ -1,4 +1,4 @@
-all: geometry gui demo_geo rds_core build/demo_hierarchy build/demo_hierarchy_rds_3 build/demo_rds_3 build/demo_rds_4 build/demo_eval_rds_4 build/demo_marr build/demo_rds_orca_simu build/blocks build/demo_crowd_trajectory build/demo_crowd_rds_orca_simu build/demo_art_crowd_rds_orca_simu build/simple_rds_orca_simu build/basic_ex_standing_pedestrian build/basic_ex_overtaking build/basic_ex_crossing qolo_rds# list only what is ready to build
+all: geometry gui demo_geo rds_core build/demo_hierarchy build/demo_hierarchy_rds_3 build/demo_rds_3 build/demo_rds_4 build/demo_eval_rds_4 build/demo_marr build/demo_rds_orca_simu build/blocks build/demo_crowd_trajectory build/demo_crowd_rds_orca_simu build/demo_art_crowd_rds_orca_simu build/simple_rds_orca_simu build/basic_ex_standing_pedestrian build/basic_ex_overtaking build/basic_ex_crossing qolo_rds build/baseline_crowd_rds_5# list only what is ready to build
 	@echo "\033[92mDone with building RDS.\033[0m"
 
 FLAGS = -std=c++11 -g -Wall
@@ -20,6 +20,10 @@ build/lib_rds_5.a: build/rds/.hi src/rds_5.cpp src/rds_5.hpp src/capsule.hpp src
 	cp src/vw_limits.hpp build/rds
 
 # DEMOS
+
+build/baseline_crowd_rds_5: src/baseline_crowd_rds_5.cpp src/crowd_trajectory.cpp src/crowd_trajectory.hpp build/libgui.a src/rds_5_orca_simulator.hpp src/rds_5_orca_simulator.cpp src/rds_5_agent.cpp src/rds_5_agent.hpp src/rds_5.cpp src/rds_5.hpp src/RVO.hpp src/RVO.cpp build/libgeometry.a
+	g++ $(FLAGS) src/baseline_crowd_rds_5.cpp src/crowd_trajectory.cpp src/rds_5_orca_simulator.cpp src/rds_5_agent.cpp src/rds_5.cpp src/RVO.cpp -Lbuild -lgui -lSDL2 -lRVO -lgeometry -o build/baseline_crowd_rds_5
+
 build/show_circular_constraints: src/show_circular_constraints.cpp src/circular_constraints.cpp src/circular_constraints.hpp src/geometry.hpp src/vw_limits.hpp build/libgui.a
 	g++ $(FLAGS) src/show_circular_constraints.cpp src/circular_constraints.cpp -Lbuild -lgui -lSDL2 -o build/show_circular_constraints
 

@@ -8,7 +8,7 @@ struct CrowdTrajectory
 {
 	CrowdTrajectory(const char* data_file_name, float frame_rate, float scaling);
 
-	CrowdTrajectory() : m_time_shift(0.f) { };
+	CrowdTrajectory() : m_time_shift(0.f), m_duration(-1.f), m_deceleration_period(1.f) { };
 
 	struct Knot
 	{
@@ -30,7 +30,7 @@ struct CrowdTrajectory
 
 	const std::vector<std::vector<Knot> >& getSplinesData() const { return m_splines_data; }
 
-	float m_time_shift;
+	float m_time_shift, m_duration, m_deceleration_period;
 
 private:
 	std::vector<std::vector<Knot> > m_splines_data;
