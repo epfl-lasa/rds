@@ -46,6 +46,8 @@ clear all; close all; clc;
     [fluency] = user_fluency(Command_U, Vel_max, Omega_max)
     Contribution_score = [mean(Contribution); std(Contribution)]
     
+%% Loading lrf points and evaluation of mean and minimal distance 
+
     load(fullfile(data_folder,'lrf_object.mat'));
     lrf_points=data;
     for ii=1:size(lrf_points,1)
@@ -59,4 +61,32 @@ clear all; close all; clc;
         mean_distance(ii) = mean(points_distance);
 %         clear points_distance;
     end
+
+%% Loading tracker objects and analyzing risk measurement
+    % A time window for analyzing the risk in the inmedieate future
+    t_window = 30; 
+
+   load(fullfile(data_folder,'tracker_object.mat'));
+    tracker_object=data;
+    for ii=1:size(tracker_object,1)
+    iend = find(isnan(tracker_object(ii,:)),1);
+        kk=0;
+        for jj=1:4:iend-4
+            kk = kk+1;
+            object_location(kk) = norm(tracker_object(ii,jj),tracker_object(ii,jj+1));
+            object_vel(kk) = norm(tracker_object(ii,jj+2),tracker_object(ii,jj+3));
+            angle_R = atan2(Command_R(1,:),Command_R(2,:))
+            
+            robot_line = [0, 0; Command_R(1)*t_window, Command_R(2)*t_window];
+        end
+
+
+        [xi,yi] = polyxpoly(x,y,box,ybox);
+
+        closest_point(ii) = min(points_distance);
+        mean_distance(ii) = mean(points_distance);
+%         clear points_distance;
+    end
+
+    
 

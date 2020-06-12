@@ -32,7 +32,7 @@ function [linear_diff,directional_agreement, disagreement ,Contribution] = simil
             
         end
     end
-    directional_agreement = mean(agreement_vec);
+    directional_agreement = [mean(agreement_vec); std(agreement_vec)];
     
     linear_diff = [mean(Command_diff(1,:)); std(Command_diff(1,:))];
     heading = [mean(Command_diff(2,:)); std(Command_diff(2,:))];

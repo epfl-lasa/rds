@@ -12,27 +12,34 @@
 % 
 % [linear_diff,heading,Similarity ,Contribution] = similarity(Command_U ,Command_R, Vel_max, Omega_max);
 
-function [linear_diff,heading,disagreement ,Contribution] = similarity(Command_U ,Command_R, Vel_max, Omega_max)
+function [linear_diff,directional_agreement, disagreement ,Contribution] = similarity(Command_U ,Command_R, Vel_max, Omega_max)
     
     Command_R_norm(1,:) = Command_R(1,:)./Vel_max;
     Command_R_norm(2,:) = Command_R(2,:)./Omega_max;
     Command_U_norm(1,:) = Command_U(1,:)./Vel_max;
     Command_U_norm(2,:) = Command_U(2,:)./Omega_max;
     
+    angle_U = atan2(Command_U(1,:),Command_U(2,:));
+    angle_R = atan2(Command_R(1,:),Command_R(2,:));
+    angle_diff = angle_R - angle_U;
     Lc=length(Command_U);
     Ccount=0;
     for ii=1:Lc
         if Command_U(1,ii) || Command_U(2,ii)
             Ccount=Ccount+1;
             Command_diff(:,Ccount) = abs(Command_R_norm(:,ii) - Command_U_norm(:,ii));    
+            agreement_vec(:,Ccount) = 1 - ( abs(angle_diff(ii)) /pi );
+            
         end
     end
-
+    directional_agreement = [mean(agreement_vec); std(agreement_vec)];
+    
     linear_diff = [mean(Command_diff(1,:)); std(Command_diff(1,:))];
     heading = [mean(Command_diff(2,:)); std(Command_diff(2,:))];
 %     disagreement(1,1) = sum(vecnorm(Command_R_norm - Command_U_norm)) / Ccount; % L2-Norm difference
     
     disagreement = [mean(vecnorm(Command_diff)); std(vecnorm(Command_diff))];
+    
     
     jj=1;
     for ii=1:Lc
