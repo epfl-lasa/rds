@@ -10,8 +10,8 @@ capsule = capsule_distance.Capsule(0.051, -0.5, 0.45)
 y_reference_point = 0.18
 tau = 1.5
 
-folder_path = "jun_10_1/overcoming_03/"
-picture_export_prefix = "../pictures/overcoming_03_jun_10_1_"
+folder_path = "jun_10_1/rdsntersection_05/"
+picture_export_prefix = "../pictures/intersection_05_jun_10_1_"
 
 pose_file_name = folder_path + "pose.mat"
 xy_p_ref_file_name = folder_path + "t_xy_p_ref.mat"
@@ -54,10 +54,10 @@ for i in range(command_mat['data'].shape[0]):
 		break
 commands = command_mat['data'][i_command_start:(i_command_end + 1), :]
 
-d_min = d[0]
+d_min = 10000.0
 i_d_min = 0
-t_d_min_1 = 38.0
-t_d_min_2 = 45.0
+t_d_min_1 = t[0] + 12.5
+t_d_min_2 = t_d_min_1 + 4.0
 i_d_min_1 = None
 i_d_min_2 = None
 for i in range(d.shape[0]):
@@ -91,7 +91,6 @@ for j in range(tracks.shape[1]/4):
 		break
 	circle_d_min_2 = plt.Circle((tracks[i_d_min_2, j*4], tracks[i_d_min_2, j*4+1]), 0.3, color='g', fill=False)
 	ax.add_artist(circle_d_min_2)
-
 #v_sampler = v_sampler = np.arange(0, t.shape[0], 10)#[i_d_min_1, i_d_min_2]
 #plt.quiver(xy_p_ref[v_sampler, 0], xy_p_ref[v_sampler, 1], v_cartesian_nominal_p_ref[v_sampler, 0], v_cartesian_nominal_p_ref[v_sampler, 1], color=(0,0,1,0.5), scale=1.0, angles='xy', scale_units='xy', width=0.005)
 #plt.quiver(xy_p_ref[v_sampler, 0], xy_p_ref[v_sampler, 1], v_cartesian_corrected_p_ref[v_sampler, 0], v_cartesian_corrected_p_ref[v_sampler, 1], color=(0,1,0,0.5), scale=1.0, angles='xy', scale_units='xy', width=0.005)
@@ -100,8 +99,8 @@ ax.set_aspect('equal')
 ax.set_ylabel('y [m]')
 ax.set_xlabel('x [m]')
 #ax.set_title('Trajectories')
-ax.set_xlim([-6.5, 0])
-ax.set_ylim([-1.5, 1.5])
+ax.set_xlim([-7.5, 0])
+ax.set_ylim([-4, 4])
 plt.savefig(picture_export_prefix + 'trajectories.png', bbox_inches='tight', dpi=199)
 plt.show()
 
@@ -150,6 +149,8 @@ risk = 0.0
 severity = 0.0
 for j in range(1):
 	for i in range(t.shape[0]):
+		if np.isnan(tracks[i,j*2]) or np.isnan(t[i]):
+			continue
 		ped_x = tracks[i,j*2]
 		ped_y = tracks[i,j*2+1]
 		ped_v_x = (tracks[i,j*2+2] - tracks[i,j*2])/tau
@@ -170,6 +171,8 @@ for j in range(1):
 		if discriminant <= 0.0:
 			continue
 		ttca = (2.0*v_rel_diff - np.sqrt(discriminant))/2.0/v_rel_v_rel
+		if ttca < 0.001:
+			ttca = 0.001
 		risk += 1.0/ttca
 		severity += 1.0/ttca*v_rel_v_rel
 

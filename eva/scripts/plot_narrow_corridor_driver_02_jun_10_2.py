@@ -10,8 +10,8 @@ capsule = capsule_distance.Capsule(0.051, -0.5, 0.45)
 y_reference_point = 0.18
 tau = 1.5
 
-folder_path = "jun_10_1/overcoming_03/"
-picture_export_prefix = "../pictures/overcoming_03_jun_10_1_"
+folder_path = "jun_10_2/rds_narrow_corridor_driver_02/"
+picture_export_prefix = "../pictures/rds_narrow_corridor_driver_02_jun_10_2_"
 
 pose_file_name = folder_path + "pose.mat"
 xy_p_ref_file_name = folder_path + "t_xy_p_ref.mat"
@@ -20,6 +20,8 @@ v_corr_file_name = folder_path + "t_v_cartesian_corrected_p_ref.mat"
 d_tracks_file_name = folder_path + "t_shortest_distance_track_all.mat"
 tracks_file_name = folder_path + "t_track_ob_global.mat"
 command_file_name = folder_path + "command.mat"
+lrf_file_name = folder_path + "t_lrf_ob_global.mat"
+d_lrf_file_name = folder_path + "t_shortest_distance_lrf_all.mat"
 
 pose_mat = sio.loadmat(pose_file_name)
 xy_p_ref_mat = sio.loadmat(xy_p_ref_file_name)
@@ -28,6 +30,8 @@ v_corr_mat = sio.loadmat(v_corr_file_name)
 d_tracks_mat = sio.loadmat(d_tracks_file_name)
 tracks_mat = sio.loadmat(tracks_file_name)
 command_mat = sio.loadmat(command_file_name)
+lrf_mat = sio.loadmat(lrf_file_name)
+d_lrf_mat = sio.loadmat(d_lrf_file_name)
 
 t_pose = pose_mat['data'][:, 0]
 x = pose_mat['data'][:, 1]
@@ -38,12 +42,19 @@ x_of_t = interpolate.interp1d(t_pose, x, bounds_error=False)
 y_of_t = interpolate.interp1d(t_pose, y, bounds_error=False)
 phi_of_t = interpolate.interp1d(t_pose, phi, bounds_error=False)
 
-t = xy_p_ref_mat['data'][:, 0]
-xy_p_ref = xy_p_ref_mat['data'][:, 1:3]
-v_cartesian_nominal_p_ref = v_nom_mat['data'][:, 1:3]
-v_cartesian_corrected_p_ref = v_corr_mat['data'][:, 1:3]
-d = d_tracks_mat['data'][:, 1]
-tracks = tracks_mat['data'][:, 1:]
+subrange = np.arange(0, 450, 1)
+
+t = xy_p_ref_mat['data'][subrange, 0]
+xy_p_ref = xy_p_ref_mat['data'][subrange, 1:3]
+v_cartesian_nominal_p_ref = v_nom_mat['data'][subrange, 1:3]
+v_cartesian_corrected_p_ref = v_corr_mat['data'][subrange, 1:3]
+d = d_tracks_mat['data'][subrange, 1]
+tracks = tracks_mat['data'][subrange, 1:]
+lrf = lrf_mat['data'][subrange, 1:]
+d_lrf = d_lrf_mat['data'][subrange, 1]
+
+d_all = np.minimum(d_lrf, d)
+d = d_all
 
 i_command_start = None
 for i in range(command_mat['data'].shape[0]):
@@ -54,10 +65,10 @@ for i in range(command_mat['data'].shape[0]):
 		break
 commands = command_mat['data'][i_command_start:(i_command_end + 1), :]
 
-d_min = d[0]
+d_min = 10000.0
 i_d_min = 0
-t_d_min_1 = 38.0
-t_d_min_2 = 45.0
+t_d_min_1 = t[0] + 3.0
+t_d_min_2 = t_d_min_1 + 8.0
 i_d_min_1 = None
 i_d_min_2 = None
 for i in range(d.shape[0]):
@@ -68,6 +79,13 @@ for i in range(d.shape[0]):
 		i_d_min_1 = i
 	if (t[i] > t_d_min_2) and (i_d_min_2 == None):
 		i_d_min_2 = i
+
+plot_lrf = True
+if plot_lrf:
+	even = np.arange(0, lrf.shape[1], 2)
+	odd = np.arange(1, lrf.shape[1], 2)
+	plt.scatter(lrf[0, even].flatten(), lrf[0, odd].flatten())
+	plt.scatter(lrf[i_d_min_1, even].flatten(), lrf[i_d_min_1, odd].flatten())
 
 plt.scatter(xy_p_ref[:, 0], xy_p_ref[:, 1], c=t/(t[-1]-t[0]), cmap=cm.hot_r, marker='o', edgecolors='k')
 plt.scatter(xy_p_ref[:, 0], xy_p_ref[:, 1], c=t/(t[-1]-t[0]), cmap=cm.hot_r, marker='o')#, edgecolors='k')
@@ -91,7 +109,6 @@ for j in range(tracks.shape[1]/4):
 		break
 	circle_d_min_2 = plt.Circle((tracks[i_d_min_2, j*4], tracks[i_d_min_2, j*4+1]), 0.3, color='g', fill=False)
 	ax.add_artist(circle_d_min_2)
-
 #v_sampler = v_sampler = np.arange(0, t.shape[0], 10)#[i_d_min_1, i_d_min_2]
 #plt.quiver(xy_p_ref[v_sampler, 0], xy_p_ref[v_sampler, 1], v_cartesian_nominal_p_ref[v_sampler, 0], v_cartesian_nominal_p_ref[v_sampler, 1], color=(0,0,1,0.5), scale=1.0, angles='xy', scale_units='xy', width=0.005)
 #plt.quiver(xy_p_ref[v_sampler, 0], xy_p_ref[v_sampler, 1], v_cartesian_corrected_p_ref[v_sampler, 0], v_cartesian_corrected_p_ref[v_sampler, 1], color=(0,1,0,0.5), scale=1.0, angles='xy', scale_units='xy', width=0.005)
@@ -100,8 +117,8 @@ ax.set_aspect('equal')
 ax.set_ylabel('y [m]')
 ax.set_xlabel('x [m]')
 #ax.set_title('Trajectories')
-ax.set_xlim([-6.5, 0])
-ax.set_ylim([-1.5, 1.5])
+ax.set_xlim([-10, -3])
+ax.set_ylim([-1, 1.5])
 plt.savefig(picture_export_prefix + 'trajectories.png', bbox_inches='tight', dpi=199)
 plt.show()
 
@@ -150,6 +167,8 @@ risk = 0.0
 severity = 0.0
 for j in range(1):
 	for i in range(t.shape[0]):
+		if np.isnan(tracks[i,j*2]) or np.isnan(t[i]):
+			continue
 		ped_x = tracks[i,j*2]
 		ped_y = tracks[i,j*2+1]
 		ped_v_x = (tracks[i,j*2+2] - tracks[i,j*2])/tau
@@ -170,6 +189,8 @@ for j in range(1):
 		if discriminant <= 0.0:
 			continue
 		ttca = (2.0*v_rel_diff - np.sqrt(discriminant))/2.0/v_rel_v_rel
+		if ttca < 0.001:
+			ttca = 0.001
 		risk += 1.0/ttca
 		severity += 1.0/ttca*v_rel_v_rel
 
