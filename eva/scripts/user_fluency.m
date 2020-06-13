@@ -28,10 +28,10 @@ function [fluency] = user_fluency(Command_U, Vel_max, Omega_max);
     jj=1;
     for ii=2:Lc
         if Command_U(1,ii) || Command_U(2,ii)
-            fluency_v(:,jj) = 1 - abs(Command_U_norm(:,ii) - Command_U_norm(:,ii-1));
+            fluency_v(:,jj) = 1 - abs(norm(Command_U_norm(:,ii)) - norm(Command_U_norm(:,ii-1)));
             jj=jj+1;
         end
     end
-    fluency = mean(fluency_v');
+    fluency = [mean(fluency_v') std(fluency_v') ];
     
 end
