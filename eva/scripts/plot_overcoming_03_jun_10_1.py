@@ -69,6 +69,15 @@ for i in range(d.shape[0]):
 	if (t[i] > t_d_min_2) and (i_d_min_2 == None):
 		i_d_min_2 = i
 
+i_deflect = None
+t_deflect = t[0]+11.5
+for i in range(d.shape[0]):
+	if (t[i] > t_deflect) and (i_deflect == None):
+		i_deflect = i
+
+i_d_min_2 = i_deflect
+t_d_min_2 = t_deflect
+
 plt.scatter(xy_p_ref[:, 0], xy_p_ref[:, 1], c=t/(t[-1]-t[0]), cmap=cm.hot_r, marker='o', edgecolors='k')
 plt.scatter(xy_p_ref[:, 0], xy_p_ref[:, 1], c=t/(t[-1]-t[0]), cmap=cm.hot_r, marker='o')#, edgecolors='k')
 for j in range(4, -1, -1):
@@ -92,9 +101,9 @@ for j in range(tracks.shape[1]/4):
 	circle_d_min_2 = plt.Circle((tracks[i_d_min_2, j*4], tracks[i_d_min_2, j*4+1]), 0.3, color='g', fill=False)
 	ax.add_artist(circle_d_min_2)
 
-#v_sampler = v_sampler = np.arange(0, t.shape[0], 10)#[i_d_min_1, i_d_min_2]
-#plt.quiver(xy_p_ref[v_sampler, 0], xy_p_ref[v_sampler, 1], v_cartesian_nominal_p_ref[v_sampler, 0], v_cartesian_nominal_p_ref[v_sampler, 1], color=(0,0,1,0.5), scale=1.0, angles='xy', scale_units='xy', width=0.005)
-#plt.quiver(xy_p_ref[v_sampler, 0], xy_p_ref[v_sampler, 1], v_cartesian_corrected_p_ref[v_sampler, 0], v_cartesian_corrected_p_ref[v_sampler, 1], color=(0,1,0,0.5), scale=1.0, angles='xy', scale_units='xy', width=0.005)
+v_sampler = [i_deflect]
+plt.quiver(xy_p_ref[v_sampler, 0], xy_p_ref[v_sampler, 1], v_cartesian_nominal_p_ref[v_sampler, 0], v_cartesian_nominal_p_ref[v_sampler, 1], color=(0,0,1,0.5), scale=1.0, angles='xy', scale_units='xy', width=0.005)
+plt.quiver(xy_p_ref[v_sampler, 0], xy_p_ref[v_sampler, 1], v_cartesian_corrected_p_ref[v_sampler, 0], v_cartesian_corrected_p_ref[v_sampler, 1], color=(0,1,0,0.5), scale=1.0, angles='xy', scale_units='xy', width=0.005)
 
 ax.set_aspect('equal')
 ax.set_ylabel('y [m]')
@@ -103,7 +112,9 @@ ax.set_xlabel('x [m]')
 ax.set_xlim([-6.5, 0])
 ax.set_ylim([-1.5, 1.5])
 plt.savefig(picture_export_prefix + 'trajectories.png', bbox_inches='tight', dpi=199)
-plt.show()
+plt.show(block=False)
+plt.pause(0.1)
+plt.close()
 
 plt.plot(t-t[0], d-0.3, 'ko')
 plt.plot(t-t[0], np.ones(t.shape)*0.05, 'r')
@@ -113,7 +124,9 @@ ax.set_ylabel('distance [m]')
 ax.set_xlabel('t [s]')
 #ax.set_title('Shortest distance')
 plt.savefig(picture_export_prefix + 'distance.png', bbox_inches='tight', dpi=199)
-plt.show()
+plt.show(block=False)
+plt.pause(0.1)
+plt.close()
 
 plt.scatter(np.zeros(t.shape), t-t[0], c=t/(t[-1]-t[0]), cmap=cm.hot_r, marker='s')
 plt.gca().set_ylabel('t [s]')
@@ -122,7 +135,9 @@ plt.gca().set_aspect('equal')
 plt.gca().set_xlim([(t[-1]-t[0])/2/20.0, -(t[-1]-t[0])/2/20.0])
 plt.gca().set_xticks([], [])
 plt.savefig(picture_export_prefix + 'color_map.png', bbox_inches='tight', dpi=199)
-plt.show()
+plt.show(block=False)
+plt.pause(0.1)
+plt.close()
 
 t_commands = commands[:, 0]
 v_nominal = commands[:, 1]
@@ -142,11 +157,15 @@ ax2.set_xlabel('t [s]')
 ax1.legend()
 ax2.legend()
 plt.savefig(picture_export_prefix + 'commands.png', bbox_inches='tight', dpi=199)
-plt.show()
+plt.show(block=False)
+plt.pause(0.1)
+plt.close()
 
 ##### compute and print metrics #####
 
+risk_original = 0.0
 risk = 0.0
+severity_original = 0.0
 severity = 0.0
 for j in range(1):
 	for i in range(t.shape[0]):
@@ -172,9 +191,13 @@ for j in range(1):
 		ttca = (2.0*v_rel_diff - np.sqrt(discriminant))/2.0/v_rel_v_rel
 		risk += 1.0/ttca
 		severity += 1.0/ttca*v_rel_v_rel
+		risk_original += ttca
+		severity_original += ttca*v_rel_v_rel
 
 risk /= t.shape[0]
 severity /= t.shape[0]
+severity_original  /= t.shape[0]
+risk_original /= t.shape[0]
 
 print ("Risk: ", risk)
 print ("Severity: ", severity)
