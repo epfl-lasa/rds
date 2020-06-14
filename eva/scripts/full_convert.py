@@ -83,14 +83,14 @@ plot_lrf = False
 sub_range = np.arange(500, 900, 1)
 plot_lrf = False
 
-# for jun_10
+# for jun_10_1 (morning)
 # for overcoming_03
-#sub_range = np.arange(700, 1000, 1)
-#plot_lrf = False
+sub_range = np.arange(700, 1000, 1)
+plot_lrf = False
 
 # for backwards_04
-sub_range = np.arange(0, 300, 1)
-plot_lrf = False
+#sub_range = np.arange(0, 300, 1)
+#plot_lrf = False
 
 # for ntersection_01
 #sub_range = np.arange(120, 580, 1)
@@ -111,6 +111,24 @@ plot_lrf = False
 # ...
 #sub_range = np.arange(0, command_mat['data'].shape[0], 1)
 #plot_lrf = False
+
+# for jun_10_2 (afternoon)
+
+# intersection_07
+#sub_range = np.arange(100, 420, 1)
+#plot_lrf = False 
+
+# intersection_10
+#sub_range = np.arange(80, 500, 1)
+#plot_lrf = True
+
+# takeover_wall_01
+#sub_range = np.arange(80, 1400, 1)
+#plot_lrf = True
+
+#sub_range = np.arange(0, command_mat['data'].shape[0], 1)
+#plot_lrf = False
+
 
 ###################################################################
 
