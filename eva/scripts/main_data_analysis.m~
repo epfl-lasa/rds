@@ -20,14 +20,11 @@ clear all; close all; clc;
     % % % 5 - overcoming / 6 - backwards / 8 - intersection / 
 %     dataDate='jun_10_2';
 %     datasetNumber = 8; 
-    % % % 7 - intersection / 10 - narrow corridor    
-
+    % % % 7 - intersection / 10 - narrow corridor
     filenames = dir(fullfile(pwd,dataDate));
-    Mean_table = table();
-    Std_table = table();
+    datasetNumber = 8; 
 %%
-    for datasetNumber=4:length(filenames)
-        
+    for datasetNumber=3:length(filenames)
         dataset = filenames(datasetNumber).name;
         data_folder = fullfile(pwd,dataDate,dataset);
         plot_folder = fullfile(pwd,'Plot', dataset);
@@ -75,19 +72,15 @@ clear all; close all; clc;
     %     time_dist = 
         closest_dist = data(~isnan(data(:,2)),2);
         results.min_object = [mean(closest_dist); std(closest_dist)];
-        results.min_dist = min(closest_dist);
 
+            closest_dist = data(~isnan(data(:,2)),2);
+            results.min_object = [mean(closest_dist); std(closest_dist)];
 
         %%  Exporting results to tables
         indx=1;
-        meanTable = 100.*[  results.linear_diff(indx); 
-                            results.directional_agreement(indx);
-                            results.disagreement(indx);
-                            results.fluency(indx);
-                            results.Contribution_score(indx); 
-                            results.min_object(indx)./100;
-                            results.min_dist./100 ...
-                            ];
+        meanTable = 100.*[results.linear_diff(indx); results.directional_agreement(indx);...
+                            results.disagreement(indx);results.fluency(indx);...
+                            results.Contribution_score(indx); results.min_object(indx) ];
         meanTable = round(meanTable,2)
         indx=2;
         stdTable = 100.*[   results.linear_diff(indx); 
@@ -95,8 +88,7 @@ clear all; close all; clc;
                             results.disagreement(indx);
                             results.fluency(indx);
                             results.Contribution_score(indx); 
-                            results.min_object(indx)./100 ...
-                            ];
+                            results.min_object(indx) ];
         stdTable = round(stdTable,2)
 
         if RECORD_FLAG
@@ -105,12 +97,7 @@ clear all; close all; clc;
             end
             save(strcat(plot_folder,'results.mat'),'results')
         end
-       
-        Mean_table.(dataset) = meanTable;
-        Std_table.(dataset) = stdTable;
-        
     end
-    save(strcat(dataDate,'_results_table.mat'),'Mean_table','Std_table')
    
 % %% Loading tracker objects and analyzing risk measurement
 %     % A time window for analyzing the risk in the inmedieate future
