@@ -16,7 +16,7 @@ clear all; close all; clc;
     Vel_max = 0.8;  % Use the test maximum [real max value 1.5]
     
 % Get all available datasets
-    dataDate='jun_10_1';
+    dataDate='jun_10_2';
     % % % 5 - overcoming / 6 - backwards / 8 - intersection / 
 %     dataDate='jun_10_2';
 %     datasetNumber = 8; 
