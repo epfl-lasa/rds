@@ -1,5 +1,6 @@
 #include "rds_5.hpp"
 #include "RVO.hpp"
+#include "cvo.hpp"
 #include "distance_minimizer.hpp"
 #include <cmath>
 #include <iostream>
@@ -116,17 +117,29 @@ namespace Geometry2D
 			v_nominal_p_ref.x*(p_ref.x - robot_point.x)/p_ref.y + v_nominal_p_ref.y) - object_velocity;
 		if (use_conservative_shift)
 			relative_velocity_preferred = -1.f*object_velocity;
-		HalfPlane2 crvo;
-		crvo_computer.computeConvexRVO(relative_position, relative_velocity_preferred, radius_sum, &crvo,
-			use_orca_style_crvo);
-		crvo.shift(object_velocity);
-		if (crvo.getOffset() < 0.f)
-			crvo.shift(crvo.getNormal()*(-crvo.getOffset()));
 
-		const Vec2& n(crvo.getNormal());
+		Vec2 n;
+		float b;
+		if (!use_cvo)
+		{
+			HalfPlane2 crvo;
+			crvo_computer.computeConvexRVO(relative_position, relative_velocity_preferred, radius_sum, &crvo,
+				use_orca_style_crvo);
+			crvo.shift(object_velocity);
+			if (crvo.getOffset() < 0.f)
+				crvo.shift(crvo.getNormal()*(-crvo.getOffset()));
+			n = crvo.getNormal();	
+			b = crvo.getOffset();
+		}
+		else
+		{
+			Vec2 v_opt = relative_velocity_preferred + object_velocity;
+			CVO cvo(robot_point, object_point, v_opt, object_velocity, radius_sum, tau);
+			n = cvo.getConservativeConstraint().getNormal();
+			b = cvo.getConservativeConstraint().getOffset();
+		}
+
 		Vec2 n_constraint_tmp(n.x*robot_point.y/p_ref.y + n.y*(p_ref.x - robot_point.x)/p_ref.y, n.y);
-		
-		float b = crvo.getOffset();
 		if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp.norm() > b)
 			constraints->push_back(HalfPlane2(n_constraint_tmp, b/n_constraint_tmp.norm()));
 		float normal_limit = 1.f*robot_radius/tau/v_p_ref_radial_max;
