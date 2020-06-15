@@ -82,24 +82,41 @@ for s in scenes:
 			plt.draw()
 			plt.pause(0.02)
 
-	plt.scatter(points[0, i_snap][0,:], points[0, i_snap][1,:], color='g', edgecolors='g')
+	for i in range(3):
+		i_snap_now = i_snap + i*2
+		pts = plt.scatter(points[0, i_snap_now][0,:], points[0, i_snap_now][1,:], color='g', edgecolors='g', label='scanpoints')
 
-	circle_front = plt.Circle((0.0, 0.056), 0.45, color='b', fill=False)	
-	circle_back = plt.Circle((0.0, -0.517), 0.35, color='b', fill=False)
-	ax = plt.gca()
-	ax.add_artist(circle_front)
-	ax.add_artist(circle_back)
-	props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-	# place a text box in upper left in axes coords
-	textstr = 't = %.2f s'%(t_commands[i_snap] - t_commands[i_start])
-	ax.text(0.7, 0.1, textstr, transform=ax.transAxes, fontsize=14,
-        verticalalignment='top', bbox=props)
-	ax.set_xlabel('[m]')
-	ax.set_ylabel('[m]')
-	ax.set_xlim([-2.5, 2.5])
-	ax.set_ylim([-2.5, 2.5])
-	ax.set_aspect('equal')
-	plt.savefig(s.export + 'scanpoints.png', bbox_inches='tight', dpi=199)
-	plt.show(block=False)
-	plt.pause(0.1)
-	plt.close()
+		y_p_ref = 0.4
+		v_nominal_here = commands[1, i_snap_now]
+		w_nominal_here = commands[2, i_snap_now]
+		v_corrected_here = commands[3, i_snap_now]
+		w_corrected_here = commands[4, i_snap_now]
+		v_n_x_p_ref = -w_nominal_here*y_p_ref
+		v_n_y_p_ref = v_nominal_here
+		v_c_x_p_ref = -w_corrected_here*y_p_ref
+		v_c_y_p_ref = v_corrected_here
+		circle_front = plt.Circle((0.0, 0.056), 0.45, color='b', fill=False)	
+		circle_back = plt.Circle((0.0, -0.517), 0.35, color='b', fill=False)
+
+		ax = plt.gca()
+		arrow_n = ax.quiver([0.0], [y_p_ref], [v_n_x_p_ref], [v_n_y_p_ref], color=(0,0,1,0.5), scale=1.0, angles='xy', scale_units='xy', width=0.005, label='nominal V')
+		arrow_c = ax.quiver([0.0], [y_p_ref], [v_c_x_p_ref], [v_c_y_p_ref], color=(0,1,0,0.5), scale=1.0, angles='xy', scale_units='xy', width=0.005, label='corrected V')
+
+		ax.add_artist(circle_front)
+		ax.add_artist(circle_back)
+		props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+		# place a text box in upper left in axes coords
+		textstr = 't = %.2f s'%(t_commands[i_snap_now] - t_commands[i_start])
+		ax.text(0.6, 0.1, textstr, transform=ax.transAxes, fontsize=14,
+	        verticalalignment='top', bbox=props)
+		ax.set_xlabel('[m]')
+		ax.set_ylabel('[m]')
+		ax.set_xlim([-2.5, 2.5])
+		ax.set_ylim([-2.5, 2.5])
+		circle_front.set_label('robot shape')
+		ax.legend(loc='lower left', handles=[circle_front, arrow_n, arrow_c, pts])
+		ax.set_aspect('equal')
+		plt.savefig(s.export + str(i) + '_scanpoints.png', bbox_inches='tight', dpi=199)
+		plt.show(block=False)
+		plt.pause(0.1)
+		plt.close()
