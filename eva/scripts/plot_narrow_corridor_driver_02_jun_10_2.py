@@ -84,8 +84,8 @@ plot_lrf = True
 if plot_lrf:
 	even = np.arange(0, lrf.shape[1], 2)
 	odd = np.arange(1, lrf.shape[1], 2)
-	plt.scatter(lrf[0, even].flatten(), lrf[0, odd].flatten())
-	plt.scatter(lrf[i_d_min_1, even].flatten(), lrf[i_d_min_1, odd].flatten())
+	plt.scatter(lrf[0, even].flatten(), lrf[0, odd].flatten(), color='g')
+	plt.scatter(lrf[i_d_min_1, even].flatten(), lrf[i_d_min_1, odd].flatten(), color='g')
 
 plt.scatter(xy_p_ref[:, 0], xy_p_ref[:, 1], c=t/(t[-1]-t[0]), cmap=cm.hot_r, marker='o', edgecolors='k')
 plt.scatter(xy_p_ref[:, 0], xy_p_ref[:, 1], c=t/(t[-1]-t[0]), cmap=cm.hot_r, marker='o')#, edgecolors='k')
@@ -120,6 +120,8 @@ ax.set_xlabel('x [m]')
 ax.set_xlim([-10, -3])
 ax.set_ylim([-1, 1.5])
 plt.savefig(picture_export_prefix + 'trajectories.png', bbox_inches='tight', dpi=199)
+print ('return early')
+quit()
 plt.show()
 
 plt.plot(t-t[0], d-0.3, 'ko')

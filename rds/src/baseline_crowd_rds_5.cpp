@@ -18,19 +18,20 @@ using AdditionalPrimitives2D::Circle;
 using Geometry2D::BoundingCircles;
 using AdditionalPrimitives2D::Polygon;
 
-const bool with_gui = false;
-const bool save_result = true;
+const bool with_gui = true;
+const bool save_result = false;
 
 const float dt = 0.05f;
 
 const float linear_acceleration_limit_jun_10 = 1.5;
 const float angular_acceleration_limit_jun_10 = 1.5;
-const float linear_acceleration_limit = 2.0;
-const float angular_acceleration_limit = 3.0;
+const float linear_acceleration_limit = 1000.0;//2.0;
+const float angular_acceleration_limit = 1000.0;//3.0;
 
 const VWDiamond vw_diamond_limits_jun_10(-0.75, 1.5, 4.124/3.5, 0.2);
 
-const VWDiamond vw_diamond_limits_generous(-0.75, 1.5, 4.124, 0.2);
+const VWDiamond vw_diamond_limits_generous(-0.75, 1.5, 6.0, //4.124,
+	0.2);
 
 const VWDiamond vw_diamond_limits_very_generous(-1, 2, 4, 0);
 
@@ -44,7 +45,7 @@ const float tau = 1.5;
 const float y_p_ref = 0.18;
 const RDS5CapsuleConfiguration rds_5_config(tau, delta, y_p_ref,
 	linear_acceleration_limit, angular_acceleration_limit, dt,
-	vw_diamond_limits_very_generous, robot_shape);
+	vw_diamond_limits_generous, robot_shape);
 
 const float robot_closeness_threshold = 3.f;
 const float goal_reaching_threshold = 0.5f;
@@ -263,10 +264,10 @@ int main()
 
 	int robot_index;
 	CrowdRdsOrcaSimulator* sim;
-	const unsigned int n_samples = 50;
+	const unsigned int n_samples = 3;//50;
 	for (unsigned int sample_index = 0; sample_index != n_samples; ++sample_index)
 	{
-		robot_index = sample_index*3;
+		robot_index = sample_index*3 + 15;
 
 		double reaching_time_crowd[3], velocity_crowd[3];
 		for (int mode = 0; mode != 3; ++mode)
