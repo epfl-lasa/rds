@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="210mm"
+   height="297mm"
+   viewBox="0 0 210 297"
+   version="1.1"
+   id="svg8"
+   inkscape:version="0.92.5 (0.92.5+69)"
+   sodipodi:docname="drawing.svg">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.49497475"
+     inkscape:cx="709.54134"
+     inkscape:cy="645.27776"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1301"
+     inkscape:window-height="744"
+     inkscape:window-x="65"
+     inkscape:window-y="24"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       style="opacity:1;fill:none;fill-opacity:1;stroke:#ff0000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="M 147.78869,83.443452 H 79.752977"
+       id="path815"
+       inkscape:connector-curvature="0" />
+    <path
+       style="opacity:1;fill:none;fill-opacity:1;stroke:#ff0000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="M 148.35565,56.985119 77.296131,101.39732"
+       id="path817"
+       inkscape:connector-curvature="0" />
+    <flowRoot
+       xml:space="preserve"
+       id="flowRoot819"
+       style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       transform="matrix(0.26458333,0,0,0.26458333,-7.9375005,-17.953869)"><flowRegion
+         id="flowRegion821"><rect
+           id="rect823"
+           width="725.71429"
+           height="105.00001"
+           x="305"
+           y="164.66254" /></flowRegion><flowPara
+         id="flowPara825">xcos(phi) + ysin(phi)=b1</flowPara><flowPara
+         id="flowPara827">xn2 + ym2=b2</flowPara></flowRoot>    <flowRoot
+       xml:space="preserve"
+       id="flowRoot829"
+       style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       transform="matrix(0.26458333,0,0,0.26458333,-25.657875,7.7508163)"><flowRegion
+         id="flowRegion831"><rect
+           id="rect833"
+           width="1180.4148"
+           height="462.38803"
+           x="317.14285"
+           y="376.80539" /></flowRegion><flowPara
+         id="flowPara835">x = x0+vt</flowPara><flowPara
+         id="flowPara837">d = x1cos(wt) + x2sin(wt) - b</flowPara><flowPara
+         id="flowPara839">   = (x01+v1t)cos(wt) + (x02+v2t)sin(wt) -b</flowPara><flowPara
+         id="flowPara841">b [cos(wt), sin(wt)] + s[-sin(wt), cos(wt)] =</flowPara><flowPara
+         id="flowPara843">x + k [cos(wt), sin(wt)]</flowPara><flowPara
+         id="flowPara845">s = -x1 sin(wt) + x2 cos(wt)</flowPara><flowPara
+         id="flowPara847">  = -(x01+v1t) sin(wt) + (x02+v2t) cos(wt)</flowPara><flowPara
+         id="flowPara849">  = -x01 sin(wt) + x02 cos(wt) - v1 t sin(wt) + v2 t cos(wt) </flowPara></flowRoot>  </g>
+</svg>
