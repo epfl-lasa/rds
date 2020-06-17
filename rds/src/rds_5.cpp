@@ -14,6 +14,7 @@ namespace Geometry2D
 	, use_orca_style_crvo(true)
 	, use_conservative_shift(true)
 	, n_bounding_circles(0)
+	, use_cvo(true)
 	{
 		// map vw-limits to cartesian velocity constraints for the reference point
 		// for box-limits
@@ -150,10 +151,10 @@ namespace Geometry2D
 				p_ref.y + n.y*(p_ref.x - robot_point.x)/p_ref.y, n.y);
 			Vec2 n_constraint_tmp_minus(n.x*(robot_point.y - shift_abs)/
 				p_ref.y + n.y*(p_ref.x - robot_point.x)/p_ref.y, n.y);
-			if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp_plus.norm() > b)
-				constraints->push_back(HalfPlane2(n_constraint_tmp_plus, b/n_constraint_tmp_plus.norm()));
-			if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp_minus.norm() > b)
-				constraints->push_back(HalfPlane2(n_constraint_tmp_minus, b/n_constraint_tmp_minus.norm()));
+			//if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp_plus.norm() > b)
+			//	constraints->push_back(HalfPlane2(n_constraint_tmp_plus, b/n_constraint_tmp_plus.norm()));
+			//if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp_minus.norm() > b)
+			//	constraints->push_back(HalfPlane2(n_constraint_tmp_minus, b/n_constraint_tmp_minus.norm()));
 		}
 	}
 

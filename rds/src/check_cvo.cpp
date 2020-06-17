@@ -46,8 +46,10 @@ int main()
 
 		theta += 0.005f;
 		Vec2 v_o1_opt = Vec2(std::cos(theta), std::sin(theta));
+		v_o1_opt = Vec2(0.f, 1.f);
 
 		Vec2 v_o2 = Vec2(std::cos(2.324*theta), std::sin(2.324*theta));
+		v_o2 = Vec2(-0.25f, 0.f);
 
 		CVO cvo(o1.center, o2.center, v_o1_opt, v_o2, o1.radius + o2.radius, 1.f); //tau
 

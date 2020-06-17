@@ -36,7 +36,7 @@ const VWDiamond vw_diamond_limits_generous(-0.75, 1.5, 6.0, //4.124,
 const VWDiamond vw_diamond_limits_very_generous(-1, 2, 4, 0);
 
 const float robot_radius = 0.45;
-const float y_center_front = 0.051;
+const float y_center_front = 0.2;//051;
 const float y_center_back = -0.5;
 const Geometry2D::Capsule robot_shape(robot_radius, Vec2(0.0, y_center_front),
 		Vec2(0.0, y_center_back));
@@ -265,7 +265,7 @@ int main()
 	int robot_index;
 	CrowdRdsOrcaSimulator* sim;
 	const unsigned int n_samples = 3;//50;
-	for (unsigned int sample_index = 0; sample_index != n_samples; ++sample_index)
+	for (unsigned int sample_index = 2; sample_index != n_samples; ++sample_index)
 	{
 		robot_index = sample_index*3 + 15;
 
@@ -278,7 +278,7 @@ int main()
 			AgentLog robot_log;
 
 			float t_final = crowd_trajectory.m_duration;
-			float t_termination = 1.2f*t_final;
+			float t_termination = 1.5f*t_final; //1.2f
 
 			GuiWrap gui_wrap(*sim, 0.f); // draw traces from t=0 on
 			std::chrono::milliseconds gui_cycle_time(int(dt*1000.f));
