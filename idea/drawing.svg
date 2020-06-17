@@ -14,10 +14,24 @@
    viewBox="0 0 210 297"
    version="1.1"
    id="svg8"
-   inkscape:version="0.92.5 (0.92.5+69)"
+   inkscape:version="0.92.5 (0.92.5+68)"
    sodipodi:docname="drawing.svg">
   <defs
      id="defs2">
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible;"
+       id="marker1704"
+       refX="0.0"
+       refY="0.0"
+       orient="auto"
+       inkscape:stockid="Arrow2Lend">
+      <path
+         transform="scale(1.1) rotate(180) translate(1,0)"
+         d="M 8.7185878,4.0337352 L -2.2072895,0.016013256 L 8.7185884,-4.0017078 C 6.9730900,-1.6296469 6.9831476,1.6157441 8.7185878,4.0337352 z "
+         style="fill-rule:evenodd;stroke-width:0.625;stroke-linejoin:round;stroke:#ffcc00;stroke-opacity:1;fill:#ffcc00;fill-opacity:1"
+         id="path1702" />
+    </marker>
     <marker
        inkscape:stockid="Arrow2Lend"
        orient="auto"
@@ -58,7 +72,7 @@
        inkscape:collect="always">
       <path
          id="path1252"
-         style="fill-rule:evenodd;stroke-width:0.625;stroke-linejoin:round;stroke:#000000;stroke-opacity:1;fill:#000000;fill-opacity:1"
+         style="fill-rule:evenodd;stroke-width:0.625;stroke-linejoin:round;stroke:#ffcc00;stroke-opacity:1;fill:#0000ff;fill-opacity:1"
          d="M 8.7185878,4.0337352 L -2.2072895,0.016013256 L 8.7185884,-4.0017078 C 6.9730900,-1.6296469 6.9831476,1.6157441 8.7185878,4.0337352 z "
          transform="scale(1.1) rotate(180) translate(1,0)" />
     </marker>
@@ -100,14 +114,14 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.49497475"
-     inkscape:cx="1446.359"
-     inkscape:cy="770.75388"
+     inkscape:zoom="0.7"
+     inkscape:cx="1498.1135"
+     inkscape:cy="-916.12604"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
-     inkscape:window-width="1301"
-     inkscape:window-height="744"
+     inkscape:window-width="2495"
+     inkscape:window-height="1416"
      inkscape:window-x="65"
      inkscape:window-y="24"
      inkscape:window-maximized="1" />
@@ -119,7 +133,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -127,6 +141,16 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1">
+    <path
+       style="opacity:1;fill:#0000ff;fill-opacity:1;stroke:#ffcc00;stroke-width:1;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 502.02142,60.872655 49.17757,-28.33057"
+       id="path1662"
+       inkscape:connector-curvature="0" />
+    <path
+       inkscape:connector-curvature="0"
+       id="path1664"
+       d="m 551.46725,32.605655 28.33057,49.17757"
+       style="opacity:1;fill:none;fill-opacity:1;stroke:#ffcc00;stroke-width:1;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#marker1704)" />
     <path
        style="opacity:1;fill:none;fill-opacity:1;stroke:#ff0000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        d="M 147.78869,83.443452 H 79.752977"
@@ -156,8 +180,8 @@
        transform="matrix(0.26458333,0,0,0.26458333,137.62784,-11.147993)"><flowRegion
          id="flowRegion831"><rect
            id="rect833"
-           width="1784.4858"
-           height="947.26117"
+           width="1841.1982"
+           height="2586.1821"
            x="317.14285"
            y="376.80539" /></flowRegion><flowPara
          id="flowPara835">x = x0+vt</flowPara><flowPara
@@ -173,7 +197,58 @@
          id="flowPara874">|s - s(0)| &lt;= |x01 sin(wt)| + |x02 (cos(wt)-1)| + |v1 t sin(wt)| + |v2 t cos(wt)| </flowPara><flowPara
          id="flowPara876">|sin(x)| &lt;= |x|, |cos(x)-1| &lt;= x^2/2, |x sin x| &lt;= x^2, |x cos x| &lt;= |x|</flowPara><flowPara
          id="flowPara878">|s - s(0)| &lt;= |x01||wt| + |x02|(wt)^2/2 + |v1/w|(wt)^2 + |v2/w||wt|</flowPara><flowPara
-         id="flowPara880">t&gt;0:  |s(t) - s(0)| &lt;= t (|x01 w| + |v2|) + t^2 (|x02|w^2/2 + |v1 w|)</flowPara></flowRoot>    <path
+         id="flowPara880">t&gt;0:  |s(t) - s(0)| &lt;= t (|<flowSpan
+   style="fill:#0000ff"
+   id="flowSpan1542">x01</flowSpan> <flowSpan
+   style="fill:#0000ff"
+   id="flowSpan1546">w</flowSpan>| + |v2|) + t^2 (|x02|<flowSpan
+   style="fill:#0000ff"
+   id="flowSpan1544">w</flowSpan>^2/2 + |v1 <flowSpan
+   style="fill:#0000ff"
+   id="flowSpan1548">w</flowSpan>|) =: f(t, x01, w)</flowPara><flowPara
+         id="flowPara1574">  monoton steigend in t</flowPara><flowPara
+         id="flowPara1576">  |x01 w| = |x01|/|x_r01||x_r01 w| = |x01/x_r01| |v_forward|</flowPara><flowPara
+         id="flowPara1582" /><flowPara
+         id="flowPara1584">d - d(0) = (x01+v1t)cos(wt) + (x02+v2t)sin(wt) - x01</flowPara><flowPara
+         id="flowPara1586">             = x01 (cos(wt) - 1) + x02 sin(wt) + v1 t cos(wt)  + v2 t sin(wt)</flowPara><flowPara
+         id="flowPara1588">|d - d(0)| &lt;= |x01 (cos(wt) - 1)| + |x02 sin(wt)| + |v1 t cos(wt)|  + |v2 t sin(wt)|</flowPara><flowPara
+         id="flowPara1590">              &lt;= |x01|(wt)^2/2 + |x02||wt| + |v1/w||wt| + |v2/w|(wt)^2</flowPara><flowPara
+         id="flowPara1592">t&gt;0:  |d(t) - d(0)| &lt;= t (|x02 <flowSpan
+   style="fill:#0000ff"
+   id="flowSpan1596">w</flowSpan>| + |v1|) + t^2 (|<flowSpan
+   style="fill:#0000ff"
+   id="flowSpan1636">x01</flowSpan>|<flowSpan
+   style="fill:#0000ff"
+   id="flowSpan1600">w</flowSpan>^2/2 + |v2 <flowSpan
+   style="fill:#0000ff"
+   id="flowSpan1594">w</flowSpan>|) := h(t, x01, w)  </flowPara><flowPara
+         id="flowPara1638" /><flowPara
+         id="flowPara1640">Ghost point motion: x_g(t) = x_g(0) + t [-x_g2(0) w, x_g1(0) w]</flowPara><flowPara
+         id="flowPara1804">x - x_g = [x01 - x_g01 + t (v1 + x_g02 w), x02 - x_g02 + t (v2 - x_g01 w)]</flowPara><flowPara
+         id="flowPara1826" /><flowPara
+         id="flowPara1828">t^2 (|x01|w^2/2 + |v2 w|) = t |w|/2 <flowSpan
+   style="fill:#008000"
+   id="flowSpan1830">(t |x01 w|)</flowSpan> + t^2 |v2 w|</flowPara><flowPara
+         id="flowPara1832" /><flowPara
+         id="flowPara1838">a = |w x01|</flowPara><flowPara
+         id="flowPara1834">b = t |w|</flowPara><flowPara
+         id="flowPara1840">f = t (a + |v2| + b |v1|) + b^2 |x02|/2</flowPara><flowPara
+         id="flowPara1842">h = b|x02| + t (|v1| + a b /2 + b |v2|)</flowPara><flowPara
+         id="flowPara1836" /><flowPara
+         id="flowPara1806" /><flowPara
+         id="flowPara1808">Collision prevention scheme:</flowPara><flowPara
+         id="flowPara1844" /><flowPara
+         id="flowPara1852">a can be adapted as far as f stays in a specific range (if f is inside the range)</flowPara><flowPara
+         id="flowPara1846">in order to reduce h. Further reduction must go via b.</flowPara><flowPara
+         id="flowPara1814"></flowPara><flowPara
+         id="flowPara1869">if h(tau, a, b) &gt; distance(0):</flowPara><flowPara
+         id="flowPara1871">   if f(tau, a, b) &gt; c:</flowPara><flowPara
+         id="flowPara1875">         a_new = 2(distance(0) - b|x02|)/tau - |v1| - b |v2|)/b</flowPara><flowPara
+         id="flowPara1877">         if f(tau, a_new, b) &lt; c:</flowPara><flowPara
+         id="flowPara1873">                 a_new = c/tau - |v2| - b |v1| - b^2 |x02|/2/tau</flowPara><flowPara
+         id="flowPara1879">   if h(tau, a_new, b) &gt; distance(0):</flowPara><flowPara
+         id="flowPara1881">         b_new = (distance(0) - tau |v1|)/(|x02| + tau (|v2| + a_new/2))</flowPara><flowPara
+         id="flowPara1560" /></flowRoot>    <path
        style="opacity:1;fill:none;fill-opacity:1;stroke:#ff0000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow2Lend)"
        d="M 442.23214,61.142856 H 562.42856"
        id="path882"
@@ -195,7 +270,7 @@
        cy="32.794647"
        r="2.2678571" />
     <path
-       style="opacity:1;fill:none;fill-opacity:1;stroke:#ff0000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       style="opacity:1;fill:none;fill-opacity:1;stroke:#008000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        d="m 509.50496,32.542086 h 41.69405"
        id="path1206"
        inkscape:connector-curvature="0" />
@@ -213,7 +288,7 @@
        inkscape:connector-curvature="0"
        id="path1212-3"
        d="M 471.0453,57.979731 538.12243,96.70673"
-       style="opacity:1;fill:none;fill-opacity:1;stroke:#ff0000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+       style="opacity:1;fill:none;fill-opacity:1;stroke:#008000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
     <circle
        style="opacity:1;fill:none;fill-opacity:1;stroke:#ff0000;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="path1204-6"
@@ -272,7 +347,7 @@
        xml:space="preserve"
        id="flowRoot1466"
        style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#ff0000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       transform="matrix(0.26458333,0,0,0.26458333,-103.61133,-27.122573)"><flowRegion
+       transform="matrix(0.26458333,0,0,0.26458333,-112.43122,-28.191651)"><flowRegion
          id="flowRegion1468"
          style="fill:#ff0000;stroke:none"><rect
            id="rect1470"
@@ -342,5 +417,59 @@
            height="54.285713"
            x="2024.2858"
            y="251.09111" /></flowRegion><flowPara
-         id="flowPara1528">wt</flowPara></flowRoot>  </g>
+         id="flowPara1528">wt</flowPara></flowRoot>    <flowRoot
+       xml:space="preserve"
+       id="flowRoot1602"
+       style="font-style:normal;font-weight:normal;font-size:40px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#008000;fill-opacity:1;stroke:none;"
+       transform="matrix(0.26458333,0,0,0.26458333,4.0090432,-5.0781209)"><flowRegion
+         id="flowRegion1604"
+         style="fill:#008000;"><rect
+           id="rect1606"
+           width="131.31982"
+           height="179.80714"
+           x="1804.1324"
+           y="298.2352"
+           style="fill:#008000;" /></flowRegion><flowPara
+         id="flowPara1608">d(t)</flowPara></flowRoot>    <flowRoot
+       xml:space="preserve"
+       id="flowRoot1602-3"
+       style="font-style:normal;font-weight:normal;font-size:40px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#008000;fill-opacity:1;stroke:none"
+       transform="matrix(0.26458333,0,0,0.26458333,44.048701,-58.692849)"><flowRegion
+         id="flowRegion1604-6"
+         style="fill:#008000"><rect
+           id="rect1606-7"
+           width="131.31982"
+           height="179.80714"
+           x="1804.1324"
+           y="298.2352"
+           style="fill:#008000" /></flowRegion><flowPara
+         id="flowPara1608-5">d(0)</flowPara></flowRoot>    <flowRoot
+       xml:space="preserve"
+       id="flowRoot1642"
+       style="font-style:normal;font-weight:normal;font-size:40px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
+       transform="matrix(0.26458333,0,0,0.26458333,-2.9399648,2.4054257)"><flowRegion
+         id="flowRegion1644"><rect
+           id="rect1646"
+           width="131.31982"
+           height="54.548237"
+           x="2104.1477"
+           y="79.032112" /></flowRegion><flowPara
+         id="flowPara1648">x_g(0)</flowPara></flowRoot>    <flowRoot
+       xml:space="preserve"
+       id="flowRoot1642-3"
+       style="font-style:normal;font-weight:normal;font-size:40px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
+       transform="matrix(0.26458333,0,0,0.26458333,31.506147,59.686574)"><flowRegion
+         id="flowRegion1644-5"><rect
+           id="rect1646-6"
+           width="131.31982"
+           height="54.548237"
+           x="2104.1477"
+           y="79.032112" /></flowRegion><flowPara
+         id="flowPara1648-2">x_g(t)</flowPara></flowRoot>    <circle
+       style="opacity:1;fill:none;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="path1790"
+       cx="579.79779"
+       cy="81.783226"
+       r="4.1860938" />
+  </g>
 </svg>
