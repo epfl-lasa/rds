@@ -18,8 +18,8 @@ using AdditionalPrimitives2D::Circle;
 using Geometry2D::BoundingCircles;
 using AdditionalPrimitives2D::Polygon;
 
-const bool with_gui = true;
-const bool save_result = false;
+const bool with_gui = false;
+const bool save_result = true;
 
 const float dt = 0.05f;
 
@@ -277,6 +277,7 @@ int main()
 			std::chrono::milliseconds gui_cycle_time(int(dt*1000.f));
 			std::chrono::high_resolution_clock::time_point t_gui_update = std::chrono::high_resolution_clock::now();
 			unsigned int collision_count;
+			unsigned int beginner_collision_count = 0;
 			do
 			{
 				if (with_gui)
@@ -291,6 +292,14 @@ int main()
 				collision_count = 0;
 				for (const auto& collision : sim->getRobotCollisions())
 					collision_count += int(collision);
+
+				if (sim->getTime() - dt < 1.f)
+				{
+					beginner_collision_count = 0;
+					for (const auto& collision : sim->getRobotCollisions())
+						beginner_collision_count += int(collision);
+				}
+
 				char time_str[20];
 				std::sprintf(time_str, "%6.2f", sim->getTime());
 				std::cout << "Time=" << time_str << "; Collisions=" << collision_count << "\t\r" << std::flush;
@@ -336,14 +345,14 @@ int main()
 				ORCA_N_ttg.push_back(N_ttg);
 				ORCA_N_v.push_back(N_v);
 				ORCA_robot_mean_distance_to_target.push_back(robot_log.distance_to_target_mean);
-				ORCA_collision_count.push_back(collision_count);
+				ORCA_collision_count.push_back(collision_count - beginner_collision_count);
 			}
 			else if (mode == 2)
 			{
 				RDS_N_ttg.push_back(N_ttg);
 				RDS_N_v.push_back(N_v);
 				RDS_robot_mean_distance_to_target.push_back(robot_log.distance_to_target_mean);
-				RDS_collision_count.push_back(collision_count);
+				RDS_collision_count.push_back(collision_count - beginner_collision_count);
 			}
 			delete sim;
 		}
