@@ -16,6 +16,7 @@ GUI::GUI(const char* title, float window_size_in_distance_units, unsigned int wi
 	if (hide)
 	{
 		window_is_good = true;
+		window = 0;
 		return;
 	}
 	window = new Window(title, window_size_in_distance_units, window_size_in_pixels, 10.0, &window_is_good);

@@ -151,10 +151,10 @@ namespace Geometry2D
 				p_ref.y + n.y*(p_ref.x - robot_point.x)/p_ref.y, n.y);
 			Vec2 n_constraint_tmp_minus(n.x*(robot_point.y - shift_abs)/
 				p_ref.y + n.y*(p_ref.x - robot_point.x)/p_ref.y, n.y);
-			//if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp_plus.norm() > b)
-			//	constraints->push_back(HalfPlane2(n_constraint_tmp_plus, b/n_constraint_tmp_plus.norm()));
-			//if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp_minus.norm() > b)
-			//	constraints->push_back(HalfPlane2(n_constraint_tmp_minus, b/n_constraint_tmp_minus.norm()));
+			if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp_plus.norm() > b)
+				constraints->push_back(HalfPlane2(n_constraint_tmp_plus, b/n_constraint_tmp_plus.norm()));
+			if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp_minus.norm() > b)
+				constraints->push_back(HalfPlane2(n_constraint_tmp_minus, b/n_constraint_tmp_minus.norm()));
 		}
 	}
 
@@ -218,6 +218,12 @@ namespace Geometry2D
 		// add constraints due to diamond limits
 		for (auto& h : constraints_diamond_limits)
 			constraints_tmp.push_back(h);
+
+		//constraints_tmp.push_back(HalfPlane2(Vec2(1.f, 0.f), v_p_ref_radial_max/std::sqrt(2)));
+		//constraints_tmp.push_back(HalfPlane2(Vec2(-1.f, 0.f), v_p_ref_radial_max/std::sqrt(2)));
+		//constraints_tmp.push_back(HalfPlane2(Vec2(0.f, 1.f), v_p_ref_radial_max/std::sqrt(2)));
+		//constraints_tmp.push_back(HalfPlane2(Vec2(0.f, -1.f), v_p_ref_radial_max/std::sqrt(2)));
+
 		// save the constraints for visualization
 		constraints = constraints_tmp;
 		// shift and scale the constraints

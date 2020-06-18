@@ -25,9 +25,9 @@ void RDS5CapsuleAgent::stepEuler(float dt,
 
 	Geometry2D::RDS5 rds_5(rds_configuration.tau, rds_configuration.delta, rds_configuration.y_p_ref,
 		box_limits, rds_configuration.vw_diamond_limits);
-	rds_5.use_conservative_shift = false;
+	rds_5.use_conservative_shift = true;
 	rds_5.use_previous_command_as_basis = false;
-	rds_5.use_cvo = true;
+	rds_5.use_cvo = false;
 
 	if (v_nominal_p_ref_local.norm() > std::abs(rds_configuration.vw_diamond_limits.v_max))
 		v_nominal_p_ref_local = v_nominal_p_ref_local.normalized()*std::abs(rds_configuration.vw_diamond_limits.v_max);

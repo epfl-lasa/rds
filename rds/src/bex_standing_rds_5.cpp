@@ -36,7 +36,7 @@ const VWDiamond vw_diamond_limits_generous(-0.75, 1.5, 4.124,
 const VWDiamond vw_diamond_limits_very_generous(-1, 2, 4, 0);
 
 const float robot_radius = 0.45;
-const float y_center_front = 0.2;//051;
+const float y_center_front = 0.2;// 0.051; //just does not work!!!
 const float y_center_back = -0.5;
 const Geometry2D::Capsule robot_shape(robot_radius, Vec2(0.0, y_center_front),
 		Vec2(0.0, y_center_back));
@@ -243,29 +243,45 @@ CrowdRdsOrcaSimulator* setup_simulation(CrowdTrajectory* crowd_motion,
 
 int main()
 {
-	char file_name[] = "./data_university_students/students003_no_obstacles.vsp";
-	float frame_rate = 25.333;
-	float scaling = 0.025;//0.027;
-	CrowdTrajectory crowd_trajectory(file_name, frame_rate, scaling);
+	CrowdTrajectory crowd_trajectory;
+	{
+		std::vector<CrowdTrajectory::Knot> spline_data(3);
+		for (int k = 0; k < 3; k++)
+			spline_data[k] = CrowdTrajectory::Knot(Vec2(1.5f, 0.3f), float(k));
+		crowd_trajectory.addPedestrianTrajectory(spline_data);
+		for (int k = 0; k < 3; k++)
+			spline_data[k] = CrowdTrajectory::Knot(Vec2(0.75f, -0.2f), float(k));
+		crowd_trajectory.addPedestrianTrajectory(spline_data);
+	}
+	unsigned int robot_leader_index = crowd_trajectory.getSplinesData().size();
+	std::vector<CrowdTrajectory::Knot> spline_data(3);
+	spline_data[0] = CrowdTrajectory::Knot(Vec2(-5.f, 0.f), 0.f);
+	spline_data[1] = CrowdTrajectory::Knot(Vec2(4.1f, 0.f), 7.f);
+	spline_data[2] = CrowdTrajectory::Knot(Vec2(13.2f, 0.f), 14.f);
+	crowd_trajectory.addPedestrianTrajectory(spline_data);
+
 	Arena arena;
-	define_arena_for_evaluation(crowd_trajectory, arena);
+	arena.x_min = -10.f;
+	arena.x_max = 10.f;
+	arena.y_min = -10.f;
+	arena.y_max = 10.f;
 
 	std::vector<double> RDS_E_t, RDS_E_v, RDS_N_ttg, RDS_N_v,
 		ORCA_E_t, ORCA_E_v, ORCA_N_ttg, ORCA_N_v,
 		RDS_robot_mean_distance_to_target, ORCA_robot_mean_distance_to_target;
 	std::vector<unsigned int> RDS_collision_count, ORCA_collision_count;
 
-	int robot_index;
+	int robot_index = robot_leader_index;
 	CrowdRdsOrcaSimulator* sim;
-	const unsigned int n_samples = 20;
-	for (unsigned int sample_index = 0; sample_index != n_samples; ++sample_index)
 	{
-		robot_index = sample_index*2 + 15;
-
 		double reaching_time_crowd[3], velocity_crowd[3];
 		for (int mode = 0; mode != 3; ++mode)
 		{
 			sim = setup_simulation(&crowd_trajectory, robot_index, mode);
+
+	//sim->addStaticObstacle(Vec2(-2.f, 1.2f), 1.f);
+	//sim->addStaticObstacle(Vec2(2.f, 1.8f), 1.f);
+	//sim->addStaticObstacle(Vec2(2.7f, 1.4f), 1.f);
 
 			std::vector<AgentLog> crowd_log(crowd_trajectory.getNumSplines());
 			AgentLog robot_log;
@@ -427,7 +443,7 @@ int main()
 
 	if (save_result)
 	{
-		std::ofstream csv_file("metrics_evaluation.csv", std::ios::trunc);
+		std::ofstream csv_file("bex_overtaking_metrics_evaluation.csv", std::ios::trunc);
 		csv_file << metric_names[0];
 		for (unsigned int j = 1; j != metric_names.size(); j++)
 			csv_file << "; " << metric_names[j];
