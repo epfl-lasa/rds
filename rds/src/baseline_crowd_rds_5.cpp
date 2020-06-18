@@ -18,8 +18,8 @@ using AdditionalPrimitives2D::Circle;
 using Geometry2D::BoundingCircles;
 using AdditionalPrimitives2D::Polygon;
 
-const bool with_gui = false;
-const bool save_result = true;
+const bool with_gui = true;
+const bool save_result = false;
 
 const float dt = 0.05f;
 
@@ -263,8 +263,8 @@ int main()
 
 	int robot_index;
 	CrowdRdsOrcaSimulator* sim;
-	const unsigned int n_samples = 50;
-	for (unsigned int sample_index = 0; sample_index != n_samples; ++sample_index)
+	const unsigned int n_samples = 3;
+	for (unsigned int sample_index = 2; sample_index != n_samples; ++sample_index)
 	{
 		robot_index = sample_index*3;
 
