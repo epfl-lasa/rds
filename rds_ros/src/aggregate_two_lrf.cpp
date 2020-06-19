@@ -34,13 +34,13 @@ float angle_difference(float alpha, float beta)
 
 void AggregatorTwoLRF::getPointsFromLRF(const sensor_msgs::LaserScan::ConstPtr& lrf_msg,
 	float angle_cutoff, float range_cutoff_lower, float range_cutoff_upper,
-	std::vector<Geometry2D::Vec2>* result_points)
+	std::vector<Geometry2D::Vec2>* result_points, const std::string& lrf_frame_name)
 {
 	geometry_msgs::TransformStamped transformStamped;
 	try
 	{
 		transformStamped = tf_buffer.lookupTransform(
-			 "tf_rds", lrf_msg->header.frame_id //"sick_laser_front"//
+			 "tf_rds", lrf_frame_name //"sick_laser_front"//
 			, ros::Time(0));
 	}
 	catch (tf2::TransformException &ex)
@@ -94,11 +94,11 @@ AggregatorTwoLRF::AggregatorTwoLRF(float angle_cutoff_lrf_front, float range_cut
 void AggregatorTwoLRF::callbackLRFFront(const sensor_msgs::LaserScan::ConstPtr& lrf_msg)
 {
 	getPointsFromLRF(lrf_msg, angle_cutoff_lrf_front, range_cutoff_lower_lrf_front,
-		range_cutoff_upper_lrf_front, &points_front);
+		range_cutoff_upper_lrf_front, &points_front, "tf_front_lidar");
 }
 
 void AggregatorTwoLRF::callbackLRFRear(const sensor_msgs::LaserScan::ConstPtr& lrf_msg)
 {
 	getPointsFromLRF(lrf_msg, angle_cutoff_lrf_rear, range_cutoff_lower_lrf_rear,
-		range_cutoff_upper_lrf_rear, &points_rear);
+		range_cutoff_upper_lrf_rear, &points_rear, "tf_rear_lidar");
 }

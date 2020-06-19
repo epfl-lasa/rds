@@ -43,7 +43,7 @@ struct AggregatorTwoLRF
 private:
 	void getPointsFromLRF(const sensor_msgs::LaserScan::ConstPtr& lrf_msg,
 		float angle_cutoff, float range_cutoff_lower, float range_cutoff_upper,
-		std::vector<Geometry2D::Vec2>* result_points);
+		std::vector<Geometry2D::Vec2>* result_points,  const std::string& lrf_frame_name);
 };
 
 /*struct AggregatorTwoLRFDepthCamera : public AggregatorTwoLRF
