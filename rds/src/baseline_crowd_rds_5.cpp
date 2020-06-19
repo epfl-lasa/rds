@@ -18,14 +18,14 @@ using AdditionalPrimitives2D::Circle;
 using Geometry2D::BoundingCircles;
 using AdditionalPrimitives2D::Polygon;
 
-const bool with_gui = false;
-const bool save_result = true;
+const bool with_gui = true;
+const bool save_result = false;
 
 const float dt = 0.05f;
 
 const float linear_acceleration_limit_jun_10 = 1.5;
 const float angular_acceleration_limit_jun_10 = 1.5;
-const float linear_acceleration_limit = 1000.0;//2.0;
+const float linear_acceleration_limit = 1000.0;//3.0;//2.0;
 const float angular_acceleration_limit = 1000.0;//3.0;
 
 const VWDiamond vw_diamond_limits_jun_10(-0.75, 1.5, 4.124/3.5, 0.2);
@@ -247,6 +247,23 @@ int main()
 	float frame_rate = 25.333;
 	float scaling = 0.025;//0.027;
 	CrowdTrajectory crowd_trajectory(file_name, frame_rate, scaling);
+
+	if (false)
+	{
+		std::vector<CrowdTrajectory::Knot> spline_data(3);
+		Vec2 move(5.15f, -2.15f);
+		std::vector<Vec2> static_pedestrian_positions = {move + Vec2(-0.3f,-0.3f),
+			move + Vec2(-0.3f, 0.3f), move + Vec2(0.3f,-0.3f), move + Vec2(0.3f, 0.3f)};
+		for (auto& ped_pos : static_pedestrian_positions)
+		{
+			spline_data[0] = CrowdTrajectory::Knot(ped_pos, 0.f);
+			spline_data[1] = CrowdTrajectory::Knot(ped_pos, 1.f);
+			spline_data[2] = CrowdTrajectory::Knot(ped_pos, 2.f);
+			crowd_trajectory.addPedestrianTrajectory(spline_data);
+		}
+		crowd_trajectory.removePedestrian(17);
+	}
+
 	Arena arena;
 	define_arena_for_evaluation(crowd_trajectory, arena);
 
