@@ -19,7 +19,7 @@ using Geometry2D::BoundingCircles;
 using AdditionalPrimitives2D::Polygon;
 
 const bool with_gui = true;
-const bool save_result = false;
+const bool save_result = true;
 
 const float dt = 0.05f;
 
@@ -241,6 +241,18 @@ CrowdRdsOrcaSimulator* setup_simulation(CrowdTrajectory* crowd_motion,
 	return simulation;
 }
 
+struct TimeWindow
+{
+	TimeWindow(double t_min, double t_max) : t_min(t_min), t_max(t_max) { }
+	double t_min, t_max;
+
+	void updateExtrema(double t_min_candidate, double t_max_candidate)
+	{
+		t_min = (t_min_candidate < t_min) ? t_min_candidate : t_min;
+		t_max = (t_max_candidate > t_max) ? t_max_candidate : t_max;
+	}
+};
+
 int main()
 {
 	char file_name[] = "./data_university_students/students003_no_obstacles.vsp";
@@ -248,17 +260,20 @@ int main()
 	float scaling = 0.025;//0.027;
 	CrowdTrajectory crowd_trajectory(file_name, frame_rate, scaling);
 
-	if (false)
+	if (true)
 	{
-		std::vector<CrowdTrajectory::Knot> spline_data(3);
+		std::vector<CrowdTrajectory::Knot> spline_data(6);
 		Vec2 move(5.15f, -2.15f);
 		std::vector<Vec2> static_pedestrian_positions = {move + Vec2(-0.3f,-0.3f),
 			move + Vec2(-0.3f, 0.3f), move + Vec2(0.3f,-0.3f), move + Vec2(0.3f, 0.3f)};
 		for (auto& ped_pos : static_pedestrian_positions)
 		{
 			spline_data[0] = CrowdTrajectory::Knot(ped_pos, 0.f);
-			spline_data[1] = CrowdTrajectory::Knot(ped_pos, 1.f);
-			spline_data[2] = CrowdTrajectory::Knot(ped_pos, 2.f);
+			spline_data[1] = CrowdTrajectory::Knot(ped_pos, 35.f);
+			spline_data[2] = CrowdTrajectory::Knot(ped_pos, 70.f);
+			spline_data[3] = CrowdTrajectory::Knot(ped_pos, 71.f);
+			spline_data[4] = CrowdTrajectory::Knot(ped_pos + Vec2(-1.4f, 0.f), 72.f);
+			spline_data[5] = CrowdTrajectory::Knot(ped_pos + 2.f*Vec2(-1.4f, 0.f), 73.f);
 			crowd_trajectory.addPedestrianTrajectory(spline_data);
 		}
 		crowd_trajectory.removePedestrian(17);
@@ -274,10 +289,11 @@ int main()
 
 	int robot_index;
 	CrowdRdsOrcaSimulator* sim;
-	const unsigned int n_samples = 20;
+	const unsigned int n_samples = 50;
+	TimeWindow time_window(100000.0, -100000.0); // to be updated
 	for (unsigned int sample_index = 0; sample_index != n_samples; ++sample_index)
 	{
-		robot_index = sample_index*2 + 15;
+		robot_index = sample_index;
 
 		double reaching_time_crowd[3], velocity_crowd[3];
 		for (int mode = 0; mode != 3; ++mode)
@@ -289,6 +305,7 @@ int main()
 
 			float t_final = crowd_trajectory.m_duration;
 			float t_termination = 1.5f*t_final; //1.2f
+			time_window.updateExtrema(crowd_trajectory.m_time_shift, crowd_trajectory.m_time_shift + t_final);
 
 			GuiWrap gui_wrap(*sim, 0.f); // draw traces from t=0 on
 			std::chrono::milliseconds gui_cycle_time(int(dt*1000.f));
@@ -297,7 +314,7 @@ int main()
 			unsigned int beginner_collision_count = 0;
 			do
 			{
-				if (with_gui)
+				if (with_gui && false)
 				{
 					std::this_thread::sleep_for(gui_cycle_time - std::chrono::duration_cast<std::chrono::milliseconds>(
 						std::chrono::high_resolution_clock::now() - t_gui_update));
@@ -434,6 +451,10 @@ int main()
 		integer_metric_std_values[i] = std::sqrt(integer_metric_std_values[i]/(integer_metric_values[i].size() - 1));
 	}
 
+	std::cout << "--------------------------------" << std::endl;
+	std::cout << "Number of samples: " << n_samples << "." << std::endl;
+	std::cout << "All samples time window: [" << time_window.t_min << ", " << time_window.t_max << "] s." << std::endl;
+	std::cout << "METRICS EVALUATION:" << std::endl;
 	for (unsigned int i = 0; i < metric_values.size(); i++)
 	{
 		char mean_str[20], std_str[20];
