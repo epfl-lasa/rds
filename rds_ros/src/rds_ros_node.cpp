@@ -81,6 +81,8 @@ void RDSNode::callbackTracker(const frame_msgs::TrackedPersons::ConstPtr& tracks
 int RDSNode::makeLocalPersons(const std::vector<MovingObject3>& persons_global,
 	const std::string& tracks_frame_id, std::vector<MovingCircle>* persons_local)
 {
+	if (persons_global.size() == 0)
+		return 0;
 	tf2::Transform tf;
 	int error_tf_lookup = obtainTf("tf_rds", tracks_frame_id, &tf);
 	if (error_tf_lookup)
