@@ -61,6 +61,7 @@ RdsOrcaSimulator::RdsOrcaSimulator(const Vec2& position, float orientation,
 	if (m_orca_orca)
 	{
 		m_rvo_simulator.addAgent(RVO::Vector2(0.f, 0.f), 15.0f, 10, m_orca_time_horizon, m_orca_time_horizon, 1.f, 1.f);
+		m_rvo_simulator.setAgentAdaptTotally(m_bounding_circles_robot.circles().size(), true);
 		std::vector<size_t> ignore_ids;
 		for (unsigned int i = 0; i < m_bounding_circles_robot.circles().size(); i++)
 			ignore_ids.push_back(m_rvo_simulator.getAgentID(i));
@@ -117,7 +118,7 @@ void RdsOrcaSimulator::setRobotProperties(const Vec2& position, float orientatio
 		float diamond_area = 2.f*config.p_ref.y*config.vw_diamond_limits.w_abs_max*(
 			config.vw_diamond_limits.v_max - config.vw_diamond_limits.v_at_w_abs_max);
 		float v_max = std::sqrt(diamond_area/M_PI);
-		v_max = v_max*0.5 + 0.5*std::max(config.vw_diamond_limits.v_max,
+		v_max = v_max*0.0 + 1.0*std::max(config.vw_diamond_limits.v_max,
 			std::sqrt(config.vw_diamond_limits.w_abs_max*config.p_ref.y*config.vw_diamond_limits.w_abs_max*config.p_ref.y +
 				config.vw_diamond_limits.v_at_w_abs_max*config.vw_diamond_limits.v_at_w_abs_max));
 		m_rvo_simulator.setAgentMaxSpeed(i, v_max);

@@ -2,6 +2,7 @@
 #include "RVO.hpp"
 #include "cvo.hpp"
 #include "distance_minimizer.hpp"
+#define _USE_MATH_DEFINES
 #include <cmath>
 #include <iostream>
 
@@ -15,6 +16,7 @@ namespace Geometry2D
 	, use_conservative_shift(true)
 	, n_bounding_circles(0)
 	, use_cvo(true)
+	, use_radial_v_limit(false)
 	{
 		// map vw-limits to cartesian velocity constraints for the reference point
 		// for box-limits
@@ -151,10 +153,10 @@ namespace Geometry2D
 				p_ref.y + n.y*(p_ref.x - robot_point.x)/p_ref.y, n.y);
 			Vec2 n_constraint_tmp_minus(n.x*(robot_point.y - shift_abs)/
 				p_ref.y + n.y*(p_ref.x - robot_point.x)/p_ref.y, n.y);
-			if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp_plus.norm() > b)
-				constraints->push_back(HalfPlane2(n_constraint_tmp_plus, b/n_constraint_tmp_plus.norm()));
-			if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp_minus.norm() > b)
-				constraints->push_back(HalfPlane2(n_constraint_tmp_minus, b/n_constraint_tmp_minus.norm()));
+			//if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp_plus.norm() > b)
+			//	constraints->push_back(HalfPlane2(n_constraint_tmp_plus, b/n_constraint_tmp_plus.norm()));
+			//if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp_minus.norm() > b)
+			//	constraints->push_back(HalfPlane2(n_constraint_tmp_minus, b/n_constraint_tmp_minus.norm()));
 		}
 	}
 
@@ -216,8 +218,18 @@ namespace Geometry2D
 	void RDS5::solve(const Vec2& v_nominal, std::vector<HalfPlane2>& constraints_tmp, Vec2* v_corrected)
 	{
 		// add constraints due to diamond limits
-		for (auto& h : constraints_diamond_limits)
-			constraints_tmp.push_back(h);
+		if (!use_radial_v_limit)
+		{
+			for (auto& h : constraints_diamond_limits)
+				constraints_tmp.push_back(h);
+		}
+		else
+		{
+			double angle_increment = 2.0*M_PI/20.0;
+			double offset = v_p_ref_radial_max*std::cos(angle_increment/2.0);
+			for (double phi = 0.0; phi < 2.f*M_PI; phi += angle_increment)
+				constraints_tmp.push_back(HalfPlane2(Vec2(std::cos(phi), std::sin(phi)), offset));
+		}
 
 		//constraints_tmp.push_back(HalfPlane2(Vec2(1.f, 0.f), v_p_ref_radial_max/std::sqrt(2)));
 		//constraints_tmp.push_back(HalfPlane2(Vec2(-1.f, 0.f), v_p_ref_radial_max/std::sqrt(2)));
