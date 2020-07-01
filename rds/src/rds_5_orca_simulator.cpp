@@ -55,6 +55,7 @@ RdsOrcaSimulator::RdsOrcaSimulator(const Vec2& position, float orientation,
 	, m_pedestrian_v_max(config.vw_diamond_limits.v_max*1.3)
 	, m_orca_orca(orca_orca)
 	, m_robot_avoids(true)
+	, m_ignore_orca_circle(false)
 {
 	for (auto& c : m_bounding_circles_robot.circles())
 		m_rvo_simulator.addAgent(RVO::Vector2(0.f, 0.f), 15.0f, 10, m_orca_time_horizon, m_orca_time_horizon, 1.f, 1.f);
@@ -73,6 +74,12 @@ void RdsOrcaSimulator::addPedestrian(const Vec2& position, const Vec2& velocity)
 {
 	m_rvo_simulator.addAgent(toRVO(position), 15.0f, 10, m_orca_time_horizon, m_orca_time_horizon,
 		m_pedestrian_radius + m_orca_distance_margin/2.f, m_pedestrian_v_max, toRVO(velocity));
+	if (m_orca_orca && m_ignore_orca_circle)
+	{
+		std::vector<size_t> ignore_ids = {
+			m_rvo_simulator.getAgentID(m_bounding_circles_robot.circles().size()) };
+		m_rvo_simulator.setAgentIgnoreIDs(m_rvo_simulator.getNumberOfAgents() - 1, ignore_ids);
+	}
 	m_pedestrians.push_back(MovingCircle(Circle(position, m_pedestrian_radius), Vec2()));
 	m_robot_collisions.push_back(false);
 }

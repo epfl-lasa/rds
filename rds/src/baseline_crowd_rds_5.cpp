@@ -230,6 +230,8 @@ CrowdRdsOrcaSimulator* setup_simulation(CrowdTrajectory* crowd_motion,
 	CrowdRdsOrcaSimulator* simulation = new CrowdRdsOrcaSimulator(rds_5_config,
 		*crowd_motion, handy_robot_index, orca_orca);
 
+	simulation->m_ignore_orca_circle = true;
+
 	if (mode == 0)
 		simulation->addPedestrian(robot_index);
 	for (unsigned int i = 0; i != crowd_motion->getNumSplines(); i++)

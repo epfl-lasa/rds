@@ -66,6 +66,7 @@ public:
 	const float m_pedestrian_v_max;
 	const bool m_orca_orca;
 	bool m_robot_avoids;
+	bool m_ignore_orca_circle;
 	Geometry2D::Vec2 m_previous_robot_position;
 };
 
