@@ -261,6 +261,8 @@ int main()
 		ORCA_E_t, ORCA_E_v, ORCA_N_ttg, ORCA_N_v,
 		RDS_robot_mean_distance_to_target, ORCA_robot_mean_distance_to_target;
 
+	std::vector<unsigned int> RDS_collision_count, ORCA_collision_count;
+
 	int robot_index;
 	CrowdRdsOrcaSimulator* sim;
 	const unsigned int n_samples = 3;
@@ -282,6 +284,9 @@ int main()
 			GuiWrap gui_wrap(*sim, 0.f); // draw traces from t=0 on
 			std::chrono::milliseconds gui_cycle_time(int(dt*1000.f));
 			std::chrono::high_resolution_clock::time_point t_gui_update = std::chrono::high_resolution_clock::now();
+			
+			unsigned int collision_count;
+			unsigned int beginner_collision_count = 0;
 			do
 			{
 				if (with_gui)
@@ -292,9 +297,18 @@ int main()
 				t_gui_update = std::chrono::high_resolution_clock::now();
 				sim->step(dt);
 				sim->checkRobotCollisions();
-				unsigned int collision_count = 0;
+				//unsigned int 
+				collision_count = 0;
 				for (const auto& collision : sim->getRobotCollisions())
 					collision_count += int(collision);
+
+				if (sim->getTime() - dt < 1.f)
+				{
+					beginner_collision_count = 0;
+					for (const auto& collision : sim->getRobotCollisions())
+						beginner_collision_count += int(collision);
+				}
+
 				char time_str[20];
 				std::sprintf(time_str, "%6.2f", sim->getTime());
 				std::cout << "Time=" << time_str << "; Collisions=" << collision_count << "\t\r" << std::flush;
@@ -340,12 +354,14 @@ int main()
 				ORCA_N_ttg.push_back(N_ttg);
 				ORCA_N_v.push_back(N_v);
 				ORCA_robot_mean_distance_to_target.push_back(robot_log.distance_to_target_mean);
+				ORCA_collision_count.push_back(collision_count - beginner_collision_count);
 			}
 			else if (mode == 2)
 			{
 				RDS_N_ttg.push_back(N_ttg);
 				RDS_N_v.push_back(N_v);
 				RDS_robot_mean_distance_to_target.push_back(robot_log.distance_to_target_mean);
+				RDS_collision_count.push_back(collision_count - beginner_collision_count);
 			}
 			delete sim;
 		}
@@ -366,9 +382,14 @@ int main()
 		"ORCA_N_v          ",
 		"RDS_rob_track_err ",
 		"ORCA_rob_track_err"};
+	std::vector<std::string> integer_metric_names = {
+		"RDS_collisions    ",
+		"ORCA_collisions   "};
 	std::vector<std::vector<double> > metric_values = {RDS_E_t, ORCA_E_t, RDS_E_v, ORCA_E_v,
 		RDS_N_ttg, ORCA_N_ttg, RDS_N_v, ORCA_N_v,
 		RDS_robot_mean_distance_to_target, ORCA_robot_mean_distance_to_target};
+	std::vector<std::vector<unsigned int> > integer_metric_values = {RDS_collision_count, ORCA_collision_count};
+	
 	std::vector<double> metric_mean_values(metric_values.size(), 0.0);
 	for (unsigned int i = 0; i < metric_values.size(); i++)
 	{
@@ -387,12 +408,38 @@ int main()
 		metric_std_values[i] = std::sqrt(metric_std_values[i]/(metric_values[i].size() - 1));
 	}
 
+	std::vector<double> integer_metric_mean_values(integer_metric_values.size(), 0.0);
+	for (unsigned int i = 0; i < integer_metric_values.size(); i++)
+	{
+		for (unsigned int j = 0; j < integer_metric_values[i].size(); j++)
+			integer_metric_mean_values[i] += integer_metric_values[i][j];
+		integer_metric_mean_values[i] /= double(integer_metric_values[i].size());
+	}
+	std::vector<double> integer_metric_std_values(integer_metric_values.size(), 0.0);
+	for (unsigned int i = 0; i < integer_metric_values.size(); i++)
+	{
+		for (unsigned int j = 0; j < integer_metric_values[i].size(); j++)
+		{
+			double diff = integer_metric_values[i][j] - integer_metric_mean_values[i];
+			integer_metric_std_values[i] += diff*diff;
+		}
+		integer_metric_std_values[i] = std::sqrt(integer_metric_std_values[i]/(integer_metric_values[i].size() - 1));
+	}
+
 	for (unsigned int i = 0; i < metric_values.size(); i++)
 	{
 		char mean_str[20], std_str[20];
 		std::sprintf(mean_str, "%10.6f", metric_mean_values[i]);
 		std::sprintf(std_str, "%10.6f", metric_std_values[i]);
 		std::cout << metric_names[i] << ":   mean =" << mean_str;
+		std::cout << "   std =" << std_str << std::endl;
+	}
+	for (unsigned int i = 0; i < integer_metric_values.size(); i++)
+	{
+		char mean_str[20], std_str[20];
+		std::sprintf(mean_str, "%10.6f", integer_metric_mean_values[i]);
+		std::sprintf(std_str, "%10.6f", integer_metric_std_values[i]);
+		std::cout << integer_metric_names[i] << ":   mean =" << mean_str;
 		std::cout << "   std =" << std_str << std::endl;
 	}
 
@@ -402,11 +449,15 @@ int main()
 		csv_file << metric_names[0];
 		for (unsigned int j = 1; j != metric_names.size(); j++)
 			csv_file << "; " << metric_names[j];
+		for (unsigned int j = 0; j != integer_metric_names.size(); j++)
+			csv_file << "; " << integer_metric_names[j];
 		for (unsigned int i = 0; i != metric_values[0].size(); ++i)
 		{
 			csv_file << std::endl << metric_values[0][i];
 			for (unsigned int j = 1; j != metric_values.size(); j++)
 				csv_file << "; " << metric_values[j][i];
+			for (unsigned int j = 0; j != integer_metric_values.size(); j++)
+				csv_file << "; " << integer_metric_values[j][i];
 		}
 	}
 
