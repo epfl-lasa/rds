@@ -267,10 +267,10 @@ int main()
 
 	int robot_index;
 	CrowdRdsOrcaSimulator* sim;
-	const unsigned int n_samples = 50;
+	const unsigned int n_samples = 430;
 	for (unsigned int sample_index = 0; sample_index != n_samples; ++sample_index)
 	{
-		robot_index = sample_index*3;
+		robot_index = sample_index;
 
 		double reaching_time_crowd[3], velocity_crowd[3];
 		for (int mode = 0; mode != 3; ++mode)
