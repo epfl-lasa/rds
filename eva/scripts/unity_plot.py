@@ -1,9 +1,9 @@
 import numpy as np
-import matplotlib
-matplotlib.rcParams.update({'font.size': 16})
 from os.path import expanduser
 import math
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.rcParams.update({'font.size': 16})
 
 all_filenames = [
 "v0.500000-d0.200000.txt",
@@ -23,7 +23,25 @@ all_filenames = [
 "v1.500000-d1.000000.txt"
 ]
 
-def compute_mean_and_std(filename):
+previous_v_data = [
+0.46,
+0.28,
+0.16,
+0.64,
+0.39,
+0.22,
+0.83,
+0.56,
+0.31,
+1.02,
+0.74,
+0.43,
+1.36,
+0.91,
+0.51
+]
+
+def compute_mean_and_std(filename, previous_v_value):
 	if filename == "missing":
 		return (np.nan, np.nan)
 	with open(expanduser('~/Desktop/v_log/' + filename), 'r') as f:
@@ -55,15 +73,21 @@ def compute_mean_and_std(filename):
 	    		local_mean = 0.0
 	    		n = 0
 
+	    samples.append(previous_v_value)
+	    sample_weights = [0.07]*10
+	    sample_weights.append(0.3)
+	    bias_correction = 0.0
+	    for w in sample_weights:
+	    	bias_correction += w*w
+
 	    mean_mean = 0.0
-	    for m in samples:
-	    	mean_mean += m
-	    mean_mean /= 10
+	    for i in range(11):
+	    	mean_mean += samples[i]*sample_weights[i]
 
 	    std = 0.0
-	    for m in samples:
-	    	std += (m - mean_mean)*(m - mean_mean)
-	    std = math.sqrt(std/9)
+	    for i in range(11):
+	    	std += (samples[i] - mean_mean)*(samples[i] - mean_mean)*sample_weights[i]
+	    std = math.sqrt(std/(1 - bias_correction))
 
 	    return (mean_mean, std)
 
@@ -86,7 +110,7 @@ std_lines = [[],[],[]]
 
 for j in range(5):
 	for i in range(3):
-		mean, std = compute_mean_and_std(all_filenames[j*3+i])
+		mean, std = compute_mean_and_std(all_filenames[j*3+i], previous_v_data[j*3+i])
 		v_lines[i].append(mean)
 		std_lines[i].append(std)
 
@@ -100,6 +124,15 @@ plt.plot(
 	[v_nominal[0], v_nominal[1], v_nominal[3], v_nominal[4]],
 	[v_lines[2][0], v_lines[2][1], v_lines[2][3], v_lines[2][4]],
 	"co-", label=r"$v$ for $\rho=" + str(density[2]) + "$")
+
+line_specs = ['k_-', 'r_-', 'c_-']
+for j in range(5):
+	for i in range(3):
+		if j == 2 and i == 3:
+			continue
+		plt.plot([v_nominal[j], v_nominal[j]],
+			[v_lines[i][j] + std_lines[i][j], v_lines[i][j] - std_lines[i][j]], line_specs[i])
+
 plt.gca().set_ylabel("$v$ [m/s]")
 plt.gca().set_xlabel("$v_{des}$ [m/s]")
 plt.legend()
@@ -108,5 +141,5 @@ v_range = [0.0, 1.55]
 plt.gca().set_xlim(v_range)
 plt.gca().set_ylim(v_range)
 plt.plot(v_range, v_range, "k:")
-plt.savefig("v_unity.png",bbox_inches='tight',dpi=100)
+plt.savefig("v_unity.png",bbox_inches='tight',dpi=200)
 plt.show()
