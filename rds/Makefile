@@ -21,7 +21,7 @@ build/lib_rds_5.a: build/rds/.hi src/rds_5.cpp src/rds_5.hpp src/capsule.hpp src
 
 # DEMOS
 
-build/dynamic_scene_rds_5: src/dynamic_scene_rds_5.cpp src/crowd_trajectory.cpp src/crowd_trajectory.hpp build/libgui.a src/rds_5_orca_simulator.hpp src/rds_5_orca_simulator.cpp src/rds_5_agent.cpp src/rds_5_agent.hpp src/rds_5.cpp src/rds_5.hpp src/RVO.hpp src/RVO.cpp build/libgeometry.a
+build/dynamic_scene_rds_5: src/dynamic_scene_rds_5.cpp src/config_rds_5.hpp src/crowd_trajectory.cpp src/crowd_trajectory.hpp build/libgui.a src/rds_5_orca_simulator.hpp src/rds_5_orca_simulator.cpp src/rds_5_agent.cpp src/rds_5_agent.hpp src/rds_5.cpp src/rds_5.hpp src/RVO.hpp src/RVO.cpp build/libgeometry.a
 	g++ $(FLAGS) src/dynamic_scene_rds_5.cpp src/crowd_trajectory.cpp src/rds_5_orca_simulator.cpp src/rds_5_agent.cpp src/rds_5.cpp src/RVO.cpp -Lbuild -lgui -lSDL2 -lRVO -lgeometry -o build/dynamic_scene_rds_5
 
 build/baseline_crowd_rds_5: src/baseline_crowd_rds_5.cpp src/crowd_trajectory.cpp src/crowd_trajectory.hpp build/libgui.a src/rds_5_orca_simulator.hpp src/rds_5_orca_simulator.cpp src/rds_5_agent.cpp src/rds_5_agent.hpp src/rds_5.cpp src/rds_5.hpp src/RVO.hpp src/RVO.cpp build/libgeometry.a

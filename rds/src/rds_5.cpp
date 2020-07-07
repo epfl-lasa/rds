@@ -92,6 +92,7 @@ namespace Geometry2D
 			{
 				Vec2 pt_segment;
 				robot_shape.closestMidLineSegmentPoint(objects[i].circle.center, &pt_segment);
+				//pt_segment = p_ref;
 				generateAndAddConstraint(pt_segment, robot_shape.radius(), objects[i].circle.center,
 					objects[i].circle.radius, objects[i].velocity, p_ref, v_nominal_p_ref, constraints);
 			}
@@ -137,10 +138,10 @@ namespace Geometry2D
 				p_ref.y + n.y*(p_ref.x - robot_point.x)/p_ref.y, n.y);
 			Vec2 n_constraint_tmp_minus(n.x*(robot_point.y - shift_abs)/
 				p_ref.y + n.y*(p_ref.x - robot_point.x)/p_ref.y, n.y);
-			if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp_plus.norm() > b)
-				constraints->push_back(HalfPlane2(n_constraint_tmp_plus, b/n_constraint_tmp_plus.norm()));
-			if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp_minus.norm() > b)
-				constraints->push_back(HalfPlane2(n_constraint_tmp_minus, b/n_constraint_tmp_minus.norm()));
+			//if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp_plus.norm() > b)
+			//	constraints->push_back(HalfPlane2(n_constraint_tmp_plus, b/n_constraint_tmp_plus.norm()));
+			//if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp_minus.norm() > b)
+			//	constraints->push_back(HalfPlane2(n_constraint_tmp_minus, b/n_constraint_tmp_minus.norm()));
 		}
 	}
 
@@ -192,10 +193,10 @@ namespace Geometry2D
 				p_ref.y + n.y*(p_ref.x - robot_point.x)/p_ref.y, n.y);
 			Vec2 n_constraint_tmp_minus(n.x*(robot_point.y - shift_abs)/
 				p_ref.y + n.y*(p_ref.x - robot_point.x)/p_ref.y, n.y);
-			if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp_plus.norm() > b)
-				constraints->push_back(HalfPlane2(n_constraint_tmp_plus, b/n_constraint_tmp_plus.norm()));
-			if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp_minus.norm() > b)
-				constraints->push_back(HalfPlane2(n_constraint_tmp_minus, b/n_constraint_tmp_minus.norm()));
+			//if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp_plus.norm() > b)
+			//	constraints->push_back(HalfPlane2(n_constraint_tmp_plus, b/n_constraint_tmp_plus.norm()));
+			//if ((v_p_ref_radial_max + 0.01f)*n_constraint_tmp_minus.norm() > b)
+			//	constraints->push_back(HalfPlane2(n_constraint_tmp_minus, b/n_constraint_tmp_minus.norm()));
 		}
 	}
 	

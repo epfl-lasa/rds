@@ -18,7 +18,7 @@ const VWDiamond vw_diamond_limits_generous(-0.75, 1.5, 4.124, 0.2);
 const VWDiamond vw_diamond_limits_very_generous(-1, 2, 4, 0);
 
 const float robot_radius = 0.45;
-const float y_center_front = 0.051;
+const float y_center_front = 0.18;//0.051;//
 const float y_center_back = -0.5;
 const Geometry2D::Capsule robot_shape(robot_radius, Geometry2D::Vec2(0.0, y_center_front),
 		Geometry2D::Vec2(0.0, y_center_back));

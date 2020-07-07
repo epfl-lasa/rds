@@ -29,15 +29,17 @@ struct RDS5CapsuleAgent
 	RDS5CapsuleAgent() { }
 	RDS5CapsuleAgent(Geometry2D::Vec2 position, float orientation, const RDS5CapsuleConfiguration& config)
 	: position(position), orientation(orientation), rds_configuration(config), last_step_p_ref_velocity(0.f, 0.f),
-	last_step_p_ref_velocity_local(0.f, 0.f)
+	last_step_p_ref_velocity_local(0.f, 0.f), last_step_nominal_p_ref_velocity_local(0.f, 0.f)
 	{ }
 
 	void stepEuler(float dt, const Geometry2D::Vec2& v_nominal_p_ref,
 		const std::vector<MovingCircle>& objects);
 
-	Geometry2D::Vec2 position, last_step_p_ref_velocity, last_step_p_ref_velocity_local;
+	Geometry2D::Vec2 position, last_step_p_ref_velocity, last_step_p_ref_velocity_local, last_step_nominal_p_ref_velocity_local;
 	float orientation;
 	RDS5CapsuleConfiguration rds_configuration;
+
+	std::vector<Geometry2D::HalfPlane2> constraints;
 
 private:
 	void getObjectsInLocalFrame(const std::vector<MovingCircle>& objects,

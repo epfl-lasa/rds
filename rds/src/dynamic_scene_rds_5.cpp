@@ -19,6 +19,8 @@ using Geometry2D::Capsule;
 using AdditionalPrimitives2D::Circle;
 using Geometry2D::BoundingCircles;
 using AdditionalPrimitives2D::Polygon;
+using Geometry2D::HalfPlane2;
+using AdditionalPrimitives2D::Arrow;
 
 const bool with_gui = true;
 
@@ -75,7 +77,10 @@ void update_mean(double *mean, double value, double time)
 struct GuiWrap
 {
 	GuiWrap(const CrowdRdsOrcaSimulator& sim, float track_from_time)
-	: m_gui("RDS-ORCA Simulator", 20.f, 1200, !(with_gui))
+	: m_constraints_gui("Constraints of RDS-ORCA Simulator",
+		sim.getRobot().rds_configuration.vw_diamond_limits.v_max*2.f,
+		1200, !(with_gui))
+	, m_gui("RDS-ORCA Simulator", 20.f, 1200, !(with_gui))
 	, m_bounding_circles(sim.getBoundingCirclesRobot())
 	, m_track_from_time(track_from_time)
 	{
@@ -97,6 +102,9 @@ struct GuiWrap
 		m_polygons.push_back(robot_line);
 		if (sim.m_orca_orca)
 			m_circles.push_back(sim.getOrcaOrcaCircle());
+
+		m_constraints_gui.halfplanes = &m_constraints;
+		m_constraints_gui.arrows = &m_arrows;
 	}
 
 	bool update_gui_and_log(const CrowdRdsOrcaSimulator& sim,
@@ -147,6 +155,11 @@ struct GuiWrap
 			m_gui.points_colors.push_back(red);
 		}
 
+		m_constraints = sim.getRobot().constraints;
+		m_arrows.resize(0);
+		m_arrows.push_back(Arrow(sim.getRobot().last_step_p_ref_velocity_local, Vec2(0.f, 0.f)));
+		m_arrows.push_back(Arrow(sim.getRobot().last_step_nominal_p_ref_velocity_local, Vec2(0.f, 0.f)));
+
 		// update logs
 		double t = sim.getTime() - dt;
 		for (unsigned int i = 0; i != sim.getPedestrianIndices().size(); ++i)
@@ -183,18 +196,20 @@ struct GuiWrap
 			robot_log.time_insde_arena += dt;
 
 		if (with_gui)
-			return (m_gui.update() == 0);
+			return (m_gui.update() == 0) | (m_constraints_gui.update() == 0);
 		else
 			return true;
 	}
 
-	GUI m_gui;
+	GUI m_constraints_gui, m_gui;
 	std::vector<Vec2> m_points;
 	float m_track_from_time;
 	std::vector<Circle> m_circles;
 	std::vector<Capsule> m_capsules;
 	const BoundingCircles& m_bounding_circles;
 	std::vector<Polygon> m_polygons;
+	std::vector<HalfPlane2> m_constraints;
+	std::vector<Arrow> m_arrows;
 };
 
 CrowdRdsOrcaSimulator* setup_simulation(CrowdTrajectory* crowd_motion,
@@ -236,17 +251,19 @@ int main()
 	{
 		std::vector<CrowdTrajectory::Knot> spline_data(3);
 		for (int k = 0; k < 3; k++)
-			spline_data[k] = CrowdTrajectory::Knot(Vec2(-6.5f + 1.6f*k*7, -0.25f), float(k*7));
+			spline_data[k] = CrowdTrajectory::Knot(Vec2(-6.5f + 0.8f*k*7, -2.25f), float(k*7));
 		crowd_trajectory.addPedestrianTrajectory(spline_data);
-		//for (int k = 0; k < 3; k++)
-		//	spline_data[k] = CrowdTrajectory::Knot(Vec2(-6.4f + 1.6f*k, +0.45f), float(k));
-		//crowd_trajectory.addPedestrianTrajectory(spline_data);
+		for (int k = 0; k < 3; k++)
+			spline_data[k] = CrowdTrajectory::Knot(Vec2(-6.5f + 0.8f*k*7, 0.5f), float(k*7));
+		crowd_trajectory.addPedestrianTrajectory(spline_data);
+		for (int k = 0; k < 3; k++)
+			spline_data[k] = CrowdTrajectory::Knot(Vec2(-6.5f + 0.8f*k*7, 1.25f), float(k*7));
+		crowd_trajectory.addPedestrianTrajectory(spline_data);
 	}
 	unsigned int robot_leader_index = crowd_trajectory.getSplinesData().size();
 	std::vector<CrowdTrajectory::Knot> spline_data(3);
-	spline_data[0] = CrowdTrajectory::Knot(Vec2(-5.f, 0.f), 0.f);
-	spline_data[1] = CrowdTrajectory::Knot(Vec2(4.1f, 0.f), 7.f);
-	spline_data[2] = CrowdTrajectory::Knot(Vec2(13.2f, 0.f), 14.f);
+	for (int k = 0; k < 3; k++)
+		spline_data[k] = CrowdTrajectory::Knot(Vec2(-8.f + 1.3f*k*9, 0.f), float(k*9));
 	crowd_trajectory.addPedestrianTrajectory(spline_data);
 
 	Arena arena;
@@ -265,7 +282,7 @@ int main()
 	CrowdRdsOrcaSimulator* sim;
 	{
 		double reaching_time_crowd[3], velocity_crowd[3];
-		for (int mode = 0; mode != 3; ++mode)
+		for (int mode = 2; mode != 3; ++mode)
 		{
 			sim = setup_simulation(&crowd_trajectory, robot_index, mode);
 
@@ -273,7 +290,7 @@ int main()
 			AgentLog robot_log;
 
 			float t_final = crowd_trajectory.m_duration;
-			float t_termination = 1.2f*t_final;
+			float t_termination = 1.0f*t_final;
 
 			GuiWrap gui_wrap(*sim, 0.f); // draw traces from t=0 on
 			std::chrono::milliseconds gui_cycle_time(int(dt*1000.f));

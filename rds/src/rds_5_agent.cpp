@@ -45,6 +45,9 @@ void RDS5CapsuleAgent::stepEuler(float dt,
 	orientation = orientation + dt*v_angular;
 	transformVectorLocalToGlobal(v_corrected_p_ref_local, &(this->last_step_p_ref_velocity));
 	last_step_p_ref_velocity_local = v_corrected_p_ref_local;
+
+	last_step_nominal_p_ref_velocity_local = v_nominal_p_ref_local;
+	constraints = rds_5.constraints;
 }
 
 void RDS5CapsuleAgent::getObjectsInLocalFrame(const std::vector<MovingCircle>& objects,
@@ -59,6 +62,7 @@ void RDS5CapsuleAgent::getObjectsInLocalFrame(const std::vector<MovingCircle>& o
 	{
 		objects_local->push_back(MovingCircle(Circle(Vec2(rxx*(mc.circle.center - position).x + ryx*(mc.circle.center - position).y,
 			rxy*(mc.circle.center - position).x + ryy*(mc.circle.center - position).y), mc.circle.radius),
+			//Vec2()));
 			Vec2(rxx*mc.velocity.x + ryx*mc.velocity.y, rxy*mc.velocity.x + ryy*mc.velocity.y)));
 	}
 }
