@@ -31,6 +31,7 @@ namespace Geometry2D
 
 		const float tau, delta, y_p_ref;
 		bool use_previous_command_as_basis, use_orca_style_crvo, use_conservative_shift, keep_origin_feasible;
+		bool ORCA_implementation;
 		int n_bounding_circles;
 		BoundingCircles bounding_circles;
 
@@ -56,6 +57,20 @@ namespace Geometry2D
 			const Vec2& p_ref, std::vector<HalfPlane2>* constraints);
 
 		void solve(const Vec2& v_nominal, std::vector<HalfPlane2>& constraints, Vec2* v_corrected);
+
+		void generateConstraintsLikeORCA(float radius_ORCA, float y_center,
+			const Vec2& basis_command, const std::vector<MovingCircle>& moving_objects,
+			const std::vector<MovingCircle>& static_objects, std::vector<HalfPlane2>* constraints);
+
+		void generateAndAddConstraintLikeORCA(float y_robot_center, float robot_radius,
+			const Vec2& object_point, float object_radius, const Vec2& object_velocity,
+			const Vec2& robot_basis_velocity, std::vector<HalfPlane2>* constraints);
+
+		void addLimitConstraints(float y_center_over_y_p_ref, std::vector<HalfPlane2>* constraints);
+
+		void transformBoxConstraint(float y_new_over_y_old, HalfPlane2* c);
+
+		void transformDiamondConstraint(float y_new_over_y_old, HalfPlane2* c);
 	};
 }
 

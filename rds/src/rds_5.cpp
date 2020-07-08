@@ -14,6 +14,7 @@ namespace Geometry2D
 	, use_conservative_shift(true)
 	, n_bounding_circles(0)
 	, keep_origin_feasible(true)
+	, ORCA_implementation(false)
 	{
 		// map vw-limits to cartesian velocity constraints for the reference point
 		// for box-limits
@@ -50,24 +51,44 @@ namespace Geometry2D
 			const std::vector<MovingCircle>& moving_objects,
 			Vec2* v_corrected_p_ref)
 	{
-		if (n_bounding_circles > 2)
+		if (!ORCA_implementation)
 		{
-			bounding_circles = BoundingCircles(n_bounding_circles - 3);
-			bounding_circles.fit(robot_shape, delta);
-			for (const auto& c : bounding_circles.circles())
+			if (n_bounding_circles > 2)
 			{
-				if (std::abs(c.center.y) < 0.05f)
-					throw "A bounding circle's center is to close to the wheel axle";
+				bounding_circles = BoundingCircles(n_bounding_circles - 3);
+				bounding_circles.fit(robot_shape, delta);
+				for (const auto& c : bounding_circles.circles())
+				{
+					if (std::abs(c.center.y) < 0.05f)
+						throw "A bounding circle's center is to close to the wheel axle";
+				}
 			}
+			Vec2 p_ref(0.f, y_p_ref);
+			Vec2 basis_command = v_nominal_p_ref;
+			if (use_previous_command_as_basis)
+				basis_command = v_previous_command;
+			std::vector<HalfPlane2> constraints_tmp;
+			generateVOConstraints(robot_shape, p_ref, basis_command, moving_objects, &constraints_tmp);
+			generateStaticConstraints(robot_shape, p_ref, static_objects, &constraints_tmp);
+			solve(v_nominal_p_ref, constraints_tmp, v_corrected_p_ref);
 		}
-		Vec2 p_ref(0.f, y_p_ref);
-		std::vector<HalfPlane2> constraints_tmp;
-		Vec2 basis_command = v_nominal_p_ref;
-		if (use_previous_command_as_basis)
-			basis_command = v_previous_command;
-		generateVOConstraints(robot_shape, p_ref, basis_command, moving_objects, &constraints_tmp);
-		generateStaticConstraints(robot_shape, p_ref, static_objects, &constraints_tmp);
-		solve(v_nominal_p_ref, constraints_tmp, v_corrected_p_ref);
+		else
+		{
+			float y_center = 0.5f*(robot_shape.center_a().y + robot_shape.center_b().y);
+			float radius_ORCA = 0.5f*(robot_shape.center_a() - robot_shape.center_b()).norm() + robot_shape.radius();
+			Vec2 v_center_previous_command(v_previous_command);
+			v_center_previous_command.x *= y_center/y_p_ref;
+			Vec2 v_center_nominal(v_nominal_p_ref);
+			v_center_nominal.x *= y_center/y_p_ref;
+			std::vector<HalfPlane2> constraints_center_tmp;
+			generateConstraintsLikeORCA(radius_ORCA, y_center, v_center_previous_command,
+				moving_objects, static_objects, &constraints_center_tmp);
+			addLimitConstraints(y_center/y_p_ref, &constraints_center_tmp);
+			Vec2 v_center_corrected;
+			solve(v_center_nominal, constraints_center_tmp, &v_center_corrected);
+			*v_corrected_p_ref = v_center_corrected;
+			v_corrected_p_ref->x /= y_center/y_p_ref;
+		}
 		// crop to satisfy the box limits and save their halfplanes (to show that they exist)
 		if (keep_origin_feasible)
 		{
@@ -206,13 +227,16 @@ namespace Geometry2D
 	
 	void RDS5::solve(const Vec2& v_nominal, std::vector<HalfPlane2>& constraints_tmp, Vec2* v_corrected)
 	{
-		// add constraints due to diamond limits
-		for (auto& h : constraints_diamond_limits)
-			constraints_tmp.push_back(h);
-		if (!keep_origin_feasible)
+		if (!ORCA_implementation)
 		{
-			for (auto& h : constraints_box_limits)
+			// add constraints due to diamond limits
+			for (auto& h : constraints_diamond_limits)
 				constraints_tmp.push_back(h);
+			if (!keep_origin_feasible)
+			{
+				for (auto& h : constraints_box_limits)
+					constraints_tmp.push_back(h);
+			}
 		}
 		// save the constraints for visualization
 		constraints = constraints_tmp;
@@ -245,4 +269,91 @@ namespace Geometry2D
 		}
 	}
 
+	void RDS5::generateConstraintsLikeORCA(float radius_ORCA, float y_center,
+		const Vec2& basis_command, const std::vector<MovingCircle>& moving_objects,
+		const std::vector<MovingCircle>& static_objects, std::vector<HalfPlane2>* constraints)
+	{
+		for (auto& mc : moving_objects)
+		{
+			generateAndAddConstraintLikeORCA(y_center, radius_ORCA, mc.circle.center, mc.circle.radius,
+				mc.velocity, basis_command, constraints);
+		}
+		for (auto& mc : static_objects)
+		{
+			generateAndAddConstraintLikeORCA(y_center, radius_ORCA, mc.circle.center, mc.circle.radius,
+				mc.velocity, basis_command, constraints);
+		}
+	}
+
+	void RDS5::generateAndAddConstraintLikeORCA(float y_robot_center, float robot_radius,
+		const Vec2& object_point, float object_radius, const Vec2& object_velocity,
+		const Vec2& robot_basis_velocity, std::vector<HalfPlane2>* constraints)
+	{
+		float radius_sum = robot_radius + object_radius + delta;
+		Vec2 robot_point(0.f, y_robot_center);
+
+		float sigma = std::max(1.f, std::abs(y_robot_center/y_p_ref));
+		float v_robot_point_radial_max = sigma*v_p_ref_radial_max;
+		if (((robot_point - object_point).norm() - radius_sum)/tau > v_robot_point_radial_max + 0.01f)
+			return;
+
+		RVO crvo_computer(tau, delta);
+		Vec2 relative_position = object_point - robot_point;
+		Vec2 relative_basis_velocity = robot_basis_velocity - object_velocity;
+		if (use_conservative_shift)
+			relative_basis_velocity = -1.f*object_velocity;
+		HalfPlane2 crvo;
+		crvo_computer.computeConvexRVO(relative_position, relative_basis_velocity, radius_sum, &crvo,
+			true);
+		crvo.shift(object_velocity);
+		if (crvo.getOffset() < 0.f && keep_origin_feasible)
+			crvo.shift(crvo.getNormal()*(-crvo.getOffset()));
+		constraints->push_back(crvo);
+	}
+
+	void RDS5::addLimitConstraints(float y_center_over_y_p_ref, std::vector<HalfPlane2>* constraints)
+	{
+		HalfPlane2 new_constraint;
+		// add constraints due to diamond limits
+		for (auto& h : constraints_diamond_limits)
+		{
+			new_constraint = h;
+			transformDiamondConstraint(y_center_over_y_p_ref, &new_constraint);
+			constraints->push_back(new_constraint);
+		}
+		// add constraints due to box limits
+		if (!keep_origin_feasible)
+		{
+			for (auto& h : constraints_box_limits)
+			{
+				new_constraint = h;
+				transformBoxConstraint(y_center_over_y_p_ref, &new_constraint);
+				constraints->push_back(new_constraint);
+			}
+		}
+	}
+
+	void RDS5::transformBoxConstraint(float y_new_over_y_old, HalfPlane2* c)
+	{
+		const Vec2& n(c->getNormal());
+		if (std::abs(n.x) > std::abs(n.y))
+		{
+			float b(c->getOffset());
+			if (y_new_over_y_old < 0.f)
+				*c = HalfPlane2(-1.f*n, -b*y_new_over_y_old);
+			else
+				*c = HalfPlane2(n, b*y_new_over_y_old);
+		}
+	}
+
+	void RDS5::transformDiamondConstraint(float y_new_over_y_old, HalfPlane2* c)
+	{
+		const Vec2& n(c->getNormal());
+		float b(c->getOffset());
+		float v_x = b/n.x;
+		float v_y = b/n.y;
+		float v_x_new = v_x*y_new_over_y_old;
+		float v_y_new = v_y;
+		*c = HalfPlane2(Vec2(0.f, 0.f), Vec2(v_x_new, 0.f), Vec2(0.f, v_y_new));
+	}
 }

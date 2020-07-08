@@ -18,8 +18,8 @@ using AdditionalPrimitives2D::Circle;
 using Geometry2D::BoundingCircles;
 using AdditionalPrimitives2D::Polygon;
 
-const bool with_gui = false;
-const bool save_result = true;
+const bool with_gui = true;
+const bool save_result = false;
 
 const float dt = 0.05f;
 
@@ -117,6 +117,12 @@ struct GuiWrap
 		m_polygons.push_back(robot_line);
 		if (sim.m_orca_orca)
 			m_circles.push_back(sim.getOrcaOrcaCircle());
+		if (sim.getRobot().ORCA_implementation)
+		{
+			Circle tight_bounding_circle;
+			sim.getRobot().computeTightBoundingCircle(&tight_bounding_circle);
+			m_circles.push_back(tight_bounding_circle);
+		}
 	}
 
 	bool update_gui_and_log(const CrowdRdsOrcaSimulator& sim,
@@ -124,7 +130,9 @@ struct GuiWrap
 	{
 		int offset = 0;
 		if (sim.m_orca_orca)
-			offset = 1;
+			offset += 1;
+		if (sim.getRobot().ORCA_implementation)
+			offset += 1;
 		for (std::vector<Circle>::size_type i = 0; i < m_circles.size() - m_bounding_circles.circles().size() - offset; i++)
 		{
 			m_circles[i].center = sim.getPedestrians()[i].circle.center;
@@ -154,8 +162,15 @@ struct GuiWrap
 			sim.getRobot().transformVectorLocalToGlobal(m_bounding_circles.circles()[bc_index].center, &v_result);
 			m_circles[i] = Circle(v_result + sim.getRobot().position, m_bounding_circles.circles()[bc_index].radius);
 		}
-		if (sim.m_orca_orca)
+		if (sim.m_orca_orca && !sim.getRobot().ORCA_implementation)
 			m_circles.back() = sim.getOrcaOrcaCircle();
+		else if (sim.getRobot().ORCA_implementation && !sim.m_orca_orca)
+			sim.getRobot().computeTightBoundingCircle(&m_circles.back());
+		else if (sim.m_orca_orca && sim.getRobot().ORCA_implementation)
+		{
+			m_circles[m_circles.size() - 2] = sim.getOrcaOrcaCircle();
+			sim.getRobot().computeTightBoundingCircle(&m_circles.back());
+		}
 
 		if ((m_track_from_time >= 0.f) && sim.getTime() > m_track_from_time)
 		{
@@ -226,9 +241,13 @@ CrowdRdsOrcaSimulator* setup_simulation(CrowdTrajectory* crowd_motion,
 	crowd_motion->m_duration = robot_t_data_end - robot_t_data_start;
 
 	int handy_robot_index = (mode == 0) ? 666 : robot_index;
-	bool orca_orca = (mode == 1);
+	bool orca_orca = false;//(mode == 1);
 	CrowdRdsOrcaSimulator* simulation = new CrowdRdsOrcaSimulator(rds_5_config,
 		*crowd_motion, handy_robot_index, orca_orca);
+	if (mode == 1)
+	{
+		simulation->implementORCA();
+	}
 
 	simulation->m_ignore_orca_circle = true;
 

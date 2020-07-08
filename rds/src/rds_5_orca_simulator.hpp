@@ -47,6 +47,9 @@ struct RdsOrcaSimulator
 	const std::vector<bool>& getRobotCollisions() const { return m_robot_collisions; }
 
 	AdditionalPrimitives2D::Circle getOrcaOrcaCircle() const;
+
+	void implementORCA() { m_robot.ORCA_implementation = true; }
+	
 protected:
 	virtual Geometry2D::Vec2 getRobotNominalVelocity();
 
