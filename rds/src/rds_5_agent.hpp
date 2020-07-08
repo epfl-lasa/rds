@@ -15,13 +15,17 @@ struct RDS5CapsuleConfiguration
 		const VWDiamond& vw_diamond_limits, const Geometry2D::Capsule& robot_shape)
 	: tau(tau), delta(delta), y_p_ref(y_p_ref), linear_acceleration_limit(linear_acceleration_limit),
 	angular_acceleration_limit(angular_acceleration_limit), dt_cycle(dt_cycle),
-	vw_diamond_limits(vw_diamond_limits), robot_shape(robot_shape), p_ref(0.f, y_p_ref) { }
+	vw_diamond_limits(vw_diamond_limits), robot_shape(robot_shape), p_ref(0.f, y_p_ref),
+	breaking_deceleration_linear(linear_acceleration_limit),
+	breaking_deceleration_angular(angular_acceleration_limit) { }
 
 	float tau, delta, y_p_ref, linear_acceleration_limit, angular_acceleration_limit, dt_cycle;
 	VWDiamond vw_diamond_limits;
 	Geometry2D::Capsule robot_shape;
 
 	Geometry2D::Vec2 p_ref;
+
+	float breaking_deceleration_linear, breaking_deceleration_angular;
 };
 
 struct RDS5CapsuleAgent

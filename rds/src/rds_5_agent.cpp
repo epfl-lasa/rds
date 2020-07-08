@@ -1,4 +1,5 @@
 #include "rds_5_agent.hpp"
+#include "distance_minimizer.hpp"
 #include <cmath>
 
 using Geometry2D::Vec2;
@@ -26,13 +27,37 @@ void RDS5CapsuleAgent::stepEuler(float dt,
 	Geometry2D::RDS5 rds_5(rds_configuration.tau, rds_configuration.delta, rds_configuration.y_p_ref,
 		box_limits, rds_configuration.vw_diamond_limits);
 
+	rds_5.use_conservative_shift = false;
+	rds_5.keep_origin_feasible = false;
+
 	if (v_nominal_p_ref_local.norm() > std::abs(rds_configuration.vw_diamond_limits.v_max))
 		v_nominal_p_ref_local = v_nominal_p_ref_local.normalized()*std::abs(rds_configuration.vw_diamond_limits.v_max);
 
 	Vec2 v_corrected_p_ref_local;
-	rds_5.computeCorrectedVelocity(rds_configuration.robot_shape, v_nominal_p_ref_local,
-		last_step_p_ref_velocity_local, std::vector<MovingCircle>(), objects_local,
-		&v_corrected_p_ref_local);
+	try
+	{
+		rds_5.computeCorrectedVelocity(rds_configuration.robot_shape, v_nominal_p_ref_local,
+			last_step_p_ref_velocity_local, std::vector<MovingCircle>(), objects_local,
+			&v_corrected_p_ref_local);
+	}
+	catch (Geometry2D::DistanceMinimizer::InfeasibilityException e)
+	{
+		float previous_v_linear = last_step_p_ref_velocity_local.y;
+		float previous_v_angular = -last_step_p_ref_velocity_local.x/rds_configuration.y_p_ref;
+		float breaking_step_linear = rds_configuration.dt_cycle*rds_configuration.breaking_deceleration_linear;
+		float breaking_step_angular = rds_configuration.dt_cycle*rds_configuration.breaking_deceleration_angular;
+		float new_v_linear, new_v_angular;
+		if (previous_v_linear > 0.f)
+			new_v_linear = std::max(0.f, previous_v_linear - breaking_step_linear);
+		else
+			new_v_linear = std::min(0.f, previous_v_linear + breaking_step_linear);
+		if (previous_v_angular > 0.f)
+			new_v_angular = std::max(0.f, previous_v_angular - breaking_step_angular);
+		else
+			new_v_angular = std::min(0.f, previous_v_angular + breaking_step_angular);
+		v_corrected_p_ref_local.y = new_v_linear;
+		v_corrected_p_ref_local.x = -new_v_angular*rds_configuration.y_p_ref;
+	}
 	
 	float v_linear = v_corrected_p_ref_local.y;
 	float v_angular = -v_corrected_p_ref_local.x/rds_configuration.y_p_ref;

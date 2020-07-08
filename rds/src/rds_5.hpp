@@ -30,7 +30,7 @@ namespace Geometry2D
 			Vec2* v_corrected_p_ref);
 
 		const float tau, delta, y_p_ref;
-		bool use_previous_command_as_basis, use_orca_style_crvo, use_conservative_shift;
+		bool use_previous_command_as_basis, use_orca_style_crvo, use_conservative_shift, keep_origin_feasible;
 		int n_bounding_circles;
 		BoundingCircles bounding_circles;
 

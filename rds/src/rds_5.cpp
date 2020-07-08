@@ -13,6 +13,7 @@ namespace Geometry2D
 	, use_orca_style_crvo(true)
 	, use_conservative_shift(true)
 	, n_bounding_circles(0)
+	, keep_origin_feasible(true)
 	{
 		// map vw-limits to cartesian velocity constraints for the reference point
 		// for box-limits
@@ -68,10 +69,13 @@ namespace Geometry2D
 		generateStaticConstraints(robot_shape, p_ref, static_objects, &constraints_tmp);
 		solve(v_nominal_p_ref, constraints_tmp, v_corrected_p_ref);
 		// crop to satisfy the box limits and save their halfplanes (to show that they exist)
-		v_corrected_p_ref->x = std::min(v_box_x_max, std::max(v_box_x_min, v_corrected_p_ref->x));
-		v_corrected_p_ref->y = std::min(v_box_y_max, std::max(v_box_y_min, v_corrected_p_ref->y));
-		for (auto& h : constraints_box_limits)
-			constraints.push_back(h);
+		if (keep_origin_feasible)
+		{
+			v_corrected_p_ref->x = std::min(v_box_x_max, std::max(v_box_x_min, v_corrected_p_ref->x));
+			v_corrected_p_ref->y = std::min(v_box_y_max, std::max(v_box_y_min, v_corrected_p_ref->y));
+			for (auto& h : constraints_box_limits)
+				constraints.push_back(h);
+		}
 	}
 
 	void RDS5::generateVOConstraints(const Capsule& robot_shape, const Vec2& p_ref, const Vec2& v_nominal_p_ref,
@@ -121,7 +125,7 @@ namespace Geometry2D
 		crvo_computer.computeConvexRVO(relative_position, relative_velocity_preferred, radius_sum, &crvo,
 			use_orca_style_crvo);
 		crvo.shift(object_velocity);
-		if (crvo.getOffset() < 0.f)
+		if (crvo.getOffset() < 0.f && keep_origin_feasible)
 			crvo.shift(crvo.getNormal()*(-crvo.getOffset()));
 
 		const Vec2& n(crvo.getNormal());
@@ -205,6 +209,11 @@ namespace Geometry2D
 		// add constraints due to diamond limits
 		for (auto& h : constraints_diamond_limits)
 			constraints_tmp.push_back(h);
+		if (!keep_origin_feasible)
+		{
+			for (auto& h : constraints_box_limits)
+				constraints_tmp.push_back(h);
+		}
 		// save the constraints for visualization
 		constraints = constraints_tmp;
 		// shift and scale the constraints
@@ -216,15 +225,23 @@ namespace Geometry2D
 			c.rescale(scaling);
 		}
 		// solve the normalized problem
-		try
+		if (keep_origin_feasible)
+		{
+			try
+			{
+				Vec2 scaled_shifted_solution = DistanceMinimizer::IncrementalDistanceMinimization(constraints_tmp);
+				*v_corrected = scaled_shifted_solution/scaling - shift;
+			}
+			catch (Geometry2D::DistanceMinimizer::InfeasibilityException e)
+			{
+				*v_corrected = Vec2(0.f, 0.f);
+				std::cout << "Infeasible constraints" << std::endl;
+			}
+		}
+		else
 		{
 			Vec2 scaled_shifted_solution = DistanceMinimizer::IncrementalDistanceMinimization(constraints_tmp);
 			*v_corrected = scaled_shifted_solution/scaling - shift;
-		}
-		catch (Geometry2D::DistanceMinimizer::InfeasibilityException e)
-		{
-			*v_corrected = Vec2(0.f, 0.f);
-			std::cout << "Infeasible constraints" << std::endl;
 		}
 	}
 
