@@ -114,9 +114,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.7"
-     inkscape:cx="1498.1135"
-     inkscape:cy="-916.12604"
+     inkscape:zoom="0.49497475"
+     inkscape:cx="2608.311"
+     inkscape:cy="86.008181"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -240,7 +240,7 @@
          id="flowPara1844" /><flowPara
          id="flowPara1852">a can be adapted as far as f stays in a specific range (if f is inside the range)</flowPara><flowPara
          id="flowPara1846">in order to reduce h. Further reduction must go via b.</flowPara><flowPara
-         id="flowPara1814"></flowPara><flowPara
+         id="flowPara1814" /><flowPara
          id="flowPara1869">if h(tau, a, b) &gt; distance(0):</flowPara><flowPara
          id="flowPara1871">   if f(tau, a, b) &gt; c:</flowPara><flowPara
          id="flowPara1875">         a_new = 2(distance(0) - b|x02|)/tau - |v1| - b |v2|)/b</flowPara><flowPara
@@ -471,5 +471,25 @@
        cx="579.79779"
        cy="81.783226"
        r="4.1860938" />
-  </g>
+    <flowRoot
+       xml:space="preserve"
+       id="flowRoot2013"
+       style="font-style:normal;font-weight:normal;font-size:40px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
+       transform="scale(0.26458333)"><flowRegion
+         id="flowRegion2015"><rect
+           id="rect2017"
+           width="1719.2797"
+           height="874.79211"
+           x="2678.9246"
+           y="811.3927" /></flowRegion><flowPara
+         id="flowPara2019">s - s(0) approximately equal to</flowPara><flowPara
+         id="flowPara2021">-x01 wt + x02 (wt)^2/2 - v1 t wt + v2 t</flowPara><flowPara
+         id="flowPara2023" /><flowPara
+         id="flowPara2025" /><flowPara
+         id="flowPara2027" /><flowPara
+         id="flowPara2029" /><flowPara
+         id="flowPara2031">d - d(0) approximately equal to</flowPara><flowPara
+         id="flowPara2033">x01 (wt)^2/2 + x02 wt + v1 t  + v2 w t^2</flowPara><flowPara
+         id="flowPara2037">d/dt(.) = x01 w^2 t + x02 w + v1 + 2 v2 w t</flowPara><flowPara
+         id="flowPara2041">set to 0 =&gt; t = -(x02 w + v1)/(2 v2 w + x01 w^2)</flowPara></flowRoot>  </g>
 </svg>
