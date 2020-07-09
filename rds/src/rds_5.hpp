@@ -30,8 +30,10 @@ namespace Geometry2D
 			Vec2* v_corrected_p_ref);
 
 		const float tau, delta, y_p_ref;
-		bool use_previous_command_as_basis, use_orca_style_crvo, use_conservative_shift, keep_origin_feasible;
-		bool ORCA_implementation;
+		bool use_previous_command_as_basis, use_orca_style_crvo, use_conservative_shift;
+		bool keep_origin_feasible, no_VO_shift_at_contact;
+		float shift_reduction_range;
+		bool ORCA_implementation, ORCA_use_p_ref;
 		int n_bounding_circles;
 		BoundingCircles bounding_circles;
 
@@ -71,6 +73,8 @@ namespace Geometry2D
 		void transformBoxConstraint(float y_new_over_y_old, HalfPlane2* c);
 
 		void transformDiamondConstraint(float y_new_over_y_old, HalfPlane2* c);
+
+		Vec2 VOShift(const Vec2& v_obj, const Vec2& relative_position, float combined_radius);
 	};
 }
 

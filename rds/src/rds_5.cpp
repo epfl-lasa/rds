@@ -14,7 +14,10 @@ namespace Geometry2D
 	, use_conservative_shift(true)
 	, n_bounding_circles(0)
 	, keep_origin_feasible(true)
+	, no_VO_shift_at_contact(false)
+	, shift_reduction_range(0.25f)
 	, ORCA_implementation(false)
+	, ORCA_use_p_ref(false)
 	{
 		// map vw-limits to cartesian velocity constraints for the reference point
 		// for box-limits
@@ -145,7 +148,7 @@ namespace Geometry2D
 		HalfPlane2 crvo;
 		crvo_computer.computeConvexRVO(relative_position, relative_velocity_preferred, radius_sum, &crvo,
 			use_orca_style_crvo);
-		crvo.shift(object_velocity);
+		crvo.shift(VOShift(object_velocity, relative_position, radius_sum));
 		if (crvo.getOffset() < 0.f && keep_origin_feasible)
 			crvo.shift(crvo.getNormal()*(-crvo.getOffset()));
 
@@ -305,7 +308,7 @@ namespace Geometry2D
 		HalfPlane2 crvo;
 		crvo_computer.computeConvexRVO(relative_position, relative_basis_velocity, radius_sum, &crvo,
 			true);
-		crvo.shift(object_velocity);
+		crvo.shift(VOShift(object_velocity, relative_position, radius_sum));
 		if (crvo.getOffset() < 0.f && keep_origin_feasible)
 			crvo.shift(crvo.getNormal()*(-crvo.getOffset()));
 		constraints->push_back(crvo);
@@ -355,5 +358,19 @@ namespace Geometry2D
 		float v_x_new = v_x*y_new_over_y_old;
 		float v_y_new = v_y;
 		*c = HalfPlane2(Vec2(0.f, 0.f), Vec2(v_x_new, 0.f), Vec2(0.f, v_y_new));
+	}
+
+	Vec2 RDS5::VOShift(const Vec2& v_obj, const Vec2& relative_position, float combined_radius)
+	{
+		if (!no_VO_shift_at_contact)
+			return v_obj;
+		float distance = relative_position.norm() - combined_radius;
+		if (distance > shift_reduction_range)
+			return v_obj;
+		if (distance < 0.f)
+			return Vec2(0.f, 0.f);
+		float scaling = distance/shift_reduction_range;
+		return v_obj*scaling;
+
 	}
 }

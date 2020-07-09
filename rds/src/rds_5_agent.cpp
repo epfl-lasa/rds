@@ -29,6 +29,8 @@ void RDS5CapsuleAgent::stepEuler(float dt,
 
 	rds_5.use_conservative_shift = false;
 	rds_5.keep_origin_feasible = false;
+	rds_5.no_VO_shift_at_contact = true;
+	rds_5.shift_reduction_range = 0.35f;
 	rds_5.ORCA_implementation = ORCA_implementation;
 
 	if (v_nominal_p_ref_local.norm() > std::abs(rds_configuration.vw_diamond_limits.v_max))
