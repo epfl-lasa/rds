@@ -168,8 +168,20 @@ void RdsOrcaSimulator::step(float dt)
 		m_rvo_simulator.setAgentPrefVelocity(i, toRVO(getRobotNominalVelocity()));
 	}
 
+	if (!m_ignore_orca_circle && !m_orca_orca && m_robot.ORCA_implementation && m_robot.ORCA_use_p_ref)
+	{
+		Circle robot_circle;
+		m_robot.computeTightBoundingCircle(&robot_circle);
+		m_rvo_simulator.addAgent(toRVO(robot_circle.center), 15.0f, 10, m_orca_time_horizon, m_orca_time_horizon,
+			robot_circle.radius + m_orca_distance_margin/2.f, m_robot.rds_configuration.vw_diamond_limits.v_max,
+			toRVO(m_robot.last_step_p_ref_velocity));
+	}
+
 	m_rvo_simulator.setTimeStep(dt);
 	m_rvo_simulator.doStep();
+
+	if (!m_ignore_orca_circle && !m_orca_orca && m_robot.ORCA_implementation && m_robot.ORCA_use_p_ref)
+		m_rvo_simulator.popBackAgent();
 
 	for (unsigned int i = 0; i < m_pedestrians.size(); i++)
 		m_pedestrians[i].velocity = toRDS(m_rvo_simulator.getAgentVelocity(i + offset + m_bounding_circles_robot.circles().size()));
