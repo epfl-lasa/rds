@@ -1,6 +1,7 @@
 #include "rds_5.hpp"
-#include "RVO.hpp"
+#include "my_rvo.hpp"
 #include "distance_minimizer.hpp"
+#include <Agent.h> // from RVO2
 #include <cmath>
 #include <iostream>
 
@@ -18,6 +19,7 @@ namespace Geometry2D
 	, shift_reduction_range(0.25f)
 	, ORCA_implementation(false)
 	, ORCA_use_p_ref(false)
+	, ORCA_solver(false)
 	{
 		// map vw-limits to cartesian velocity constraints for the reference point
 		// for box-limits
@@ -93,7 +95,10 @@ namespace Geometry2D
 				moving_objects, static_objects, &constraints_center_tmp);
 			addLimitConstraints(y_center/y_p_ref, &constraints_center_tmp);
 			Vec2 v_center_corrected;
-			solve(v_center_nominal, constraints_center_tmp, &v_center_corrected);
+			if (!ORCA_solver)
+				solve(v_center_nominal, constraints_center_tmp, &v_center_corrected);
+			else
+				solveWithORCASolver(v_center_nominal, constraints_center_tmp, &v_center_corrected);
 			*v_corrected_p_ref = v_center_corrected;
 			v_corrected_p_ref->x /= y_center/y_p_ref;
 		}
@@ -144,7 +149,7 @@ namespace Geometry2D
 			if (((robot_point - object_point).norm() - radius_sum)/tau > v_robot_point_radial_max + 0.01f)
 				return;
 		}
-		RVO crvo_computer(tau, delta);
+		MyRVO crvo_computer(tau, delta);
 		Vec2 relative_position = object_point - robot_point;
 		Vec2 relative_velocity_preferred = Vec2(v_nominal_p_ref.x*robot_point.y/p_ref.y,
 			v_nominal_p_ref.x*(p_ref.x - robot_point.x)/p_ref.y + v_nominal_p_ref.y) - object_velocity;
@@ -305,7 +310,7 @@ namespace Geometry2D
 		if (((robot_point - object_point).norm() - radius_sum)/tau > v_robot_point_radial_max + 0.01f)
 			return;
 
-		RVO crvo_computer(tau, delta);
+		MyRVO crvo_computer(tau, delta);
 		Vec2 relative_position = object_point - robot_point;
 		Vec2 relative_basis_velocity = robot_basis_velocity - object_velocity;
 		if (use_conservative_shift)
@@ -377,5 +382,26 @@ namespace Geometry2D
 		float scaling = distance/shift_reduction_range;
 		return v_obj*scaling;
 
+	}
+
+	void RDS5::solveWithORCASolver(const Vec2& v_nominal, std::vector<HalfPlane2>& center_constraints, Vec2* v_corrected)
+	{
+		constraints = center_constraints;
+		// infeasible halfplane to the right in the line's direction
+		std::vector<RVO::Line> orca_lines;
+		RVO::Line line;
+		for (auto& h : center_constraints)
+		{
+			line.point = RVO::Vector2(h.getOrigo().x, h.getOrigo().y);
+			line.direction = RVO::Vector2(h.getParallel().x, h.getParallel().y);
+			orca_lines.push_back(line);
+		}
+		RVO::Vector2 preferred_velocity(v_nominal.x, v_nominal.y);
+		RVO::Vector2 new_velocity;
+		size_t lineFail = RVO::linearProgram2(orca_lines, 10.f, preferred_velocity, false, new_velocity);
+		if (lineFail < orca_lines.size())
+			RVO::linearProgram3(orca_lines, 0, lineFail, 10.f, new_velocity);
+		v_corrected->x = new_velocity.x();
+		v_corrected->y = new_velocity.y();
 	}
 }

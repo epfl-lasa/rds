@@ -33,7 +33,7 @@ namespace Geometry2D
 		bool use_previous_command_as_basis, use_orca_style_crvo, use_conservative_shift;
 		bool keep_origin_feasible, no_VO_shift_at_contact;
 		float shift_reduction_range;
-		bool ORCA_implementation, ORCA_use_p_ref;
+		bool ORCA_implementation, ORCA_use_p_ref, ORCA_solver;
 		int n_bounding_circles;
 		BoundingCircles bounding_circles;
 
@@ -75,6 +75,8 @@ namespace Geometry2D
 		void transformDiamondConstraint(float y_new_over_y_old, HalfPlane2* c);
 
 		Vec2 VOShift(const Vec2& v_obj, const Vec2& relative_position, float combined_radius);
+
+		void solveWithORCASolver(const Vec2& v_nominal, std::vector<HalfPlane2>& constraints, Vec2* v_corrected);
 	};
 }
 

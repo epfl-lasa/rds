@@ -243,6 +243,7 @@ CrowdRdsOrcaSimulator* setup_simulation(CrowdTrajectory* crowd_motion,
 	{
 		bool using_p_ref_as_control_point = true; // = using large circle
 		simulation->implementORCA(using_p_ref_as_control_point);
+		simulation->useORCASolver();
 	}
 	simulation->useDefaultNominalCommand(Vec2(0.f, 1.3f));
 

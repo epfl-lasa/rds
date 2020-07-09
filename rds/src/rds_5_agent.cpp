@@ -36,6 +36,7 @@ void RDS5CapsuleAgent::stepEuler(float dt,
 	rds_5.shift_reduction_range = 0.35f;
 	rds_5.ORCA_implementation = ORCA_implementation;
 	rds_5.ORCA_use_p_ref = ORCA_use_p_ref;
+	rds_5.ORCA_solver = ORCA_solver;
 
 	if (v_nominal_p_ref_local.norm() > std::abs(rds_configuration.vw_diamond_limits.v_max))
 		v_nominal_p_ref_local = v_nominal_p_ref_local.normalized()*std::abs(rds_configuration.vw_diamond_limits.v_max);

@@ -53,6 +53,8 @@ struct RdsOrcaSimulator
 	void useDefaultNominalCommand(const Geometry2D::Vec2& v_p_ref) { m_robot.use_default_nominal_command = true;
 		m_robot.default_v_nominal = v_p_ref; }
 	
+	void useORCASolver() {m_robot.ORCA_solver = true; }
+
 protected:
 	virtual Geometry2D::Vec2 getRobotNominalVelocity();
 

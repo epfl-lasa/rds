@@ -17,6 +17,12 @@ find_package(catkin REQUIRED COMPONENTS
   frame_msgs
 )
 
+find_package(RVO REQUIRED)
+
+if(NOT RVO_LIBRARIES)
+  message(FATAL_ERROR "RVO_LIBRARIES library not found")
+endif()
+
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -121,6 +127,7 @@ catkin_package(
 ## Your package locations should be listed before other locations
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/../rds/build
+  ${RVO_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -156,6 +163,7 @@ add_dependencies(${PROJECT_NAME}_nominal_command_node rds_network_ros_generate_m
 target_link_libraries(${PROJECT_NAME}_node
   ${CMAKE_CURRENT_SOURCE_DIR}/../rds/build/lib_rds_5.a
   ${catkin_LIBRARIES}
+  ${RVO_LIBRARIES}
 )
 target_link_libraries(${PROJECT_NAME}_nominal_command_node
   ${catkin_LIBRARIES}

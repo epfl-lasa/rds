@@ -6,26 +6,26 @@ FLAGS = -std=c++11 -g -Wall
 # Qolo-RDS-5
 qolo_rds: build/lib_rds_5.a 
 
-build/lib_rds_5.a: build/rds/.hi src/rds_5.cpp src/rds_5.hpp src/capsule.hpp src/capsule.cpp src/geometry.hpp src/distance_minimizer.cpp src/distance_minimizer.hpp src/RVO.cpp src/RVO.hpp src/vw_limits.hpp
+build/lib_rds_5.a: build/rds/.hi src/rds_5.cpp src/rds_5.hpp src/capsule.hpp src/capsule.cpp src/geometry.hpp src/distance_minimizer.cpp src/distance_minimizer.hpp src/my_rvo.cpp src/my_rvo.hpp src/vw_limits.hpp
 	g++ $(FLAGS) -c src/rds_5.cpp -o build/rds_5.o
 	g++ $(FLAGS) -c src/capsule.cpp -o build/capsule.o
-	g++ $(FLAGS) -c src/RVO.cpp -o build/RVO.o
+	g++ $(FLAGS) -c src/my_rvo.cpp -o build/my_rvo.o
 	g++ $(FLAGS) -c src/distance_minimizer.cpp -o build/distance_minimizer.o
-	ar rvs build/lib_rds_5.a build/rds_5.o build/capsule.o build/RVO.o build/distance_minimizer.o
+	ar rvs build/lib_rds_5.a build/rds_5.o build/capsule.o build/my_rvo.o build/distance_minimizer.o
 	cp src/rds_5.hpp build/rds
 	cp src/capsule.hpp build/rds
 	cp src/geometry.hpp build/rds
 	cp src/distance_minimizer.hpp build/rds
-	cp src/RVO.hpp build/rds
+	cp src/my_rvo.hpp build/rds
 	cp src/vw_limits.hpp build/rds
 
 # DEMOS
 
-build/dynamic_scene_rds_5: src/dynamic_scene_rds_5.cpp src/config_rds_5.hpp src/crowd_trajectory.cpp src/crowd_trajectory.hpp build/libgui.a src/rds_5_orca_simulator.hpp src/rds_5_orca_simulator.cpp src/rds_5_agent.cpp src/rds_5_agent.hpp src/rds_5.cpp src/rds_5.hpp src/RVO.hpp src/RVO.cpp build/libgeometry.a
-	g++ $(FLAGS) src/dynamic_scene_rds_5.cpp src/crowd_trajectory.cpp src/rds_5_orca_simulator.cpp src/rds_5_agent.cpp src/rds_5.cpp src/RVO.cpp -Lbuild -lgui -lSDL2 -lRVO -lgeometry -o build/dynamic_scene_rds_5
+build/dynamic_scene_rds_5: src/dynamic_scene_rds_5.cpp src/config_rds_5.hpp src/crowd_trajectory.cpp src/crowd_trajectory.hpp build/libgui.a src/rds_5_orca_simulator.hpp src/rds_5_orca_simulator.cpp src/rds_5_agent.cpp src/rds_5_agent.hpp src/rds_5.cpp src/rds_5.hpp src/my_rvo.hpp src/my_rvo.cpp build/libgeometry.a
+	g++ $(FLAGS) src/dynamic_scene_rds_5.cpp src/crowd_trajectory.cpp src/rds_5_orca_simulator.cpp src/rds_5_agent.cpp src/rds_5.cpp src/my_rvo.cpp -Lbuild -lgui -lSDL2 -lRVO -lgeometry -o build/dynamic_scene_rds_5
 
-build/baseline_crowd_rds_5: src/baseline_crowd_rds_5.cpp src/crowd_trajectory.cpp src/crowd_trajectory.hpp build/libgui.a src/rds_5_orca_simulator.hpp src/rds_5_orca_simulator.cpp src/rds_5_agent.cpp src/rds_5_agent.hpp src/rds_5.cpp src/rds_5.hpp src/RVO.hpp src/RVO.cpp build/libgeometry.a
-	g++ $(FLAGS) src/baseline_crowd_rds_5.cpp src/crowd_trajectory.cpp src/rds_5_orca_simulator.cpp src/rds_5_agent.cpp src/rds_5.cpp src/RVO.cpp -Lbuild -lgui -lSDL2 -lRVO -lgeometry -o build/baseline_crowd_rds_5
+build/baseline_crowd_rds_5: src/baseline_crowd_rds_5.cpp src/crowd_trajectory.cpp src/crowd_trajectory.hpp build/libgui.a src/rds_5_orca_simulator.hpp src/rds_5_orca_simulator.cpp src/rds_5_agent.cpp src/rds_5_agent.hpp src/rds_5.cpp src/rds_5.hpp src/my_rvo.hpp src/my_rvo.cpp build/libgeometry.a
+	g++ $(FLAGS) src/baseline_crowd_rds_5.cpp src/crowd_trajectory.cpp src/rds_5_orca_simulator.cpp src/rds_5_agent.cpp src/rds_5.cpp src/my_rvo.cpp -Lbuild -lgui -lSDL2 -lRVO -lgeometry -o build/baseline_crowd_rds_5
 
 build/show_circular_constraints: src/show_circular_constraints.cpp src/circular_constraints.cpp src/circular_constraints.hpp src/geometry.hpp src/vw_limits.hpp build/libgui.a
 	g++ $(FLAGS) src/show_circular_constraints.cpp src/circular_constraints.cpp -Lbuild -lgui -lSDL2 -o build/show_circular_constraints

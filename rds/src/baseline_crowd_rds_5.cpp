@@ -228,6 +228,7 @@ CrowdRdsOrcaSimulator* setup_simulation(CrowdTrajectory* crowd_motion,
 	{
 		bool using_p_ref_as_control_point = true; // = using large circle
 		simulation->implementORCA(using_p_ref_as_control_point);
+		simulation->useORCASolver();
 	}
 
 	simulation->m_ignore_orca_circle = true;
@@ -281,7 +282,7 @@ int main()
 			AgentLog robot_log;
 
 			float t_final = crowd_trajectory.m_duration;
-			float t_termination = 1.2f*t_final;
+			float t_termination = 1.0f*t_final;
 
 			GuiWrap gui_wrap(*sim, 0.f); // draw traces from t=0 on
 			std::chrono::milliseconds gui_cycle_time(int(dt*1000.f));
