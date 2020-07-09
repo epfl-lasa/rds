@@ -42,7 +42,7 @@ struct RdsOrcaSimulator
 
 	void checkRobotCollisions();
 
-	void addStaticObstacle(const Geometry2D::Vec2& position, float radius);
+	void addStaticObstacle(const Geometry2D::Vec2& position, float radius, bool skip_rvo_simulator = false);
 
 	const std::vector<bool>& getRobotCollisions() const { return m_robot_collisions; }
 

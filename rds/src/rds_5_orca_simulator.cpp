@@ -328,11 +328,14 @@ void RdsOrcaSimulator::checkRobotCollisions()
 	}
 }
 
-void RdsOrcaSimulator::addStaticObstacle(const Vec2& position, float radius)
+void RdsOrcaSimulator::addStaticObstacle(const Vec2& position, float radius, bool skip_rvo_simulator)
 {
 	m_static_obstacles.push_back(StaticCircle(position, radius, 0.03f));
-	m_rvo_simulator.addObstacle(m_static_obstacles.back().rvo_polygon);
-	m_rvo_simulator.processObstacles();
+	if (!skip_rvo_simulator)
+	{
+		m_rvo_simulator.addObstacle(m_static_obstacles.back().rvo_polygon);
+		m_rvo_simulator.processObstacles();
+	}
 }
 
 
