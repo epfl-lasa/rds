@@ -231,7 +231,7 @@ CrowdRdsOrcaSimulator* setup_simulation(CrowdTrajectory* crowd_motion,
 		simulation->useORCASolver();
 	}
 
-	simulation->m_ignore_orca_circle = true;
+	simulation->m_ignore_orca_circle = false;
 
 	if (mode == 0)
 		simulation->addPedestrian(robot_index);
