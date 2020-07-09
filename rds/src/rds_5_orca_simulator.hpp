@@ -48,7 +48,10 @@ struct RdsOrcaSimulator
 
 	AdditionalPrimitives2D::Circle getOrcaOrcaCircle() const;
 
-	void implementORCA() { m_robot.ORCA_implementation = true; }
+	void implementORCA(bool use_p_ref) { m_robot.ORCA_implementation = true; m_robot.ORCA_use_p_ref = use_p_ref; }
+
+	void useDefaultNominalCommand(const Geometry2D::Vec2& v_p_ref) { m_robot.use_default_nominal_command = true;
+		m_robot.default_v_nominal = v_p_ref; }
 	
 protected:
 	virtual Geometry2D::Vec2 getRobotNominalVelocity();

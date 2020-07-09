@@ -19,8 +19,8 @@ using AdditionalPrimitives2D::Circle;
 using Geometry2D::BoundingCircles;
 using AdditionalPrimitives2D::Polygon;
 
-const bool with_gui = true;
-const bool save_result = false;
+const bool with_gui = false;
+const bool save_result = true;
 
 const float dt = 0.05f;
 
@@ -226,7 +226,8 @@ CrowdRdsOrcaSimulator* setup_simulation(CrowdTrajectory* crowd_motion,
 		*crowd_motion, handy_robot_index, orca_orca);
 	if (mode == 1)
 	{
-		simulation->implementORCA();
+		bool using_p_ref_as_control_point = true; // = using large circle
+		simulation->implementORCA(using_p_ref_as_control_point);
 	}
 
 	simulation->m_ignore_orca_circle = true;

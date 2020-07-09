@@ -102,6 +102,12 @@ struct GuiWrap
 		m_polygons.push_back(robot_line);
 		if (sim.m_orca_orca)
 			m_circles.push_back(sim.getOrcaOrcaCircle());
+		if (sim.getRobot().ORCA_implementation)
+		{
+			Circle tight_bounding_circle;
+			sim.getRobot().computeTightBoundingCircle(&tight_bounding_circle);
+			m_circles.push_back(tight_bounding_circle);
+		}
 
 		m_constraints_gui.halfplanes = &m_constraints;
 		m_constraints_gui.arrows = &m_arrows;
@@ -112,7 +118,9 @@ struct GuiWrap
 	{
 		int offset = 0;
 		if (sim.m_orca_orca)
-			offset = 1;
+			offset += 1;
+		if (sim.getRobot().ORCA_implementation)
+			offset += 1;
 		for (std::vector<Circle>::size_type i = 0; i < m_circles.size() - m_bounding_circles.circles().size() - offset; i++)
 		{
 			m_circles[i].center = sim.getPedestrians()[i].circle.center;
@@ -142,8 +150,15 @@ struct GuiWrap
 			sim.getRobot().transformVectorLocalToGlobal(m_bounding_circles.circles()[bc_index].center, &v_result);
 			m_circles[i] = Circle(v_result + sim.getRobot().position, m_bounding_circles.circles()[bc_index].radius);
 		}
-		if (sim.m_orca_orca)
+		if (sim.m_orca_orca && !sim.getRobot().ORCA_implementation)
 			m_circles.back() = sim.getOrcaOrcaCircle();
+		else if (sim.getRobot().ORCA_implementation && !sim.m_orca_orca)
+			sim.getRobot().computeTightBoundingCircle(&m_circles.back());
+		else if (sim.m_orca_orca && sim.getRobot().ORCA_implementation)
+		{
+			m_circles[m_circles.size() - 2] = sim.getOrcaOrcaCircle();
+			sim.getRobot().computeTightBoundingCircle(&m_circles.back());
+		}
 
 		if ((m_track_from_time >= 0.f) && sim.getTime() > m_track_from_time)
 		{
@@ -221,9 +236,15 @@ CrowdRdsOrcaSimulator* setup_simulation(CrowdTrajectory* crowd_motion,
 	crowd_motion->m_duration = robot_t_data_end - robot_t_data_start;
 
 	int handy_robot_index = (mode == 0) ? 666 : robot_index;
-	bool orca_orca = (mode == 1);
+	bool orca_orca = false;//(mode == 1);
 	CrowdRdsOrcaSimulator* simulation = new CrowdRdsOrcaSimulator(rds_5_config,
 		*crowd_motion, handy_robot_index, orca_orca);
+	if (mode == 1)
+	{
+		bool using_p_ref_as_control_point = true; // = using large circle
+		simulation->implementORCA(using_p_ref_as_control_point);
+	}
+	simulation->useDefaultNominalCommand(Vec2(0.f, 1.3f));
 
 	simulation->m_ignore_orca_circle = true;
 
@@ -251,7 +272,7 @@ int main()
 	{
 		std::vector<CrowdTrajectory::Knot> spline_data(3);
 		for (int k = 0; k < 3; k++)
-			spline_data[k] = CrowdTrajectory::Knot(Vec2(-6.5f + 0.8f*k*7, -2.25f), float(k*7));
+			spline_data[k] = CrowdTrajectory::Knot(Vec2(-6.5f + 0.8f*k*7, -1.f), float(k*7));
 		crowd_trajectory.addPedestrianTrajectory(spline_data);
 		for (int k = 0; k < 3; k++)
 			spline_data[k] = CrowdTrajectory::Knot(Vec2(-6.5f + 0.8f*k*7, 0.5f), float(k*7));
@@ -282,7 +303,7 @@ int main()
 	CrowdRdsOrcaSimulator* sim;
 	{
 		double reaching_time_crowd[3], velocity_crowd[3];
-		for (int mode = 2; mode != 3; ++mode)
+		for (int mode = 1; mode != 3; ++mode)
 		{
 			sim = setup_simulation(&crowd_trajectory, robot_index, mode);
 

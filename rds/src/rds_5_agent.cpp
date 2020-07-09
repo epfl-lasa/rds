@@ -16,6 +16,9 @@ void RDS5CapsuleAgent::stepEuler(float dt,
 	getObjectsInLocalFrame(objects, &objects_local);
 	Vec2 v_nominal_p_ref_local;
 	transformVectorGlobalToLocal(v_nominal_p_ref, &v_nominal_p_ref_local);
+
+	if (use_default_nominal_command)
+		v_nominal_p_ref_local = default_v_nominal;
 	
 	float v_box_half = rds_configuration.linear_acceleration_limit*rds_configuration.dt_cycle;
 	float w_box_half = rds_configuration.angular_acceleration_limit*rds_configuration.dt_cycle;
@@ -29,9 +32,10 @@ void RDS5CapsuleAgent::stepEuler(float dt,
 
 	rds_5.use_conservative_shift = false;
 	rds_5.keep_origin_feasible = false;
-	rds_5.no_VO_shift_at_contact = true;
+	rds_5.no_VO_shift_at_contact = false;
 	rds_5.shift_reduction_range = 0.35f;
 	rds_5.ORCA_implementation = ORCA_implementation;
+	rds_5.ORCA_use_p_ref = ORCA_use_p_ref;
 
 	if (v_nominal_p_ref_local.norm() > std::abs(rds_configuration.vw_diamond_limits.v_max))
 		v_nominal_p_ref_local = v_nominal_p_ref_local.normalized()*std::abs(rds_configuration.vw_diamond_limits.v_max);
@@ -124,6 +128,11 @@ void RDS5CapsuleAgent::computeTightBoundingCircle(Circle* c) const
 		rds_configuration.robot_shape.center_b().y);
 	float radius = 0.5f*(rds_configuration.robot_shape.center_a() -
 		rds_configuration.robot_shape.center_b()).norm() + rds_configuration.robot_shape.radius();
+	if (ORCA_use_p_ref)
+	{
+		y_center = rds_configuration.y_p_ref;
+		radius = y_center - rds_configuration.robot_shape.center_b().y + rds_configuration.robot_shape.radius();
+	}
 	Vec2 p_center_local(0.f, y_center);
 	Vec2 p_center_global;
 	transformVectorLocalToGlobal(p_center_local, &p_center_global);

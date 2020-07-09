@@ -79,6 +79,11 @@ namespace Geometry2D
 		{
 			float y_center = 0.5f*(robot_shape.center_a().y + robot_shape.center_b().y);
 			float radius_ORCA = 0.5f*(robot_shape.center_a() - robot_shape.center_b()).norm() + robot_shape.radius();
+			if (ORCA_use_p_ref)
+			{
+				y_center = y_p_ref;
+				radius_ORCA = y_center - robot_shape.center_b().y + robot_shape.radius();
+			}
 			Vec2 v_center_previous_command(v_previous_command);
 			v_center_previous_command.x *= y_center/y_p_ref;
 			Vec2 v_center_nominal(v_nominal_p_ref);
