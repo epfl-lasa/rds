@@ -294,7 +294,7 @@ int main()
 
 	int robot_index;
 	CrowdRdsOrcaSimulator* sim;
-	const unsigned int n_samples = 430;
+	const unsigned int n_samples = 90;
 	for (unsigned int sample_index = 0; sample_index != n_samples; ++sample_index)
 	{
 		robot_index = sample_index;

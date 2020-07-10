@@ -85,6 +85,16 @@ void update_mean_seasonally(double *mean, double value, double* time_accumulatio
 	*time_accumulation = *time_accumulation + dt;
 }
 
+GuiColor blue_green_color(float weight_blue)
+{
+	GuiColor this_color;
+	this_color.r = 0;
+	weight_blue = std::min(0.999999f, std::max(0.000001f, weight_blue));
+	this_color.b = 255*weight_blue;
+	this_color.g = 255*(1.f - weight_blue);
+	return this_color;
+}
+
 struct GuiWrap
 {
 	GuiWrap(const CrowdRdsOrcaSimulator& sim, float track_from_time)
@@ -173,10 +183,11 @@ struct GuiWrap
 
 		if ((m_track_from_time >= 0.f) && sim.getTime() > m_track_from_time)
 		{
-			GuiColor red, white;
+			GuiColor red, reddish_white;
 			red.g = red.b = 0;
+			reddish_white.g = reddish_white.b = 190;
 			m_points.push_back(p_ref_global);
-			m_gui.points_colors.push_back(white);
+			m_gui.points_colors.push_back(red);
 			m_points.push_back(nominal_position);
 			m_gui.points_colors.push_back(red);
 		}
@@ -199,7 +210,23 @@ struct GuiWrap
 			double distance_to_target = (target - position).norm();
 			//update_mean(&(p_log.distance_to_target_mean), distance_to_target, t);
 			if (arena.contains(target))
+			{
 				update_mean_seasonally(&(p_log.distance_to_target_mean), distance_to_target, &(p_log.duration_distance_to_target_mean));
+				if ((m_track_from_time >= 0.f) && sim.getTime() > m_track_from_time)
+				{
+					GuiColor this_color = blue_green_color(float(i)/sim.getPedestrianIndices().size());
+					//float w_g = (255 - this_color.g)/255.0;
+					//float w_b = (255 - this_color.b)/255.0;
+					//float w_r = 1.0;
+					//float w_sum = w_r + w_g + w_b;
+					//GuiColor this_whitish_color = this_color;
+					//this_whitish_color.r = 190;
+					m_points.push_back(position);
+					m_gui.points_colors.push_back(this_color);
+					m_points.push_back(target);
+					m_gui.points_colors.push_back(this_color);
+				}
+			}
 
 			if (p_log.time_when_finishing < 0.0)
 				update_mean(&(p_log.v_mean), sim.getPedestrians()[i].velocity.norm(), t);
