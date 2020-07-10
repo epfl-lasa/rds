@@ -1,7 +1,7 @@
 #include "crowd_trajectory.hpp"
 #include "geometry.hpp"
 #include "gui.hpp"
-#include "spline.h" // from https://kluge.in-chemnitz.de/opensource/spline/
+#include "../../spline/spline.h" // from https://kluge.in-chemnitz.de/opensource/spline/
 #include <vector>
 #include <cmath>
 #include <chrono>

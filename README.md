@@ -45,7 +45,7 @@ rosrun rds_gui_ros rds_gui_ros_node
 ```
 ## Third parties acknowledgements
 
-This repo contains the spline library from [this project](https://github.com/ttk592/spline), and thus it must inherit the GPL 2 license (if ever released). Further, it contains pedestrian trajectory data from [here](https://graphics.cs.ucy.ac.cy/research/downloads/crowd-data).
+The folder spline contains the spline library from [this project](https://github.com/ttk592/spline) which is subject to the GPL 2 license. Further, the folder rds/data contains pedestrian trajectory data from [here](https://graphics.cs.ucy.ac.cy/research/downloads/crowd-data). Finally, the folder RVO2 contains a modified version of the [RVO2 library](https://github.com/snape/RVO2) which is subject to the Apache 2 license.
 
 ## Software Structure
 

@@ -2,7 +2,7 @@
 #define CROWD_TRAJECTORY_HPP
 
 #include "geometry.hpp"
-#include "spline.h" // from https://github.com/ttk592/spline
+#include "../../spline/spline.h" // from https://github.com/ttk592/spline
 
 struct CrowdTrajectory
 {

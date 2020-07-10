@@ -1,5 +1,7 @@
-Optimal Reciprocal Collision Avoidance
-======================================
+Optimal Reciprocal Collision Avoidance - MODIFIED
+=================================================
+
+This is a modified version of the RVO2 library (see the link below). It has been modified by David Gonon, the owner of the top-level git repository RDS.
 
 <http://gamma.cs.unc.edu/RVO2/>
 
