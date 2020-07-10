@@ -34,6 +34,7 @@ struct AgentLog
 	AgentLog() : v_mean(0), time_when_finishing(-1), distance_to_target_mean(0),
 		time_insde_arena(0), time_close_to_robot(0) { }
 	double v_mean, time_when_finishing, distance_to_target_mean, time_insde_arena, time_close_to_robot;
+	double duration_distance_to_target_mean;
 };
 
 struct Arena
@@ -70,6 +71,15 @@ void update_mean(double *mean, double value, double time)
 	double w_old = time/(time + dt);
 	double w_new = dt/(time + dt);
 	*mean = w_old*(*mean) + w_new*value;
+}
+
+void update_mean_seasonally(double *mean, double value, double* time_accumulation)
+{
+	double time = *time_accumulation;
+	double w_old = time/(time + dt);
+	double w_new = dt/(time + dt);
+	*mean = w_old*(*mean) + w_new*value;
+	*time_accumulation = *time_accumulation + dt;
 }
 
 struct GuiWrap
@@ -173,7 +183,9 @@ struct GuiWrap
 			sim.m_crowd_trajectory.getPedestrianPositionAtTime(pedestrian_index, t, &target);
 			const Vec2& position = sim.getPedestrians()[i].circle.center;
 			double distance_to_target = (target - position).norm();
-			update_mean(&(p_log.distance_to_target_mean), distance_to_target, t);
+			//update_mean(&(p_log.distance_to_target_mean), distance_to_target, t);
+			if (arena.contains(target))
+				update_mean_seasonally(&(p_log.distance_to_target_mean), distance_to_target, &(p_log.duration_distance_to_target_mean));
 
 			if (p_log.time_when_finishing < 0.0)
 				update_mean(&(p_log.v_mean), sim.getPedestrians()[i].velocity.norm(), t);
@@ -251,6 +263,19 @@ void crowd_sample(unsigned int sample_index, int* robot_index, std::vector<unsig
 		(*pedestrian_indices)[i] = *robot_index + 1 + i;
 }
 
+double compute_crowd_tracking_error(const std::vector<AgentLog>& crowd_log)
+{
+	double weight_sum = 0.0;
+	double weighted_mean = 0.0;
+	for (const auto& p_log : crowd_log)
+	{
+		double weight = p_log.duration_distance_to_target_mean;
+		weighted_mean += weight*p_log.distance_to_target_mean;
+		weight_sum += weight;
+	}
+	return weighted_mean/weight_sum;
+}
+
 int main()
 {
 	char file_name[] = "./data_university_students/students003_no_obstacles.vsp";
@@ -262,7 +287,8 @@ int main()
 
 	std::vector<double> RDS_E_t, RDS_E_v, RDS_N_ttg, RDS_N_v,
 		ORCA_E_t, ORCA_E_v, ORCA_N_ttg, ORCA_N_v,
-		RDS_robot_mean_distance_to_target, ORCA_robot_mean_distance_to_target;
+		RDS_robot_mean_distance_to_target, ORCA_robot_mean_distance_to_target,
+		RDS_ped_mean_distance_to_target, ORCA_ped_mean_distance_to_target;
 
 	std::vector<unsigned int> RDS_collision_count, ORCA_collision_count;
 
@@ -358,6 +384,7 @@ int main()
 				ORCA_N_v.push_back(N_v);
 				ORCA_robot_mean_distance_to_target.push_back(robot_log.distance_to_target_mean);
 				ORCA_collision_count.push_back(collision_count - beginner_collision_count);
+				ORCA_ped_mean_distance_to_target.push_back(compute_crowd_tracking_error(crowd_log));
 			}
 			else if (mode == 2)
 			{
@@ -365,6 +392,7 @@ int main()
 				RDS_N_v.push_back(N_v);
 				RDS_robot_mean_distance_to_target.push_back(robot_log.distance_to_target_mean);
 				RDS_collision_count.push_back(collision_count - beginner_collision_count);
+				RDS_ped_mean_distance_to_target.push_back(compute_crowd_tracking_error(crowd_log));
 			}
 			delete sim;
 		}
@@ -384,13 +412,18 @@ int main()
 		"RDS_N_v           ",
 		"ORCA_N_v          ",
 		"RDS_rob_track_err ",
-		"ORCA_rob_track_err"};
+		"ORCA_rob_track_err",
+		"RDS_ped_track_err ",
+		"ORCA_ped_track_err"
+	};
 	std::vector<std::string> integer_metric_names = {
 		"RDS_collisions    ",
 		"ORCA_collisions   "};
 	std::vector<std::vector<double> > metric_values = {RDS_E_t, ORCA_E_t, RDS_E_v, ORCA_E_v,
 		RDS_N_ttg, ORCA_N_ttg, RDS_N_v, ORCA_N_v,
-		RDS_robot_mean_distance_to_target, ORCA_robot_mean_distance_to_target};
+		RDS_robot_mean_distance_to_target, ORCA_robot_mean_distance_to_target,
+		RDS_ped_mean_distance_to_target, ORCA_ped_mean_distance_to_target
+	};
 	std::vector<std::vector<unsigned int> > integer_metric_values = {RDS_collision_count, ORCA_collision_count};
 	
 	std::vector<double> metric_mean_values(metric_values.size(), 0.0);
