@@ -33,12 +33,12 @@
 set(RVO_HEADERS
 	RVO.h
 	RVOSimulator.h
-	Vector2.h)
+	Vector2.h
+	Agent.h
+	Definitions.h)
 
 set(RVO_SOURCES
 	Agent.cpp
-	Agent.h
-	Definitions.h
 	KdTree.cpp
 	KdTree.h
 	Obstacle.cpp

@@ -182,6 +182,14 @@ namespace RVO {
 		globalTime_ += timeStep_;
 	}
 
+	Vector2 RVOSimulator::computeStepForSingleAgent(size_t agentNo)
+	{
+		kdTree_->buildAgentTree();
+		agents_[agentNo]->computeNeighbors();
+		agents_[agentNo]->computeNewVelocity();
+		return agents_[agentNo]->newVelocity_;
+	}
+
 	size_t RVOSimulator::getAgentAgentNeighbor(size_t agentNo, size_t neighborNo) const
 	{
 		return agents_[agentNo]->agentNeighbors_[neighborNo].second->id_;
@@ -365,5 +373,32 @@ namespace RVO {
 	void RVOSimulator::setTimeStep(float timeStep)
 	{
 		timeStep_ = timeStep;
+	}
+
+	void RVOSimulator::setAgentIgnoreIDs(size_t agentNo, const std::vector<size_t>& ignore_ids)
+	{
+		agents_[agentNo]->ignore_ids_ = ignore_ids;
+	}
+
+	void RVOSimulator::setAgentDenyCollisions(size_t agentNo, bool deny_collisions)
+	{
+		agents_[agentNo]->deny_collisions_ = deny_collisions;
+	}
+
+	size_t RVOSimulator::getAgentID(size_t agentNo)
+	{
+		return agents_[agentNo]->id_;
+	}
+
+	void RVOSimulator::setAgentAdaptTotally(size_t agentNo, bool adapt_totally)
+	{
+		agents_[agentNo]->adapt_totally_ = adapt_totally;
+	}
+	void RVOSimulator::popBackAgent()
+	{
+		delete agents_.back(); 
+		if (agents_.back() == kdTree_->agents_.back())
+			kdTree_->agents_.pop_back();
+		agents_.pop_back();
 	}
 }

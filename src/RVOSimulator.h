@@ -211,6 +211,12 @@ namespace RVO {
 		void doStep();
 
 		/**
+		 * \brief      Lets the simulator compute a simulation step for a single
+		 *             agent and returns the velocity for this agent.
+		 */
+		Vector2 computeStepForSingleAgent(size_t agentNo);
+
+		/**
 		 * \brief      Returns the specified agent neighbor of the specified
 		 *             agent.
 		 * \param      agentNo         The number of the agent whose agent
@@ -574,6 +580,18 @@ namespace RVO {
 		 *                             Must be positive.
 		 */
 		void setTimeStep(float timeStep);
+
+		void setAgentIgnoreIDs(size_t agentNo, const std::vector<size_t>& ignore_ids);
+
+		size_t getAgentID(size_t agentNo);
+
+		void setAgentDenyCollisions(size_t agentNo, bool deny_collisions);
+
+		void setAgentAdaptTotally(size_t agentNo, bool adapt_totally);
+
+		unsigned int getNumberOfAgents() { return agents_.size(); }
+
+		void popBackAgent();
 
 	private:
 		std::vector<Agent *> agents_;

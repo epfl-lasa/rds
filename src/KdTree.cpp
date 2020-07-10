@@ -46,6 +46,7 @@ namespace RVO {
 
 	void KdTree::buildAgentTree()
 	{
+		agents_.resize(0);
 		if (agents_.size() < sim_->agents_.size()) {
 			for (size_t i = agents_.size(); i < sim_->agents_.size(); ++i) {
 				agents_.push_back(sim_->agents_[i]);

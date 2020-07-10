@@ -102,6 +102,9 @@ namespace RVO {
 		Vector2 velocity_;
 
 		size_t id_;
+		std::vector<size_t> ignore_ids_;
+		bool deny_collisions_;
+		bool adapt_totally_;
 
 		friend class KdTree;
 		friend class RVOSimulator;

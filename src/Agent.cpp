@@ -36,7 +36,7 @@
 #include "Obstacle.h"
 
 namespace RVO {
-	Agent::Agent(RVOSimulator *sim) : maxNeighbors_(0), maxSpeed_(0.0f), neighborDist_(0.0f), radius_(0.0f), sim_(sim), timeHorizon_(0.0f), timeHorizonObst_(0.0f), id_(0) { }
+	Agent::Agent(RVOSimulator *sim) : maxNeighbors_(0), maxSpeed_(0.0f), neighborDist_(0.0f), radius_(0.0f), sim_(sim), timeHorizon_(0.0f), timeHorizonObst_(0.0f), id_(0), deny_collisions_(false), adapt_totally_(false) { }
 
 	void Agent::computeNeighbors()
 	{
@@ -289,16 +289,33 @@ namespace RVO {
 		for (size_t i = 0; i < agentNeighbors_.size(); ++i) {
 			const Agent *const other = agentNeighbors_[i].second;
 
+			bool skip_this_other = false;
+			for (size_t j = 0; j < ignore_ids_.size(); j++)
+			{
+				if (other->id_ == ignore_ids_[j])
+				{
+					skip_this_other = true;
+					break;
+				}
+			}
+			if (skip_this_other)
+				continue;
+
 			const Vector2 relativePosition = other->position_ - position_;
 			const Vector2 relativeVelocity = velocity_ - other->velocity_;
 			const float distSq = absSq(relativePosition);
-			const float combinedRadius = radius_ + other->radius_;
-			const float combinedRadiusSq = sqr(combinedRadius);
+			float combinedRadius = radius_ + other->radius_;
+			float combinedRadiusSq = sqr(combinedRadius);
 
 			Line line;
 			Vector2 u;
 
-			if (distSq > combinedRadiusSq) {
+			if ((distSq > combinedRadiusSq) || deny_collisions_) {
+				if (!(distSq > combinedRadiusSq))
+				{
+					combinedRadius = std::sqrt(distSq);
+					combinedRadiusSq = distSq;
+				}
 				/* No collision. */
 				const Vector2 w = relativeVelocity - invTimeHorizon * relativePosition;
 				/* Vector from cutoff center to relative velocity. */
@@ -346,7 +363,20 @@ namespace RVO {
 				u = (combinedRadius * invTimeStep - wLength) * unitW;
 			}
 
-			line.point = velocity_ + 0.5f * u;
+
+			if (!adapt_totally_)
+				line.point = velocity_ + 0.5f * u;
+			else
+			{
+				Vector2 line_normal(-line.direction.y(), line.direction.x());
+				if (relativePosition * line_normal < 0.f)
+					line_normal = -line_normal;
+				if (u * line_normal < 0.f)
+					line.point = velocity_ + 1.f * u;
+				else
+					line.point = velocity_ + 0.5f * u;
+			}
+
 			orcaLines_.push_back(line);
 		}
 
