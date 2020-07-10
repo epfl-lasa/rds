@@ -98,7 +98,7 @@ namespace Geometry2D
 			if (!ORCA_solver)
 				solve(v_center_nominal, constraints_center_tmp, &v_center_corrected);
 			else
-				solveWithORCASolver(v_center_nominal, constraints_center_tmp, &v_center_corrected);
+				solveWithORCASolver(v_center_nominal, constraints_center_tmp, &v_center_corrected, y_center);
 			*v_corrected_p_ref = v_center_corrected;
 			v_corrected_p_ref->x /= y_center/y_p_ref;
 		}
@@ -384,7 +384,7 @@ namespace Geometry2D
 
 	}
 
-	void RDS5::solveWithORCASolver(const Vec2& v_nominal, std::vector<HalfPlane2>& center_constraints, Vec2* v_corrected)
+	void RDS5::solveWithORCASolver(const Vec2& v_nominal, std::vector<HalfPlane2>& center_constraints, Vec2* v_corrected, float y_center)
 	{
 		constraints = center_constraints;
 		// infeasible halfplane to the right in the line's direction
@@ -396,11 +396,15 @@ namespace Geometry2D
 			line.direction = RVO::Vector2(h.getParallel().x, h.getParallel().y);
 			orca_lines.push_back(line);
 		}
+
+		float sigma = std::max(1.f, std::abs(y_center/y_p_ref));
+		float v_robot_point_radial_max = sigma*v_p_ref_radial_max;
+
 		RVO::Vector2 preferred_velocity(v_nominal.x, v_nominal.y);
 		RVO::Vector2 new_velocity;
-		size_t lineFail = RVO::linearProgram2(orca_lines, 10.f, preferred_velocity, false, new_velocity);
+		size_t lineFail = RVO::linearProgram2(orca_lines, v_robot_point_radial_max, preferred_velocity, false, new_velocity);
 		if (lineFail < orca_lines.size())
-			RVO::linearProgram3(orca_lines, 0, lineFail, 10.f, new_velocity);
+			RVO::linearProgram3(orca_lines, 0, lineFail, v_robot_point_radial_max, new_velocity);
 		v_corrected->x = new_velocity.x();
 		v_corrected->y = new_velocity.y();
 	}

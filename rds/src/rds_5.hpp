@@ -76,7 +76,7 @@ namespace Geometry2D
 
 		Vec2 VOShift(const Vec2& v_obj, const Vec2& relative_position, float combined_radius);
 
-		void solveWithORCASolver(const Vec2& v_nominal, std::vector<HalfPlane2>& constraints, Vec2* v_corrected);
+		void solveWithORCASolver(const Vec2& v_nominal, std::vector<HalfPlane2>& constraints, Vec2* v_corrected, float y_center);
 	};
 }
 

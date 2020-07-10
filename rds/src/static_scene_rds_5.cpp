@@ -340,9 +340,9 @@ int main()
 		CrowdTrajectory::Knot(Vec2(-2.5f, -5.f), 0.f),
 		CrowdTrajectory::Knot(Vec2(-1.f, -3.f), 3.f),
 		CrowdTrajectory::Knot(Vec2(1.f, 0.f), 7.f),
-		CrowdTrajectory::Knot(Vec2(1.5f, 3.f), 11.f),
-		CrowdTrajectory::Knot(Vec2(0.f, 4.f), 15.f),
-		CrowdTrajectory::Knot(Vec2(-3.f, 4.f), 20.f)
+		CrowdTrajectory::Knot(Vec2(1.5f, 4.f), 11.f),
+		CrowdTrajectory::Knot(Vec2(0.f, 4.5f), 15.f),
+		CrowdTrajectory::Knot(Vec2(-2.f, 4.f), 19.f)
 	};
 	crowd_trajectory.addPedestrianTrajectory(spline_data_not_nice);
 
