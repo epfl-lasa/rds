@@ -9,7 +9,7 @@ namespace ConfigRDS5
 const float linear_acceleration_limit_jun_10 = 1.5;
 const float angular_acceleration_limit_jun_10 = 1.5;
 const float linear_acceleration_limit = 2.0;
-const float angular_acceleration_limit = 2.f*3.0;
+const float angular_acceleration_limit = 3.0;
 
 const VWDiamond vw_diamond_limits_jun_10(-0.75, 1.5, 4.124/3.5, 0.2);
 

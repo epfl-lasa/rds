@@ -23,6 +23,7 @@ using Geometry2D::HalfPlane2;
 using AdditionalPrimitives2D::Arrow;
 
 const bool with_gui = true;
+const bool save_result = true;
 
 const float dt = 0.05f;
 
@@ -34,8 +35,9 @@ const float goal_reaching_threshold = 0.5f;
 struct AgentLog
 {
 	AgentLog() : v_mean(0), time_when_finishing(-1), distance_to_target_mean(0),
-		time_insde_arena(0), time_close_to_robot(0) { }
+		time_insde_arena(0), time_close_to_robot(0), duration_distance_to_target_mean(0) { }
 	double v_mean, time_when_finishing, distance_to_target_mean, time_insde_arena, time_close_to_robot;
+	double duration_distance_to_target_mean;
 };
 
 struct Arena
@@ -46,23 +48,6 @@ struct Arena
 		return (p.x > x_min) && (p.x < x_max) && (p.y > y_min) && (p.y < y_max);
 	}
 };
-
-void add_wall(const Vec2& start, const Vec2& stop, float radius,
-	float min_overlap, std::vector<Vec2>* wall)
-{
-	float length = (start - stop).norm();
-	Vec2 e_wall = (stop - start).normalized();
-	float step = radius*2.f - min_overlap;
-	unsigned int n_steps = length/step;
-	if (n_steps*step < length)
-	{
-		n_steps++;
-		step = length/n_steps;
-	}
-	for (unsigned int i = 0; i < n_steps; i++)
-		wall->push_back(start + i*step*e_wall);
-	wall->push_back(stop);
-}
 
 void define_arena_for_evaluation(const CrowdTrajectory& c, Arena& a)
 {
@@ -91,6 +76,15 @@ void update_mean(double *mean, double value, double time)
 	*mean = w_old*(*mean) + w_new*value;
 }
 
+void update_mean_seasonally(double *mean, double value, double* time_accumulation)
+{
+	double time = *time_accumulation;
+	double w_old = time/(time + dt);
+	double w_new = dt/(time + dt);
+	*mean = w_old*(*mean) + w_new*value;
+	*time_accumulation = *time_accumulation + dt;
+}
+
 struct GuiWrap
 {
 	GuiWrap(const CrowdRdsOrcaSimulator& sim, float track_from_time)
@@ -114,23 +108,16 @@ struct GuiWrap
 		}
 		m_capsules.push_back(sim.getRobot().rds_configuration.robot_shape);
 		for (auto& c : m_bounding_circles.circles())
-		{
 			m_circles.push_back(c);
-			m_gui.circles_colors.push_back(GuiColor());
-		}
 		Polygon robot_line = {Vec2(), Vec2()};
 		m_polygons.push_back(robot_line);
 		if (sim.m_orca_orca)
-		{
 			m_circles.push_back(sim.getOrcaOrcaCircle());
-			m_gui.circles_colors.push_back(GuiColor());
-		}
 		if (sim.getRobot().ORCA_implementation)
 		{
 			Circle tight_bounding_circle;
 			sim.getRobot().computeTightBoundingCircle(&tight_bounding_circle);
 			m_circles.push_back(tight_bounding_circle);
-			m_gui.circles_colors.push_back(GuiColor());
 		}
 
 		m_constraints_gui.halfplanes = &m_constraints;
@@ -184,10 +171,10 @@ struct GuiWrap
 			sim.getRobot().computeTightBoundingCircle(&m_circles.back());
 		}
 
-		GuiColor red, white;
-		red.g = red.b = 0;
 		if ((m_track_from_time >= 0.f) && sim.getTime() > m_track_from_time)
 		{
+			GuiColor red, white;
+			red.g = red.b = 0;
 			m_points.push_back(p_ref_global);
 			m_gui.points_colors.push_back(white);
 			m_points.push_back(nominal_position);
@@ -210,7 +197,9 @@ struct GuiWrap
 			sim.m_crowd_trajectory.getPedestrianPositionAtTime(pedestrian_index, t, &target);
 			const Vec2& position = sim.getPedestrians()[i].circle.center;
 			double distance_to_target = (target - position).norm();
-			update_mean(&(p_log.distance_to_target_mean), distance_to_target, t);
+			//update_mean(&(p_log.distance_to_target_mean), distance_to_target, t);
+			if (arena.contains(target))
+				update_mean_seasonally(&(p_log.distance_to_target_mean), distance_to_target, &(p_log.duration_distance_to_target_mean));
 
 			if (p_log.time_when_finishing < 0.0)
 				update_mean(&(p_log.v_mean), sim.getPedestrians()[i].velocity.norm(), t);
@@ -235,23 +224,7 @@ struct GuiWrap
 			robot_log.time_insde_arena += dt;
 
 		if (with_gui)
-		{
-			for (auto& ob : sim.getStaticObstacles())
-			{
-				m_circles.push_back(ob.circle);
-				if (ob.robot_collision)
-					m_gui.circles_colors.push_back(red);
-				else
-					m_gui.circles_colors.push_back(white);
-			}
-			bool is_open = (m_gui.update() == 0) | (m_constraints_gui.update() == 0);
-			for (auto& ob : sim.getStaticObstacles())
-			{
-				m_circles.pop_back();
-				m_gui.circles_colors.pop_back();
-			}
-			return is_open;
-		}
+			return (m_gui.update() == 0) | (m_constraints_gui.update() == 0);
 		else
 			return true;
 	}
@@ -287,7 +260,7 @@ CrowdRdsOrcaSimulator* setup_simulation(CrowdTrajectory* crowd_motion,
 	}
 	//simulation->useDefaultNominalCommand(Vec2(0.f, 1.3f));
 
-	simulation->m_ignore_orca_circle = true;
+	simulation->m_ignore_orca_circle = false;
 
 	if (mode == 0)
 		simulation->addPedestrian(robot_index);
@@ -296,20 +269,6 @@ CrowdRdsOrcaSimulator* setup_simulation(CrowdTrajectory* crowd_motion,
 		if (i != robot_index)
 			simulation->addPedestrian(i);
 	}
-
-	std::vector<Vec2> wall;
-	float wall_obstacle_radius = 0.3f;
-	add_wall(Vec2(-4.f, -5.f), Vec2(-4.f, 2.f), wall_obstacle_radius, 0.2f, &wall);
-	add_wall(Vec2(-4.f, 2.f), Vec2(1.f, 2.f), wall_obstacle_radius, 0.2f, &wall);
-	add_wall(Vec2(1.f, 2.f), Vec2(1.f, 3.2f), wall_obstacle_radius, 0.2f, &wall);
-	add_wall(Vec2(1.f, 5.f), Vec2(1.f, 6.2f), wall_obstacle_radius, 0.2f, &wall);
-	add_wall(Vec2(-4.f, 6.2f), Vec2(5.f, 6.2f), wall_obstacle_radius, 0.2f, &wall);
-	add_wall(Vec2(5.f, 6.2f), Vec2(5.f, -2.f), wall_obstacle_radius, 0.2f, &wall);
-	add_wall(Vec2(5.f, -2.f), Vec2(0.f, -2.f), wall_obstacle_radius, 0.2f, &wall);
-	add_wall(Vec2(0.f, -2.f), Vec2(0.f, -5.f), wall_obstacle_radius, 0.2f, &wall);
-	for (auto& obstacle_pos : wall)
-		simulation->addStaticObstacle(obstacle_pos, wall_obstacle_radius, true);
-
 	return simulation;
 }
 
@@ -321,40 +280,68 @@ void crowd_sample(unsigned int sample_index, int* robot_index, std::vector<unsig
 		(*pedestrian_indices)[i] = *robot_index + 1 + i;
 }
 
+double compute_crowd_tracking_error(const std::vector<AgentLog>& crowd_log)
+{
+	double weight_sum = 0.0;
+	double weighted_mean = 0.0;
+	for (const auto& p_log : crowd_log)
+	{
+		double weight = p_log.duration_distance_to_target_mean;
+		weighted_mean += weight*p_log.distance_to_target_mean;
+		weight_sum += weight;
+	}
+	return weighted_mean/weight_sum;
+}
+
 int main()
 {
 	CrowdTrajectory crowd_trajectory;
+	{
+		std::vector<CrowdTrajectory::Knot> spline_data(3);
+		for (int k = 0; k < 3; k++)
+			spline_data[k] = CrowdTrajectory::Knot(Vec2(-0.15f + 0.5f*k*7, -1.f), float(k*7));
+		crowd_trajectory.addPedestrianTrajectory(spline_data);
+		for (int k = 0; k < 3; k++)
+			spline_data[k] = CrowdTrajectory::Knot(Vec2(-0.15f + 0.5f*k*7, -2.f), float(k*7));
+		crowd_trajectory.addPedestrianTrajectory(spline_data);
+		for (int k = 0; k < 3; k++)
+			spline_data[k] = CrowdTrajectory::Knot(Vec2(-0.15f + 0.5f*k*7, -3.f), float(k*7));
+		crowd_trajectory.addPedestrianTrajectory(spline_data);
+		for (int k = 0; k < 3; k++)
+			spline_data[k] = CrowdTrajectory::Knot(Vec2(-1.5f + 0.5f*k*7, -4.f), float(k*7));
+		crowd_trajectory.addPedestrianTrajectory(spline_data);
+		for (int k = 0; k < 3; k++)
+			spline_data[k] = CrowdTrajectory::Knot(Vec2(-0.5f + 0.5f*k*7, 0.2f), float(k*7));
+		crowd_trajectory.addPedestrianTrajectory(spline_data);
+		for (int k = 0; k < 3; k++)
+			spline_data[k] = CrowdTrajectory::Knot(Vec2(-0.5f + 0.5f*k*7, 1.f), float(k*7));
+		crowd_trajectory.addPedestrianTrajectory(spline_data);
+		for (int j = 0; j < 3; j++)
+		{
+			for (int k = 0; k < 3; k++)
+				spline_data[k] = CrowdTrajectory::Knot(Vec2(-5.6f + j, 4.5f + j*1.2f)+k*7*Vec2(0.7f, -0.7f), float(k*7));
+			crowd_trajectory.addPedestrianTrajectory(spline_data);
+			for (int k = 0; k < 3; k++)
+				spline_data[k] = CrowdTrajectory::Knot(Vec2(-5.2f + j, -4.5f - j*1.2f)+k*7*Vec2(0.7f, 0.7f), float(k*7));
+			crowd_trajectory.addPedestrianTrajectory(spline_data);
+		}
+	}
 	unsigned int robot_leader_index = crowd_trajectory.getSplinesData().size();
-	std::vector<CrowdTrajectory::Knot> spline_data_rather_nice = 
-	{
-		CrowdTrajectory::Knot(Vec2(-2.f, -5.f), 0.f),
-		CrowdTrajectory::Knot(Vec2(-2.f, 0.f), 4.f),
-		CrowdTrajectory::Knot(Vec2(3.f, 0.f), 8.f),
-		CrowdTrajectory::Knot(Vec2(3.f, 3.f), 12.f),
-		CrowdTrajectory::Knot(Vec2(0.f, 4.f), 16.f),
-		CrowdTrajectory::Knot(Vec2(-3.f, 4.f), 20.f),
-		CrowdTrajectory::Knot(Vec2(-3.f, 4.f), 24.f)
-	};
-	std::vector<CrowdTrajectory::Knot> spline_data_not_nice = 
-	{
-		CrowdTrajectory::Knot(Vec2(-2.5f, -5.f), 0.f),
-		CrowdTrajectory::Knot(Vec2(-1.f, -3.f), 3.f),
-		CrowdTrajectory::Knot(Vec2(0.5f, 0.f), 7.f),
-		CrowdTrajectory::Knot(Vec2(2.f, 4.f), 11.f),
-		CrowdTrajectory::Knot(Vec2(0.f, 4.5f), 15.f),
-		CrowdTrajectory::Knot(Vec2(-2.f, 4.f), 19.f)
-	};
-	crowd_trajectory.addPedestrianTrajectory(spline_data_not_nice);
+	std::vector<CrowdTrajectory::Knot> spline_data(3);
+	for (int k = 0; k < 3; k++)
+		spline_data[k] = CrowdTrajectory::Knot(Vec2(-8.f + 1.3f*k*9, 0.f), float(k*9));
+	crowd_trajectory.addPedestrianTrajectory(spline_data);
 
 	Arena arena;
-	arena.x_min = -10.f;
-	arena.x_max = 10.f;
-	arena.y_min = -10.f;
-	arena.y_max = 10.f;
+	arena.x_min = -20.f;
+	arena.x_max = 20.f;
+	arena.y_min = -20.f;
+	arena.y_max = 20.f;
 
 	std::vector<double> RDS_E_t, RDS_E_v, RDS_N_ttg, RDS_N_v,
 		ORCA_E_t, ORCA_E_v, ORCA_N_ttg, ORCA_N_v,
-		RDS_robot_mean_distance_to_target, ORCA_robot_mean_distance_to_target;
+		RDS_robot_mean_distance_to_target, ORCA_robot_mean_distance_to_target,
+		RDS_ped_mean_distance_to_target, ORCA_ped_mean_distance_to_target;
 
 	std::vector<unsigned int> RDS_collision_count, ORCA_collision_count;
 
@@ -446,6 +433,7 @@ int main()
 				ORCA_N_v.push_back(N_v);
 				ORCA_robot_mean_distance_to_target.push_back(robot_log.distance_to_target_mean);
 				ORCA_collision_count.push_back(collision_count - beginner_collision_count);
+				ORCA_ped_mean_distance_to_target.push_back(compute_crowd_tracking_error(crowd_log));
 			}
 			else if (mode == 2)
 			{
@@ -453,6 +441,7 @@ int main()
 				RDS_N_v.push_back(N_v);
 				RDS_robot_mean_distance_to_target.push_back(robot_log.distance_to_target_mean);
 				RDS_collision_count.push_back(collision_count - beginner_collision_count);
+				RDS_ped_mean_distance_to_target.push_back(compute_crowd_tracking_error(crowd_log));
 			}
 			delete sim;
 		}
@@ -462,7 +451,7 @@ int main()
 		ORCA_E_v.push_back(velocity_crowd[0]/velocity_crowd[1]);
 	}
 
-	/*std::vector<std::string> metric_names = {
+	std::vector<std::string> metric_names = {
 		"RDS_E_t           ",
 		"ORCA_E_t          ",
 		"RDS_E_v           ",
@@ -472,13 +461,18 @@ int main()
 		"RDS_N_v           ",
 		"ORCA_N_v          ",
 		"RDS_rob_track_err ",
-		"ORCA_rob_track_err"};
+		"ORCA_rob_track_err",
+		"RDS_ped_track_err ",
+		"ORCA_ped_track_err"
+	};
 	std::vector<std::string> integer_metric_names = {
 		"RDS_collisions    ",
 		"ORCA_collisions   "};
 	std::vector<std::vector<double> > metric_values = {RDS_E_t, ORCA_E_t, RDS_E_v, ORCA_E_v,
 		RDS_N_ttg, ORCA_N_ttg, RDS_N_v, ORCA_N_v,
-		RDS_robot_mean_distance_to_target, ORCA_robot_mean_distance_to_target};
+		RDS_robot_mean_distance_to_target, ORCA_robot_mean_distance_to_target,
+		RDS_ped_mean_distance_to_target, ORCA_ped_mean_distance_to_target
+	};
 	std::vector<std::vector<unsigned int> > integer_metric_values = {RDS_collision_count, ORCA_collision_count};
 	
 	std::vector<double> metric_mean_values(metric_values.size(), 0.0);
@@ -536,7 +530,7 @@ int main()
 
 	if (save_result)
 	{
-		std::ofstream csv_file("metrics_evaluation.csv", std::ios::trunc);
+		std::ofstream csv_file("metrics_evaluation_dynamic_scene_complex.csv", std::ios::trunc);
 		csv_file << metric_names[0];
 		for (unsigned int j = 1; j != metric_names.size(); j++)
 			csv_file << "; " << metric_names[j];
@@ -550,7 +544,7 @@ int main()
 			for (unsigned int j = 0; j != integer_metric_values.size(); j++)
 				csv_file << "; " << integer_metric_values[j][i];
 		}
-	}*/
+	}
 
 	return 0;
 }
