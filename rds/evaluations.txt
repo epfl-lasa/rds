@@ -1,0 +1,113 @@
+With velocity shift at contact and small ORCA bounding circle:
+RDS_E_t           :   mean =  0.998404   std =  0.006328
+ORCA_E_t          :   mean =  0.997250   std =  0.005900
+RDS_E_v           :   mean =  1.005701   std =  0.014006
+ORCA_E_v          :   mean =  1.007168   std =  0.014513
+RDS_N_ttg         :   mean =  1.007969   std =  0.018960
+ORCA_N_ttg        :   mean =  1.013142   std =  0.021741
+RDS_N_v           :   mean =  1.065270   std =  0.233399
+ORCA_N_v          :   mean =  1.052657   std =  0.253572
+RDS_rob_track_err :   mean =  0.520302   std =  0.656792
+ORCA_rob_track_err:   mean =  3.797680   std =  2.751031
+RDS_collisions    :   mean =  0.000000   std =  0.000000
+ORCA_collisions   :   mean =  0.000000   std =  0.000000
+
+Without velocity shift at contact and large ORCA bounding circle:
+RDS_E_t           :   mean =  0.998568   std =  0.005448
+ORCA_E_t          :   mean =  0.998868   std =  0.005588
+RDS_E_v           :   mean =  1.006659   std =  0.013645
+ORCA_E_v          :   mean =  1.007507   std =  0.013763
+RDS_N_ttg         :   mean =  1.007289   std =  0.019069
+ORCA_N_ttg        :   mean =  1.005469   std =  0.017174
+RDS_N_v           :   mean =  1.065439   std =  0.235280
+ORCA_N_v          :   mean =  1.059031   std =  0.249572
+RDS_rob_track_err :   mean =  1.112727   std =  1.111202
+ORCA_rob_track_err:   mean =  3.763997   std =  2.488539
+RDS_collisions    :   mean =  0.000000   std =  0.000000
+ORCA_collisions   :   mean =  0.002326   std =  0.048224
+
+With velocity shift at contact and large ORCA bounding circle:
+RDS_E_t           :   mean =  0.998404   std =  0.006328
+ORCA_E_t          :   mean =  0.998647   std =  0.005325
+RDS_E_v           :   mean =  1.005701   std =  0.014006
+ORCA_E_v          :   mean =  1.007430   std =  0.014228
+RDS_N_ttg         :   mean =  1.007969   std =  0.018960
+ORCA_N_ttg        :   mean =  1.007307   std =  0.018996
+RDS_N_v           :   mean =  1.065270   std =  0.233399
+ORCA_N_v          :   mean =  1.065446   std =  0.255652
+RDS_rob_track_err :   mean =  0.520302   std =  0.656792
+ORCA_rob_track_err:   mean =  4.086224   std =  2.658479
+RDS_collisions    :   mean =  0.000000   std =  0.000000
+ORCA_collisions   :   mean =  0.000000   std =  0.000000
+
+With velocity shift at contact, large ORCA bounding circle, and ORCA solver (and smaller waiting time at end):
+RDS_E_t           :   mean =  1.000030   std =  0.000099
+ORCA_E_t          :   mean =  1.000016   std =  0.000092
+RDS_E_v           :   mean =  1.005090   std =  0.014366
+ORCA_E_v          :   mean =  1.004004   std =  0.013399
+RDS_N_ttg         :   mean =  0.999858   std =  0.000476
+ORCA_N_ttg        :   mean =  0.999928   std =  0.000440
+RDS_N_v           :   mean =  1.067102   std =  0.236179
+ORCA_N_v          :   mean =  1.081305   std =  0.266436
+RDS_rob_track_err :   mean =  0.519671   std =  0.674981
+ORCA_rob_track_err:   mean =  3.593171   std =  2.638591
+RDS_collisions    :   mean =  0.000000   std =  0.000000
+ORCA_collisions   :   mean =  0.197674   std =  0.559299
+
+Same as above, but pedestrians perceive the ORCA circle
+RDS_E_t           :   mean =  1.000030   std =  0.000099
+ORCA_E_t          :   mean =  1.000067   std =  0.000138
+RDS_E_v           :   mean =  1.005090   std =  0.014366
+ORCA_E_v          :   mean =  0.999955   std =  0.015442
+RDS_N_ttg         :   mean =  0.999858   std =  0.000476
+ORCA_N_ttg        :   mean =  0.999716   std =  0.000654
+RDS_N_v           :   mean =  1.067102   std =  0.236179
+ORCA_N_v          :   mean =  1.083072   std =  0.241733
+RDS_rob_track_err :   mean =  0.519671   std =  0.674981
+ORCA_rob_track_err:   mean =  1.834123   std =  1.707460
+RDS_collisions    :   mean =  0.000000   std =  0.000000
+ORCA_collisions   :   mean =  0.000000   std =  0.000000
+
+Same as above, but the angular acceleration is higher (6.0) and the ORCA-solver has to respect a speed limit
+RDS_E_t           :   mean =  1.000027   std =  0.000098
+ORCA_E_t          :   mean =  1.000068   std =  0.000127
+RDS_E_v           :   mean =  1.004433   std =  0.013999
+ORCA_E_v          :   mean =  0.998979   std =  0.015493
+RDS_N_ttg         :   mean =  0.999867   std =  0.000450
+ORCA_N_ttg        :   mean =  0.999712   std =  0.000654
+RDS_N_v           :   mean =  1.069347   std =  0.233121
+ORCA_N_v          :   mean =  1.084307   std =  0.236347
+RDS_rob_track_err :   mean =  0.448121   std =  0.580130
+ORCA_rob_track_err:   mean =  1.612456   std =  1.511640
+RDS_collisions    :   mean =  0.002326   std =  0.048224
+ORCA_collisions   :   mean =  0.000000   std =  0.000000
+
+Same as above, but the angular acceleration is low again (3.0)
+RDS_E_t           :   mean =  1.000030   std =  0.000099
+ORCA_E_t          :   mean =  1.000067   std =  0.000138
+RDS_E_v           :   mean =  1.005090   std =  0.014366
+ORCA_E_v          :   mean =  0.999964   std =  0.015432
+RDS_N_ttg         :   mean =  0.999858   std =  0.000476
+ORCA_N_ttg        :   mean =  0.999715   std =  0.000656
+RDS_N_v           :   mean =  1.067102   std =  0.236179
+ORCA_N_v          :   mean =  1.083038   std =  0.241785
+RDS_rob_track_err :   mean =  0.519671   std =  0.674981
+ORCA_rob_track_err:   mean =  1.834225   std =  1.707510
+RDS_collisions    :   mean =  0.000000   std =  0.000000
+ORCA_collisions   :   mean =  0.000000   std =  0.000000
+
+Same as above, but with pedestrian tracking error included
+RDS_E_t           :   mean =  1.000030   std =  0.000099
+ORCA_E_t          :   mean =  1.000067   std =  0.000138
+RDS_E_v           :   mean =  1.005090   std =  0.014366
+ORCA_E_v          :   mean =  0.999964   std =  0.015432
+RDS_N_ttg         :   mean =  0.999858   std =  0.000476
+ORCA_N_ttg        :   mean =  0.999715   std =  0.000656
+RDS_N_v           :   mean =  1.067102   std =  0.236179
+ORCA_N_v          :   mean =  1.083038   std =  0.241785
+RDS_rob_track_err :   mean =  0.519671   std =  0.674981
+ORCA_rob_track_err:   mean =  1.834225   std =  1.707510
+RDS_ped_track_err :   mean =  0.206143   std =  0.090373
+ORCA_ped_track_err:   mean =  0.229667   std =  0.089159
+RDS_collisions    :   mean =  0.000000   std =  0.000000
+ORCA_collisions   :   mean =  0.000000   std =  0.000000

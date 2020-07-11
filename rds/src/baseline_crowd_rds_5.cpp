@@ -32,7 +32,7 @@ const float goal_reaching_threshold = 0.5f;
 struct AgentLog
 {
 	AgentLog() : v_mean(0), time_when_finishing(-1), distance_to_target_mean(0),
-		time_insde_arena(0), time_close_to_robot(0) { }
+		time_insde_arena(0), time_close_to_robot(0), duration_distance_to_target_mean(0) { }
 	double v_mean, time_when_finishing, distance_to_target_mean, time_insde_arena, time_close_to_robot;
 	double duration_distance_to_target_mean;
 };
@@ -263,17 +263,23 @@ void crowd_sample(unsigned int sample_index, int* robot_index, std::vector<unsig
 		(*pedestrian_indices)[i] = *robot_index + 1 + i;
 }
 
-double compute_crowd_tracking_error(const std::vector<AgentLog>& crowd_log)
+double compute_crowd_tracking_error(const std::vector<AgentLog>& crowd_log,
+	const CrowdRdsOrcaSimulator& sim)
 {
 	double weight_sum = 0.0;
 	double weighted_mean = 0.0;
-	for (const auto& p_log : crowd_log)
+	for (unsigned int i = 0; i != sim.getPedestrianIndices().size(); ++i)
 	{
+		unsigned int pedestrian_index = sim.getPedestrianIndices()[i];
+		const AgentLog& p_log = crowd_log[pedestrian_index];
 		double weight = p_log.duration_distance_to_target_mean;
 		weighted_mean += weight*p_log.distance_to_target_mean;
 		weight_sum += weight;
 	}
-	return weighted_mean/weight_sum;
+	if (weight_sum > 0.0)
+		return weighted_mean/weight_sum;
+	else
+		return -1.0;
 }
 
 int main()
@@ -294,7 +300,7 @@ int main()
 
 	int robot_index;
 	CrowdRdsOrcaSimulator* sim;
-	const unsigned int n_samples = 90;
+	const unsigned int n_samples = 430;//90;
 	for (unsigned int sample_index = 0; sample_index != n_samples; ++sample_index)
 	{
 		robot_index = sample_index;
@@ -338,9 +344,9 @@ int main()
 						beginner_collision_count += int(collision);
 				}
 
-				char time_str[20];
-				std::sprintf(time_str, "%6.2f", sim->getTime());
-				std::cout << "Time=" << time_str << "; Collisions=" << collision_count << "\t\r" << std::flush;
+				//char time_str[20];
+				//std::sprintf(time_str, "%6.2f", sim->getTime());
+				//std::cout << "Time=" << time_str << "; Collisions=" << collision_count << "\t\r" << std::flush;
 			}
 			while (gui_wrap.update_gui_and_log(*sim, crowd_log, robot_log, arena, t_final) &&
 				((sim->getTime() - dt) < t_termination));
@@ -384,7 +390,15 @@ int main()
 				ORCA_N_v.push_back(N_v);
 				ORCA_robot_mean_distance_to_target.push_back(robot_log.distance_to_target_mean);
 				ORCA_collision_count.push_back(collision_count - beginner_collision_count);
-				ORCA_ped_mean_distance_to_target.push_back(compute_crowd_tracking_error(crowd_log));
+				float crowd_tracking_error = compute_crowd_tracking_error(crowd_log, *sim);
+				if (crowd_tracking_error > 0.f)
+					ORCA_ped_mean_distance_to_target.push_back(crowd_tracking_error);
+				else
+				{
+					ORCA_ped_mean_distance_to_target.push_back(0.f);
+					std::cout << "Could not compute crowd tracking error in: sample " << sample_index << ", ";
+					std::cout << "mode " << mode << "." << std::endl;
+				}
 			}
 			else if (mode == 2)
 			{
@@ -392,7 +406,15 @@ int main()
 				RDS_N_v.push_back(N_v);
 				RDS_robot_mean_distance_to_target.push_back(robot_log.distance_to_target_mean);
 				RDS_collision_count.push_back(collision_count - beginner_collision_count);
-				RDS_ped_mean_distance_to_target.push_back(compute_crowd_tracking_error(crowd_log));
+				float crowd_tracking_error = compute_crowd_tracking_error(crowd_log, *sim);
+				if (crowd_tracking_error > 0.f)
+					RDS_ped_mean_distance_to_target.push_back(crowd_tracking_error);
+				else
+				{
+					RDS_ped_mean_distance_to_target.push_back(0.f);
+					std::cout << "Could not compute crowd tracking error in: sample " << sample_index << ", ";
+					std::cout << "mode " << mode << "." << std::endl;
+				}
 			}
 			delete sim;
 		}
