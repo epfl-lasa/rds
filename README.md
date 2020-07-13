@@ -1,6 +1,6 @@
 # RDS
 
-Redirecting Driver Support (RDS) is a method to enable robots to reactively avoid imminent collisions with moving objects. This repository contains the RDS method's basic implementation, a ROS node to integrate it into a control loop via ROS, and another ROS node to monitor the first node.
+Redirecting Driver Support (RDS) is a method for robots to reactively avoid imminent collisions with moving objects. This repository contains the RDS method's implementation, a ROS node to integrate it into a control loop via ROS, and another ROS node to monitor the first node. Further, it contains simulations of a capsule-shaped robot navigating in crowds and using the RDS method for local collision avoidance.
 
 ## Qolo Setup 
 
@@ -43,6 +43,27 @@ To run the GUI node:
 ```
 rosrun rds_gui_ros rds_gui_ros_node
 ```
+
+## Simulation Setup
+
+The simulations require a modified version of the RVO2 library, which is installed by the following commands.
+```
+cd [THIS_REPOSITORY_ROOT_FOLDER]/RVO2
+mkdir build
+cd build
+cmake ..
+make
+sudo make install
+```
+The simulation graphics further require installing SDL2 as described above. Then, the following commands build and run two example simulations.
+```
+cd [THIS_REPOSITORY_ROOT_FOLDER]/rds/rds
+make build/dynamic_scene_complex_rds_5
+make build/static_scene_rds_5
+build/dynamic_scene_complex_rds_5
+build/static_scene_rds_5
+```
+
 ## Third parties acknowledgements
 
 The folder spline contains the spline library from [this project](https://github.com/ttk592/spline) which is subject to the GPL 2 license. Further, the folder rds/data contains pedestrian trajectory data from [here](https://graphics.cs.ucy.ac.cy/research/downloads/crowd-data). Finally, the folder RVO2 contains a modified version of the [RVO2 library](https://github.com/snape/RVO2) which is subject to the Apache 2 license.
