@@ -6,7 +6,7 @@
 using Geometry2D::Vec2;
 
 CrowdTrajectory::CrowdTrajectory(const char* data_file_name, float frame_rate, float scaling)
-	: m_time_shift(0.f), m_duration(-1.f)
+	: m_time_shift(0.f), m_duration(-1.f), m_deceleration_period(0.5f)
 {
 	std::ifstream data_file(data_file_name);
 	float pos_x, pos_y;
