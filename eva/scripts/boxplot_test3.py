@@ -90,7 +90,7 @@ plt.text((x1+x2)*.5, y+h, "*", ha='center', va='bottom', color=b_col)
 # grid(color='r', linestyle='-', linewidth=2)
 plt.grid(True)
 plt.tight_layout()
-plt.savefig('boxplot_rds_orca_3.pdf')
+plt.savefig('boxplot_rds_orca_vel_effect_3.pdf')
 plt.show()
 
 # input("Press any key to continue")
