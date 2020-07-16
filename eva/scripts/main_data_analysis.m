@@ -5,7 +5,6 @@
 % % Call example:
 % [fluency] = user_effort(Command_U ,Command_R, Vel_max, Omega_max);
 
-
 %% 
 clear all; close all; clc; 
     
@@ -16,19 +15,21 @@ clear all; close all; clc;
     Vel_max = 0.8;  % Use the test maximum [real max value 1.5]
     
 % Get all available datasets
-    dataDate='jun_10_2';
-    % % % 5 - overcoming / 6 - backwards / 8 - intersection / 
-%     dataDate='jun_10_2';
-%     datasetNumber = 8; 
+    dataDate = 'jun_10_1';
+    % % % 4 - overcoming / 5 - backwards / 8 - intersection / 
+    
+    %     dataDate='jun_10_2';
     % % % 7 - intersection / 10 - narrow corridor    
-
+    
+    datasetNumber = 8; 
+    
     filenames = dir(fullfile(pwd,dataDate));
     Mean_table = table();
     Std_table = table();
 %%
-    for datasetNumber=4:length(filenames)
+%     for datasetNumber=4:length(filenames)
         
-        dataset = filenames(datasetNumber).name;
+        dataset = filenames(datasetNumber).name
         data_folder = fullfile(pwd,dataDate,dataset);
         plot_folder = fullfile(pwd,'Plot', dataset);
     %     test_folders = dir(fullfile(data_folder))';
@@ -109,8 +110,8 @@ clear all; close all; clc;
         Mean_table.(dataset) = meanTable;
         Std_table.(dataset) = stdTable;
         
-    end
-    save(strcat(dataDate,'_results_table.mat'),'Mean_table','Std_table')
+%     end
+%     save(strcat(dataDate,'_results_table.mat'),'Mean_table','Std_table')
    
 % %% Loading tracker objects and analyzing risk measurement
 %     % A time window for analyzing the risk in the inmedieate future

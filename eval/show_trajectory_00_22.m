@@ -97,13 +97,13 @@ ylabel('normalized shortest distance [m/s]')
     clear command_U command_R 
     Omega_max = 4.124 /4;
     Vel_max = 1;
-       % Case 1: No Crowd
-    idt1 = find(time>= 202, 1);
-    idt2 = find(time>= 216, 1);
-        % Case 2: 1D flow unidirectional
-%     idt1 = find(time>= 262, 1);
-%     idt2 = find(time>= 282, 1);
-        % Case 3: 1D flow bidirectional
+%        % Case 1: No Crowd
+%     idt1 = find(time>= 202, 1);
+%     idt2 = find(time>= 216, 1);
+%         % Case 2: 1D flow unidirectional
+    idt1 = find(time>= 262, 1);
+    idt2 = find(time>= 282, 1);
+%         % Case 3: 1D flow bidirectional
 %     idt1 = find(time>= 382, 1);
 %     idt2 = find(time>= 402, 1);
 
