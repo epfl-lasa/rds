@@ -16,7 +16,7 @@ class Capsule:
 		else:
 			return math.fabs(x) - self.r
 
-	def plot_at_pose(self, x, y, phi, ax):
+	def plot_at_pose(self, x, y, phi, ax, orca=False):
 		R = np.array([
 			[math.cos(phi), -math.sin(phi)],
 			[math.sin(phi),  math.cos(phi)]])
@@ -34,3 +34,7 @@ class Capsule:
 		ax.add_artist(circle_back)
 		ax.plot([left_front[0], left_back[0]], [left_front[1], left_back[1]], 'b')
 		ax.plot([right_front[0], right_back[0]], [right_front[1], right_back[1]], 'b')
+		if orca:
+			r_orca = self.r + (self.y_front - self.y_back)
+			circle_orca = plt.Circle((c_front[0], c_front[1]), r_orca, color='b', fill=False)
+			ax.add_artist(circle_orca)

@@ -83,17 +83,21 @@ for i in range(d.shape[0]):
 		i_d_min_2 = i
 
 plot_lrf = True
+#lrf_sampler = np.arange(0, t.shape[0]/5, 20)
+#lrf_points_sampled = lrf[lrf_sampler, :]
 if plot_lrf:
 	even = np.arange(0, lrf.shape[1], 2)
 	odd = np.arange(1, lrf.shape[1], 2)
+	#for k in range(lrf_points_sampled.shape[0]):
+	#	plt.scatter(lrf_points_sampled[k,even].flatten(), lrf_points_sampled[k, odd].flatten())
 	plt.scatter(lrf[0, even].flatten(), lrf[0, odd].flatten())
 	plt.scatter(lrf[i_d_min_1, even].flatten(), lrf[i_d_min_1, odd].flatten())
 
-plt.scatter(xy_p_ref[:, 0], xy_p_ref[:, 1], c=t/(t[-1]-t[0]), cmap=cm.hot_r, marker='o', edgecolors='k')
-plt.scatter(xy_p_ref[:, 0], xy_p_ref[:, 1], c=t/(t[-1]-t[0]), cmap=cm.hot_r, marker='o')#, edgecolors='k')
+plt.scatter(xy_p_ref[0:i_d_min_2, 0], xy_p_ref[0:i_d_min_2, 1], c=t[0:i_d_min_2]/(t[i_d_min_2]-t[0]), cmap=cm.hot_r, marker='o', edgecolors='k')
+plt.scatter(xy_p_ref[0:i_d_min_2, 0], xy_p_ref[0:i_d_min_2, 1], c=t[0:i_d_min_2]/(t[i_d_min_2]-t[0]), cmap=cm.hot_r, marker='o')#, edgecolors='k')
 for j in range(4, -1, -1):
-	plt.scatter(tracks[:,j*2], tracks[:,j*2+1], c=t/(t[-1]-t[0]), cmap=cm.hot_r, marker="^", edgecolors='k')
-	plt.scatter(tracks[:,j*2], tracks[:,j*2+1], c=t/(t[-1]-t[0]), cmap=cm.hot_r, marker="^")
+	plt.scatter(tracks[:,j*2], tracks[:,j*2+1], c=t/(t[i_d_min_2]-t[0]), cmap=cm.hot_r, marker="^", edgecolors='k')
+	plt.scatter(tracks[:,j*2], tracks[:,j*2+1], c=t/(t[i_d_min_2]-t[0]), cmap=cm.hot_r, marker="^")
 
 #plt.plot(xy_p_ref[i_d_min, 0], xy_p_ref[i_d_min, 1], 'kx')
 plt.plot(xy_p_ref[i_d_min_1, 0], xy_p_ref[i_d_min_1, 1], 'kx')
@@ -119,8 +123,8 @@ ax.set_aspect('equal')
 ax.set_ylabel('y [m]')
 ax.set_xlabel('x [m]')
 #ax.set_title('Trajectories')
-#ax.set_xlim([-10, -3])
-#ax.set_ylim([-1, 1.5])
+ax.set_xlim([-1.5, 3.1])
+ax.set_ylim([-2, 2])
 plt.savefig(picture_export_prefix + 'trajectories.png', bbox_inches='tight', dpi=199)
 plt.show()
 
@@ -134,11 +138,11 @@ ax.set_xlabel('t [s]')
 plt.savefig(picture_export_prefix + 'distance.png', bbox_inches='tight', dpi=199)
 plt.show()
 
-plt.scatter(np.zeros(t.shape), t-t[0], c=t/(t[-1]-t[0]), cmap=cm.hot_r, marker='s')
+plt.scatter(np.zeros(np.shape(t[0:i_d_min_2])[0]), t[0:i_d_min_2]-t[0], c=t[0:i_d_min_2]/(t[i_d_min_2]-t[0]), cmap=cm.hot_r, marker='s')
 plt.gca().set_ylabel('t [s]')
 plt.gca().set_aspect('equal')
 #ax.set_title('Trajectories')
-plt.gca().set_xlim([(t[-1]-t[0])/2/20.0, -(t[-1]-t[0])/2/20.0])
+plt.gca().set_xlim([(t[i_d_min_2]-t[0])/2/20.0, -(t[i_d_min_2]-t[0])/2/20.0])
 plt.gca().set_xticks([], [])
 plt.savefig(picture_export_prefix + 'color_map.png', bbox_inches='tight', dpi=199)
 plt.show()
