@@ -16,7 +16,7 @@ commands_data = np.empty([n_max, 5])
 # [[time, nominal_v, nominal_w, corrected_v, corrected_w]]
 lrf_objects_data = np.empty([n_max, 4000]) # store xy for 2000 objects
 lrf_objects_data[:] = np.nan
-tracker_objects_data = np.empty([n_max, 20]) # store xy and xy_pred for 5 objects
+tracker_objects_data = np.empty([n_max, 100]) # store xy and xy_pred for 25 objects
 tracker_objects_data[:] = np.nan
 
 pose_data = np.empty([n_max, 4])
@@ -83,29 +83,26 @@ def callbackToGui(msg):
 		return
 	commands_data[counter, :] = np.array([t, nominal_v, nominal_w, corrected_v, corrected_w])
 
-	n_tracker_objects = len(msg.moving_objects_predictions)/2
-	for i in range(n_tracker_objects):
-		x_pred = msg.moving_objects_predictions[i*2].x
-		y_pred = msg.moving_objects_predictions[i*2].y
-		x_now = msg.moving_objects_predictions[i*2 + 1].x
-		y_now = msg.moving_objects_predictions[i*2 + 1].y
-		if i*4 + 3 >= tracker_objects_data.shape[1]:
+	i_tracks = 0
+	for i in range(len(msg.moving_objects)):
+		if msg.moving_objects[i].radius < 0.1:
+			if i*2 + 1 >= lrf_objects_data.shape[1]:
+				print('More lrf-objects than expected')
+			else:
+				lrf_objects_data[counter, i*2] = msg.moving_objects[i].center.x
+				lrf_objects_data[counter, i*2 + 1] = msg.moving_objects[i].center.y
+		else:
+			i_tracks = i
+			break
+	for i in range(i_tracks, len(msg.moving_objects)):
+		x_track = msg.moving_objects[i].center.x
+		y_track = msg.moving_objects[i].center.y
+		i_0ed = i - i_tracks
+		if i_0ed*4 + 3 >= tracker_objects_data.shape[1]:
 			print('More tracker-objects than expected')
 			break
-		tracker_objects_data[counter, i*4] = x_now
-		tracker_objects_data[counter, i*4 + 1] = y_now
-		tracker_objects_data[counter, i*4 + 2] = x_pred
-		tracker_objects_data[counter, i*4 + 3] = y_pred
-
-	n_lrf_objects = len(msg.moving_objects) - n_tracker_objects
-	for i in range(n_lrf_objects):
-		if i*2 + 1 >= lrf_objects_data.shape[1]:
-			print('More lrf-objects than expected')
-			break
-		if msg.moving_objects[i].radius > 0.1:
-			break # in case not every tracker object had a non-zero velocity (oh that object will be lost)
-		lrf_objects_data[counter, i*2] = msg.moving_objects[i].center.x
-		lrf_objects_data[counter, i*2 + 1] = msg.moving_objects[i].center.y
+		tracker_objects_data[counter, i_0ed*4] = x_track
+		tracker_objects_data[counter, i_0ed*4 + 1] = y_track
 
 	pose_data[counter, :] = np.array([t, x, y, phi])
 
