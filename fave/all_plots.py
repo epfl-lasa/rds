@@ -39,7 +39,7 @@ def rotate_t_multi_vector_stack(stack_mat, angle):
 	stack_mat[:, 1:] = np.matmul(stack_mat[:, 1:], np.transpose(rot_diag))
 	stack_mat[nan_ind] = np.nan
 
-def plot_and_export(name, t_start, t_snapshot_1, t_snapshot_2, show_big_circle, x_lim, y_lim, remove_ground, rotation_angle):
+def plot_and_export(name, t_start, t_snapshot_1, t_snapshot_2, show_big_circle, x_lim, y_lim, remove_ground, rotation_angle, horizontal_t_scale):
 
 	folder_path = "./" + name + "/"
 	picture_export_prefix = "./pictures/a_" + name + "_"
@@ -175,14 +175,25 @@ def plot_and_export(name, t_start, t_snapshot_1, t_snapshot_2, show_big_circle, 
 	plt.savefig(picture_export_prefix + 'trajectories.png', bbox_inches='tight', dpi=199)
 	plt.show()
 	#np.savetxt("debug_t_vector", t[i_start:i_d_min_2]-t[i_start])
-	plt.scatter(np.zeros(np.shape(t[i_start:i_d_min_2])[0]), t[i_start:i_d_min_2]-t[i_start], c=(t[i_start:i_d_min_2]-t[i_start])/(t[i_d_min_2]-t[i_start]), cmap=cm.hot_r, marker='s')
-	plt.scatter([0.0], [t[i_d_min_1]-t[i_start]], color=t_snapshot_colors[0])
-	plt.scatter([0.0], [t[i_d_min_2]-t[i_start]], color=t_snapshot_colors[1])
-	plt.gca().set_ylabel('t [s]')
-	plt.gca().set_aspect('equal')
-	#ax.set_title('Trajectories')
-	plt.gca().set_xlim([(t[i_d_min_2]-t[i_start])/2/20.0, -(t[i_d_min_2]-t[i_start])/2/20.0])
-	plt.gca().set_xticks([], [])
+	
+	if not horizontal_t_scale:
+		plt.scatter(np.zeros(np.shape(t[i_start:i_d_min_2])[0]), t[i_start:i_d_min_2]-t[i_start], c=(t[i_start:i_d_min_2]-t[i_start])/(t[i_d_min_2]-t[i_start]), cmap=cm.hot_r, marker='s')
+		plt.scatter([0.0], [t[i_d_min_1]-t[i_start]], color=t_snapshot_colors[0])
+		plt.scatter([0.0], [t[i_d_min_2]-t[i_start]], color=t_snapshot_colors[1])
+		plt.gca().set_ylabel('t [s]')
+		plt.gca().set_aspect('equal')
+		#ax.set_title('Trajectories')
+		plt.gca().set_xlim([(t[i_d_min_2]-t[i_start])/2/20.0, -(t[i_d_min_2]-t[i_start])/2/20.0])
+		plt.gca().set_xticks([], [])
+	else:
+		plt.scatter(t[i_start:i_d_min_2]-t[i_start], np.zeros(np.shape(t[i_start:i_d_min_2])[0]), c=(t[i_start:i_d_min_2]-t[i_start])/(t[i_d_min_2]-t[i_start]), cmap=cm.hot_r, marker='s')
+		plt.scatter([t[i_d_min_1]-t[i_start]], [0.0], color=t_snapshot_colors[0])
+		plt.scatter([t[i_d_min_2]-t[i_start]], [0.0], color=t_snapshot_colors[1])
+		plt.gca().set_xlabel('t [s]')
+		plt.gca().set_aspect('equal')
+		#ax.set_title('Trajectories')
+		plt.gca().set_ylim([(t[i_d_min_2]-t[i_start])/2/20.0, -(t[i_d_min_2]-t[i_start])/2/20.0])
+		plt.gca().set_yticks([], [])
 	plt.savefig(picture_export_prefix + 'color_map.png', bbox_inches='tight', dpi=199)
 	plt.show()
 
@@ -209,16 +220,16 @@ def plot_and_export(name, t_start, t_snapshot_1, t_snapshot_2, show_big_circle, 
 
 
 tests_args = [
-	["jul_16_door_rds_3", 0.0, 0.0, 8.5, False, [-1.5, 4.5], [-2, 2], False, 0.0]
-	,["jul_16_door_orca_2", 0.0, 0.0, 8.5, True, [-1.5, 2.5], [-2, 2], False, 0.0]
-	,["jul_17_row_overtaking_rds_o1", 0.0, 2.0, 12.5, False, [0, 9.5], [-2, 3], True, 0.0]
-	,["jul_17_row_overtaking_orca", 0.0, 2.0, 9, True, [5, 11], [-4, 1], True, 0.0]
+	["jul_16_door_rds_3", 0.0, 0.0, 8.5, False, [-1.5, 4.5], [-2, 2], False, 0.0, False]
+	,["jul_16_door_orca_2", 0.0, 0.0, 8.5, True, [-1.5, 2.5], [-2, 2], False, 0.0, False]
+	,["jul_17_row_overtaking_rds_o1", 0.0, 2.0, 12.5, False, [0, 9.5], [-2, 3], True, 0.0, True]
+	,["jul_17_row_overtaking_orca", 0.0, 2.0, 9, True, [5, 11], [-4, 1], True, 0.0, False]
 	,
 	["jul_17_crowd_overtaking_rds", 4.0, 6.0, 11, False, [11.8, 18], [5.75,10]# [11.5,19], [-8.2,-1]
-	, True, np.pi/4.0]
+	, True, np.pi/4.0, False]
 	,["jul_17_crowd_overtaking_orca", 6.0, 8.0, 17.7, True, [14,20.25], [3.5, 7.6]# [13.7, 19.7], [-8.5, -2.5]
-	, True, np.pi/4.0-0.15]
+	, True, np.pi/4.0-0.15, False]
 ]
 
 for args in tests_args:
-	plot_and_export(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8])
+	plot_and_export(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9])

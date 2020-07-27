@@ -58,15 +58,26 @@ void RDSGUIROSNode::toGuiMessageCallback(const rds_network_ros::ToGui::ConstPtr&
 	work_space_capsules.push_back(Capsule(msg.robot_shape.radius,
 		Vec2(msg.robot_shape.center_a.x, msg.robot_shape.center_a.y),
 		Vec2(msg.robot_shape.center_b.x, msg.robot_shape.center_b.y)));
+
+	if (m_draw_orca_circle)
+	{
+		float r_orca_circle = msg.robot_shape.radius + msg.robot_shape.center_a.y - msg.robot_shape.center_b.y;
+		Circle orca_circle(Vec2(0.f, msg.robot_shape.center_a.y), r_orca_circle);
+		work_space_circles.push_back(orca_circle);
+		gui_work_space.circles_colors.push_back(green);
+	}
 }
 
 RDSGUIROSNode::RDSGUIROSNode(ros::NodeHandle* n)
 	: gui_command_space("Velocity Space", 2.f)
 	, gui_solver_space("Solver Space", 1.f)
-	, gui_work_space("Work Space", 4.f)
+	, gui_work_space("Work Space", 
+		n->getParam("gui_size", m_gui_work_space_size) ? m_gui_work_space_size : 4.f)
 	, to_gui_subscriber(n->subscribe<rds_network_ros::ToGui>("rds_to_gui", 1,
 		&RDSGUIROSNode::toGuiMessageCallback, this))
+	, m_draw_orca_circle(false)
 {
+	n->getParam("orca_circle", m_draw_orca_circle);
 	//gui_solver_space.activateHalfplaneAreaRendering();
 	gui_command_space.arrows = &command_space_arrows;
 	gui_command_space.halfplanes = &command_space_halfplanes;
