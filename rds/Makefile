@@ -6,7 +6,7 @@ FLAGS = -std=c++11 -g -Wall
 # Qolo-RDS-5
 qolo_rds: build/lib_rds_5.a 
 
-build/lib_rds_5.a: build/rds/.hi src/rds_5.cpp src/rds_5.hpp src/capsule.hpp src/capsule.cpp src/geometry.hpp src/distance_minimizer.cpp src/distance_minimizer.hpp src/my_rvo.cpp src/my_rvo.hpp src/vw_limits.hpp
+build/lib_rds_5.a: build/rds/.hi src/rds_5.cpp src/rds_5.hpp src/capsule.hpp src/capsule.cpp src/geometry.hpp src/distance_minimizer.cpp src/distance_minimizer.hpp src/my_rvo.cpp src/my_rvo.hpp src/vw_limits.hpp src/config_rds_5.hpp src/rds_5_agent.hpp
 	g++ $(FLAGS) -c src/rds_5.cpp -o build/rds_5.o
 	g++ $(FLAGS) -c src/capsule.cpp -o build/capsule.o
 	g++ $(FLAGS) -c src/my_rvo.cpp -o build/my_rvo.o
@@ -18,6 +18,8 @@ build/lib_rds_5.a: build/rds/.hi src/rds_5.cpp src/rds_5.hpp src/capsule.hpp src
 	cp src/distance_minimizer.hpp build/rds
 	cp src/my_rvo.hpp build/rds
 	cp src/vw_limits.hpp build/rds
+	cp src/config_rds_5.hpp build/rds
+	cp src/rds_5_agent.hpp build/rds
 
 # DEMOS
 

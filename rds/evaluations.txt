@@ -111,3 +111,19 @@ RDS_ped_track_err :   mean =  0.206143   std =  0.090373
 ORCA_ped_track_err:   mean =  0.229667   std =  0.089159
 RDS_collisions    :   mean =  0.000000   std =  0.000000
 ORCA_collisions   :   mean =  0.000000   std =  0.000000
+
+After fixing uninitialised deceleration period length:
+RDS_E_t           :   mean =  1.000032   std =  0.000099
+ORCA_E_t          :   mean =  1.000068   std =  0.000136
+RDS_E_v           :   mean =  1.004897   std =  0.014239
+ORCA_E_v          :   mean =  0.999468   std =  0.015328
+RDS_N_ttg         :   mean =  0.999841   std =  0.000531
+ORCA_N_ttg        :   mean =  0.999706   std =  0.000699
+RDS_N_v           :   mean =  1.067918   std =  0.235536
+ORCA_N_v          :   mean =  1.084971   std =  0.241432
+RDS_rob_track_err :   mean =  0.525671   std =  0.674593
+ORCA_rob_track_err:   mean =  1.838389   std =  1.706251
+RDS_ped_track_err :   mean =  0.209715   std =  0.088861
+ORCA_ped_track_err:   mean =  0.233176   std =  0.087625
+RDS_collisions    :   mean =  0.000000   std =  0.000000
+ORCA_collisions   :   mean =  0.000000   std =  0.000000
