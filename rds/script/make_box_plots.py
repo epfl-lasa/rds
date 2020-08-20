@@ -36,5 +36,10 @@ for k in range(selection.shape[0]/2):
 	plt.locator_params(axis='y', nbins=4)
 	ax.set_title(title)
 
-	plt.savefig(title[1:-1].strip()+'boxplots.png', bbox_inches='tight', dpi=199)
+	if False:
+		plt.savefig(title[1:-1].strip()+'boxplots.png', bbox_inches='tight', dpi=199)
 	plt.show()
+
+	print (title)
+	print ("  RDS: mean=%f, std=%f" % (np.mean(data[0]), np.std(data[0], ddof=1)))
+	print ("  Baseline: mean=%f, std=%f" % (np.mean(data[1]), np.std(data[1], ddof=1)))
