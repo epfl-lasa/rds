@@ -36,7 +36,7 @@ for k in range(selection.shape[0]/2):
 	plt.locator_params(axis='y', nbins=4)
 	ax.set_title(title)
 
-	if False:
+	if True:
 		plt.savefig(title[1:-1].strip()+'boxplots.png', bbox_inches='tight', dpi=199)
 	plt.show()
 

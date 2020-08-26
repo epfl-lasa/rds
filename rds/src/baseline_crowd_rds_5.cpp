@@ -21,6 +21,7 @@ using AdditionalPrimitives2D::Polygon;
 
 const bool with_gui = false;
 const bool save_result = true;
+const bool robot_avoids = true;
 
 const float dt = 0.05f;
 
@@ -184,7 +185,7 @@ struct GuiWrap
 			const Vec2& position = sim.getPedestrians()[i].circle.center;
 			double distance_to_target = (target - position).norm();
 			//update_mean(&(p_log.distance_to_target_mean), distance_to_target, t);
-			if (arena.contains(target))
+			if (arena.contains(target) && (t < t_final - 0.75f))
 				update_mean_seasonally(&(p_log.distance_to_target_mean), distance_to_target, &(p_log.duration_distance_to_target_mean));
 
 			if (p_log.time_when_finishing < 0.0)
@@ -203,7 +204,8 @@ struct GuiWrap
 		if (robot_log.time_when_finishing < 0.0)
 			update_mean(&(robot_log.v_mean), sim.getRobot().last_step_p_ref_velocity.norm(), t);
 		float distance_to_target = (nominal_position - p_ref_global).norm();
-		update_mean(&(robot_log.distance_to_target_mean), distance_to_target, t);
+		if (t < t_final - 0.75f)
+			update_mean(&(robot_log.distance_to_target_mean), distance_to_target, t);
 		if ((robot_log.time_when_finishing < 0.0) && (t > t_final) && (distance_to_target < goal_reaching_threshold))
 			robot_log.time_when_finishing = t;
 		if (arena.contains(p_ref_global))
@@ -252,6 +254,7 @@ CrowdRdsOrcaSimulator* setup_simulation(CrowdTrajectory* crowd_motion,
 		if (i != robot_index)
 			simulation->addPedestrian(i);
 	}
+	simulation->m_robot_avoids = robot_avoids;
 	return simulation;
 }
 
@@ -350,6 +353,9 @@ int main()
 			}
 			while (gui_wrap.update_gui_and_log(*sim, crowd_log, robot_log, arena, t_final) &&
 				((sim->getTime() - dt) < t_termination));
+
+			// remove the robot's pedestrian (to evaluate crowd metrics for the same crowd size also in case 0)
+			crowd_log.erase(crowd_log.begin() + robot_index);
 
 			// evaluate metrics
 			double arena_time_sum = 0.0;
@@ -503,7 +509,11 @@ int main()
 
 	if (save_result)
 	{
-		std::ofstream csv_file("metrics_evaluation.csv", std::ios::trunc);
+		std::string metrics_file_name("metrics_evaluation.csv");
+		if (!robot_avoids)
+			metrics_file_name = "metrics_evaluation_not_avoiding.csv";
+
+		std::ofstream csv_file(metrics_file_name, std::ios::trunc);
 		csv_file << metric_names[0];
 		for (unsigned int j = 1; j != metric_names.size(); j++)
 			csv_file << "; " << metric_names[j];
