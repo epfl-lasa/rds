@@ -20,6 +20,7 @@ samples_metrics = samples_metrics[1:,:]
 selection = np.array([9,10,11,12,3,4,7,8], dtype=int) - 1
 new_labels = ['$ E_r $', '$ E_r $', '$ E_p $', '$ E_p $', '$ V_c $', '$ V_c $', '$ V_n $', '$ V_n $']
 scaling = [1/5.0, 1/5.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+significant = [True, True, True, False]
 
 for k in range(selection.shape[0]/2):
 	fig, ax = plt.subplots(1, 1, figsize=(1, 3))
@@ -29,6 +30,15 @@ for k in range(selection.shape[0]/2):
 	labels = ['RDS', 'Baseline']
 	title = new_labels[k*2]# + header[i_rds].strip()
 	ax.boxplot(data, 1, 'x', showmeans=False)#, positions=[0.5,1.5])
+
+	if significant[k]:
+		data_max = np.max(data)
+		data_h = data_max - np.min(data)
+		bar_offset = data_h*0.05
+		bar_h = data_h*0.1
+		ax.plot([1,1,2,2],[data_max+bar_offset, data_max+bar_offset+bar_h, data_max+bar_offset+bar_h, data_max+bar_offset], 'b')
+		ax.plot([1.5], [data_max+bar_offset+bar_h+bar_offset], marker=(6,2,0), color='b')
+
 	#ax.set_xlim([0.0, 2.0])
 	#plt.subplots_adjust(left=0.3, right=0.7)
 	ax.set_xticklabels(labels, rotation=45)#, fontsize=12)
