@@ -172,8 +172,8 @@ void MyRVO::computeConvexRVO(const Vec2& relative_position, const Vec2& relative
 			crvo->shift(crvo->getNormal()*crvo->signedDistance(tangent_point_cap));
 		}
 		else if (h_plus.signedDistance(relative_velocity_pref) > h_minus.signedDistance(relative_velocity_pref))
-			*crvo = h_plus;
+			*crvo = h_plus.flip();
 		else
-			*crvo = h_minus;
+			*crvo = h_minus.flip();
 	}
 }
