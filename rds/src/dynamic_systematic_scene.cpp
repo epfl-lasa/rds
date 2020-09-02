@@ -21,10 +21,10 @@ using Geometry2D::BoundingCircles;
 using AdditionalPrimitives2D::Polygon;
 using AdditionalPrimitives2D::Arrow;
 
-const bool with_gui = true;
-const bool save_result = false;
+const bool with_gui = false;
+const bool save_result = true;
 const bool robot_avoids = true;
-const bool pedestrian_avoids = false;
+const bool pedestrian_avoids = true;
 
 const float dt = 0.05f;
 
@@ -333,10 +333,9 @@ double compute_crowd_tracking_error(const std::vector<AgentLog>& crowd_log,
 
 int main()
 {
-
-	rds_5_config.linear_acceleration_limit = 1000000.f;
-	rds_5_config.angular_acceleration_limit = 1000000.f;
-	rds_5_config.vw_diamond_limits = VWDiamond(-10.f, 10.f, 10.f, 0.f);
+	//rds_5_config.linear_acceleration_limit = 1000000.f;
+	//rds_5_config.angular_acceleration_limit = 1000000.f;
+	//rds_5_config.vw_diamond_limits = VWDiamond(-10.f, 10.f, 10.f, 0.f);
 	Arena arena;
 	define_arena_for_evaluation(arena);
 
