@@ -75,8 +75,8 @@ for m in [0, 1]:
 	ax.set_aspect("equal")
 	ax.set_xlim([-2.7, 3.5])
 	ax.set_ylim([-2.7, 3.5])
-	ax.plot([-2.7, 3.5], [0.0, 0.0], 'k')
-	ax.plot([0.0, 0.0], [-2.7, 3.5], 'k')
+	ax.plot([-2.7, 3.5], [0.0, 0.0], 'k--')
+	ax.plot([0.0, 0.0], [-2.7, 3.5], 'k--')
 	
 	shift_x = -5.0
 	shift_y = -5.0
