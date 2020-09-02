@@ -15,17 +15,20 @@
 
 using Geometry2D::Vec2;
 using Geometry2D::Capsule;
+using Geometry2D::HalfPlane2;
 using AdditionalPrimitives2D::Circle;
 using Geometry2D::BoundingCircles;
 using AdditionalPrimitives2D::Polygon;
+using AdditionalPrimitives2D::Arrow;
 
-const bool with_gui = false;
-const bool save_result = true;
+const bool with_gui = true;
+const bool save_result = false;
 const bool robot_avoids = true;
+const bool pedestrian_avoids = false;
 
 const float dt = 0.05f;
 
-const RDS5CapsuleConfiguration rds_5_config = ConfigRDS5::ConfigWrap(dt).rds_5_config;
+RDS5CapsuleConfiguration rds_5_config = ConfigRDS5::ConfigWrap(dt).rds_5_config;
 
 const float robot_closeness_threshold = 3.f;
 const float goal_reaching_threshold = 0.5f;
@@ -88,6 +91,8 @@ struct GuiWrap
 {
 	GuiWrap(const CrowdRdsOrcaSimulator& sim, float track_from_time)
 	: m_gui("RDS-ORCA Simulator", 10.f, 1000, !(with_gui))
+	, m_constraints_gui("Constraints", sim.getRobot().rds_configuration.vw_diamond_limits.v_max*2.f,
+		1200, !(with_gui))
 	, m_bounding_circles(sim.getBoundingCirclesRobot())
 	, m_track_from_time(track_from_time)
 	{
@@ -124,6 +129,9 @@ struct GuiWrap
 			sim.getRobot().computeTightBoundingCircle(&tight_bounding_circle);
 			m_circles.push_back(tight_bounding_circle);
 		}
+
+		m_constraints_gui.halfplanes = &m_constraints;
+		m_constraints_gui.arrows = &m_arrows;
 	}
 
 	bool update_gui_and_log(const CrowdRdsOrcaSimulator& sim,
@@ -184,6 +192,11 @@ struct GuiWrap
 			robot_trace.push_back(p_ref_global);
 		}
 
+		m_constraints = sim.getRobot().constraints;
+		m_arrows.resize(0);
+		m_arrows.push_back(Arrow(sim.getRobot().last_step_p_ref_velocity_local, Vec2(0.f, 0.f)));
+		m_arrows.push_back(Arrow(sim.getRobot().last_step_nominal_p_ref_velocity_local, Vec2(0.f, 0.f)));
+
 		// update logs
 		double t = sim.getTime() - dt;
 		for (unsigned int i = 0; i != sim.getPedestrianIndices().size(); ++i)
@@ -239,18 +252,20 @@ struct GuiWrap
 			robot_log.time_insde_arena += dt;
 
 		if (with_gui)
-			return (m_gui.update() == 0);
+			return (m_gui.update() == 0) | (m_constraints_gui.update() == 0);
 		else
 			return true;
 	}
 
-	GUI m_gui;
+	GUI m_gui, m_constraints_gui;
 	std::vector<Vec2> m_points;
 	float m_track_from_time;
 	std::vector<Circle> m_circles;
 	std::vector<Capsule> m_capsules;
 	const BoundingCircles& m_bounding_circles;
 	std::vector<Polygon> m_polygons;
+	std::vector<HalfPlane2> m_constraints;
+	std::vector<Arrow> m_arrows;
 };
 
 CrowdRdsOrcaSimulator* setup_simulation(CrowdTrajectory* crowd_motion,
@@ -279,7 +294,11 @@ CrowdRdsOrcaSimulator* setup_simulation(CrowdTrajectory* crowd_motion,
 	for (unsigned int i = 0; i != crowd_motion->getNumSplines(); i++)
 	{
 		if (i != robot_index)
+		{
 			simulation->addPedestrian(i);
+			if (!pedestrian_avoids)
+				simulation->disableAvoidanceForRecentlyAddedPedestrian();
+		}
 	}
 	simulation->m_robot_avoids = robot_avoids;
 	return simulation;
@@ -314,6 +333,10 @@ double compute_crowd_tracking_error(const std::vector<AgentLog>& crowd_log,
 
 int main()
 {
+
+	rds_5_config.linear_acceleration_limit = 1000000.f;
+	rds_5_config.angular_acceleration_limit = 1000000.f;
+	rds_5_config.vw_diamond_limits = VWDiamond(-10.f, 10.f, 10.f, 0.f);
 	Arena arena;
 	define_arena_for_evaluation(arena);
 
@@ -340,7 +363,7 @@ int main()
 		crowd_trajectory.addPedestrianTrajectory(spline_data);
 
 		double reaching_time_crowd[3], velocity_crowd[3];
-		for (int mode = 1; mode != 2; ++mode)
+		for (int mode = 2; mode != 3; ++mode)
 		{
 			sim = setup_simulation(&crowd_trajectory, robot_index, mode);
 
