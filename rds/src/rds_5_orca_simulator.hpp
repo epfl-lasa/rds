@@ -23,7 +23,7 @@ struct RdsOrcaSimulator
 
 	virtual ~RdsOrcaSimulator() { }
 
-	void addPedestrian(const Geometry2D::Vec2& position, const Geometry2D::Vec2& velocity);
+	unsigned int addPedestrian(const Geometry2D::Vec2& position, const Geometry2D::Vec2& velocity);
 
 	void setRobotProperties(const Geometry2D::Vec2& position, float orientation,
 		const RDS5CapsuleConfiguration& config, const Geometry2D::Vec2& reference_point_velocity);
@@ -93,12 +93,18 @@ struct CrowdRdsOrcaSimulator : public RdsOrcaSimulator
 	const std::vector<unsigned int>& getPedestrianIndices() const { return m_crowd_pedestrian_indices; }
 
 	const unsigned int m_robot_leader_index;
+
+	void disableAvoidanceForRecentlyAddedPedestrian();
 protected:
 	virtual RVO::Vector2 getPedestrianNominalVelocity(unsigned int i);
 
 	virtual Geometry2D::Vec2 getRobotNominalVelocity();
 
+	void updateIgnoreInformation();
+
 	std::vector<unsigned int> m_crowd_pedestrian_indices;
+	std::vector<bool> m_pedestrians_avoidance;
+	std::vector<unsigned int> m_pedestrians_orca_no;
 };
 
 /*struct CrowdOrcaOrcaSimulator

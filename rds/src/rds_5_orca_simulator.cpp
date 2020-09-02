@@ -5,6 +5,8 @@ using Geometry2D::Vec2;
 using AdditionalPrimitives2D::Circle;
 using AdditionalPrimitives2D::Polygon;
 
+#include <iostream>
+
 static RVO::Vector2 toRVO(const Vec2& v)
 {
 	return RVO::Vector2(v.x, v.y);
@@ -70,9 +72,9 @@ RdsOrcaSimulator::RdsOrcaSimulator(const Vec2& position, float orientation,
 	setRobotProperties(position, orientation, config, reference_point_velocity);
 }
 
-void RdsOrcaSimulator::addPedestrian(const Vec2& position, const Vec2& velocity)
+unsigned int RdsOrcaSimulator::addPedestrian(const Vec2& position, const Vec2& velocity)
 {
-	m_rvo_simulator.addAgent(toRVO(position), 15.0f, 10, m_orca_time_horizon, m_orca_time_horizon,
+	unsigned int agent_no = m_rvo_simulator.addAgent(toRVO(position), 15.0f, 10, m_orca_time_horizon, m_orca_time_horizon,
 		m_pedestrian_radius + m_orca_distance_margin/2.f, m_pedestrian_v_max, toRVO(velocity));
 	if (m_orca_orca && m_ignore_orca_circle)
 	{
@@ -82,6 +84,7 @@ void RdsOrcaSimulator::addPedestrian(const Vec2& position, const Vec2& velocity)
 	}
 	m_pedestrians.push_back(MovingCircle(Circle(position, m_pedestrian_radius), Vec2()));
 	m_robot_collisions.push_back(false);
+	return agent_no;
 }
 
 void RdsOrcaSimulator::setRobotProperties(const Vec2& position, float orientation,
@@ -141,7 +144,7 @@ void RdsOrcaSimulator::setRobotProperties(const Vec2& position, float orientatio
 }
 
 void RdsOrcaSimulator::step(float dt)
-{
+{	
 	m_previous_robot_position = m_robot.position;
 	int offset = 0;
 	if (m_orca_orca)
@@ -390,8 +393,36 @@ void CrowdRdsOrcaSimulator::addPedestrian(unsigned int crowd_pedestrian_index)
 	Vec2 position, velocity;
 	m_crowd_trajectory.getPedestrianPositionAtTime(crowd_pedestrian_index, 0.f, &position);
 	m_crowd_trajectory.getPedestrianVelocityAtTime(crowd_pedestrian_index, 0.f, &velocity);
-	RdsOrcaSimulator::addPedestrian(position, velocity);
+	unsigned int agent_no = RdsOrcaSimulator::addPedestrian(position, velocity);
 	m_crowd_pedestrian_indices.push_back(crowd_pedestrian_index);
+	m_pedestrians_avoidance.push_back(true);
+	m_pedestrians_orca_no.push_back(agent_no);
+	updateIgnoreInformation();
+}
+
+void CrowdRdsOrcaSimulator::disableAvoidanceForRecentlyAddedPedestrian()
+{
+	m_pedestrians_avoidance.back() = false;
+	updateIgnoreInformation();
+}
+
+void CrowdRdsOrcaSimulator::updateIgnoreInformation()
+{
+	for (unsigned int i = 0; i < m_pedestrians.size(); i++)
+	{
+		if (!m_pedestrians_avoidance[i])
+		{
+			m_rvo_simulator.setAgentIgnoreAllIDs(m_pedestrians_orca_no[i]);
+			std::vector<long unsigned int> ig_ids = m_rvo_simulator.getAgentIgnoreIDs(m_pedestrians_orca_no[i]);
+			if (m_robot.ORCA_implementation)
+				ig_ids.push_back(ig_ids.back() + 1);
+			m_rvo_simulator.setAgentIgnoreIDs(m_pedestrians_orca_no[i], ig_ids);
+			for (const auto& ig_id : ig_ids)
+				std::cout << ig_id << " ";
+			std::cout << std::endl;
+			std::cout <<  m_rvo_simulator.getAgentID(m_pedestrians_orca_no[i]) << std::endl;
+		}
+	}
 }
 
 RVO::Vector2 CrowdRdsOrcaSimulator::getPedestrianNominalVelocity(unsigned int i)

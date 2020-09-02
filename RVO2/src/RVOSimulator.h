@@ -583,6 +583,8 @@ namespace RVO {
 
 		void setAgentIgnoreIDs(size_t agentNo, const std::vector<size_t>& ignore_ids);
 
+		void setAgentIgnoreAllIDs(size_t agentNo);
+
 		size_t getAgentID(size_t agentNo);
 
 		void setAgentDenyCollisions(size_t agentNo, bool deny_collisions);
@@ -590,6 +592,8 @@ namespace RVO {
 		void setAgentAdaptTotally(size_t agentNo, bool adapt_totally);
 
 		unsigned int getNumberOfAgents() { return agents_.size(); }
+
+		const std::vector<size_t>& getAgentIgnoreIDs(size_t agentNo);
 
 		void popBackAgent();
 

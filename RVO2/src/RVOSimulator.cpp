@@ -380,6 +380,19 @@ namespace RVO {
 		agents_[agentNo]->ignore_ids_ = ignore_ids;
 	}
 
+	void RVOSimulator::setAgentIgnoreAllIDs(size_t agentNo)
+	{
+		std::vector<size_t> all_ids(agents_.size());
+		for (unsigned int i = 0; i != agents_.size(); i++)
+			all_ids[i] = getAgentID(i);
+		agents_[agentNo]->ignore_ids_ = all_ids;
+	}
+
+	const std::vector<size_t>& RVOSimulator::getAgentIgnoreIDs(size_t agentNo)
+	{
+		return agents_[agentNo]->ignore_ids_;
+	}
+
 	void RVOSimulator::setAgentDenyCollisions(size_t agentNo, bool deny_collisions)
 	{
 		agents_[agentNo]->deny_collisions_ = deny_collisions;
