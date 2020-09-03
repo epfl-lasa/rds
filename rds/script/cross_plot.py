@@ -74,10 +74,10 @@ for m in [0, 1]:
 	ax.scatter(traces_ordered[:,0], traces_ordered[:,1], c=traces_ordered[:,2]/float(traces_max_index),
 		cmap=the_cmap, marker='o', lw=0.1, s=8, edgecolor='k')
 	ax.set_aspect("equal")
-	ax.set_xlim([-2.7, 3.5])
-	ax.set_ylim([-2.7, 3.5])
-	ax.plot([-2.7, 3.5], [0.0, 0.0], 'k--', linewidth=1)
-	ax.plot([0.0, 0.0], [-2.7, 3.5], 'k--', linewidth=1)
+	ax.set_xlim([-2.7, 3.2])
+	ax.set_ylim([-2.7, 3.2])
+	ax.plot([-2.7, 3.2], [0.0, 0.0], 'k--', linewidth=1)
+	ax.plot([0.0, 0.0], [-2.7, 3.2], 'k--', linewidth=1)
 	
 	if m == 0:
 		shift_x = -5.0
@@ -86,8 +86,8 @@ for m in [0, 1]:
 		ax.plot([2.75+shift_x,3.75+shift_x], [2.5+shift_y, 2.5+shift_y],'k', linewidth=1)
 		ax.plot([2.75+shift_x,2.75+shift_x], [2.45+shift_y, 2.55+shift_y],'k', linewidth=1)
 		ax.plot([3.75+shift_x,3.75+shift_x], [2.45+shift_y, 2.55+shift_y],'k', linewidth=1)
-		y_colorscale = np.linspace(0.75, 2.0, 20)
-		x_colorscale = np.linspace(1.75, 1.75, 20)
+		y_colorscale = np.linspace(0.5, 1.75, 20)
+		x_colorscale = np.linspace(1.45, 1.45, 20)
 		c_array = np.linspace(0.0, 1.0, 20)
 		ax.scatter(x_colorscale, y_colorscale, c=c_array, cmap=the_cmap, marker='s', lw=0.0)
 		ax.text(x_colorscale[0]+0.05, y_colorscale[0]-0.05, " -1.5s")
