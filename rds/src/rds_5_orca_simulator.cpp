@@ -143,6 +143,14 @@ void RdsOrcaSimulator::setRobotProperties(const Vec2& position, float orientatio
 	m_rvo_simulator.setAgentMaxSpeed(0, config.v_max);*/
 }
 
+Vec2 CrowdRdsOrcaSimulator::getPedestrianPosition(unsigned int i) const
+{
+	int offset = 0;
+	if (m_orca_orca)
+		offset = 1;
+	return toRDS(m_rvo_simulator.getAgentPosition(i + offset + m_bounding_circles_robot.circles().size()));
+}
+
 void RdsOrcaSimulator::step(float dt)
 {	
 	m_previous_robot_position = m_robot.position;
@@ -443,6 +451,13 @@ Vec2 CrowdRdsOrcaSimulator::getPedestrianNominalPosition(unsigned int i) const
 	Vec2 position;
 	m_crowd_trajectory.getPedestrianPositionAtTime(crowd_pedestrian_index, m_time,
 		&position);
+	return position;
+}
+
+Geometry2D::Vec2 CrowdRdsOrcaSimulator::getRobotNominalPosition() const
+{
+	Vec2 position;
+	m_crowd_trajectory.getPedestrianPositionAtTime(m_robot_leader_index, m_time, &position);
 	return position;
 }
 

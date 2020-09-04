@@ -88,7 +88,13 @@ struct CrowdRdsOrcaSimulator : public RdsOrcaSimulator
 
 	void addPedestrian(unsigned int crowd_pedestrian_index);
 
+	Geometry2D::Vec2 getPedestrianPosition(unsigned int i) const;
+
+	unsigned int getNumberOfPedestrians() const { return m_pedestrians.size(); }
+
 	Geometry2D::Vec2 getPedestrianNominalPosition(unsigned int i) const;
+
+	Geometry2D::Vec2 getRobotNominalPosition() const;
 
 	const std::vector<unsigned int>& getPedestrianIndices() const { return m_crowd_pedestrian_indices; }
 

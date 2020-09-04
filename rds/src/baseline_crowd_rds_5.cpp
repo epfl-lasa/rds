@@ -19,9 +19,10 @@ using AdditionalPrimitives2D::Circle;
 using Geometry2D::BoundingCircles;
 using AdditionalPrimitives2D::Polygon;
 
-const bool with_gui = false;
-const bool save_result = true;
+const bool with_gui = true;
+const bool save_result = false;
 const bool robot_avoids = true;
+const bool save_trajectories = true;
 
 const float dt = 0.05f;
 
@@ -29,6 +30,19 @@ const RDS5CapsuleConfiguration rds_5_config = ConfigRDS5::ConfigWrap(dt).rds_5_c
 
 const float robot_closeness_threshold = 3.f;
 const float goal_reaching_threshold = 0.5f;
+
+struct RobotPose;
+
+std::vector<std::vector<Vec2> > pedestrian_trajectories;
+std::vector<std::vector<Vec2> > pedestrian_reference_trajectories;
+std::vector<RobotPose> robot_trajectory;
+std::vector<Vec2> robot_reference_trajectory;
+
+struct RobotPose
+{
+	Vec2 position;
+	float orientation;
+};
 
 struct AgentLog
 {
@@ -211,6 +225,23 @@ struct GuiWrap
 		if (arena.contains(p_ref_global))
 			robot_log.time_insde_arena += dt;
 
+		// update trajectory for saving
+		if (save_trajectories)
+		{
+			pedestrian_trajectories.push_back(std::vector<Vec2>());
+			pedestrian_reference_trajectories.push_back(std::vector<Vec2>());
+			for (unsigned int i = 0; i != sim.getNumberOfPedestrians(); ++i)
+			{
+				pedestrian_trajectories.back().push_back(sim.getPedestrianPosition(i));
+				pedestrian_reference_trajectories.back().push_back(sim.getPedestrianNominalPosition(i));
+			}
+			RobotPose pose;
+			pose.position = sim.getRobot().position;
+			pose.orientation = sim.getRobot().orientation;
+			robot_trajectory.push_back(pose);
+			robot_reference_trajectory.push_back(sim.getRobotNominalPosition());
+		}
+
 		if (with_gui)
 			return (m_gui.update() == 0);
 		else
@@ -303,13 +334,13 @@ int main()
 
 	int robot_index;
 	CrowdRdsOrcaSimulator* sim;
-	const unsigned int n_samples = 430;//90;
-	for (unsigned int sample_index = 0; sample_index != n_samples; ++sample_index)
+	const unsigned int n_samples = 8;//430;//90;
+	for (unsigned int sample_index = 7; sample_index != n_samples; ++sample_index)
 	{
 		robot_index = sample_index;
 
 		double reaching_time_crowd[3], velocity_crowd[3];
-		for (int mode = 0; mode != 3; ++mode)
+		for (int mode = 1; mode != 2; ++mode)
 		{
 			sim = setup_simulation(&crowd_trajectory, robot_index, mode);
 
@@ -526,6 +557,28 @@ int main()
 				csv_file << "; " << metric_values[j][i];
 			for (unsigned int j = 0; j != integer_metric_values.size(); j++)
 				csv_file << "; " << integer_metric_values[j][i];
+		}
+	}
+
+	if (save_trajectories)
+	{
+		std::ofstream csv_file("trajectories.csv", std::ios::trunc);
+
+		for (unsigned int i = 0; i != robot_trajectory.size(); i++)
+		{
+			csv_file << robot_trajectory[i].position.x << "; ";
+			csv_file << robot_trajectory[i].position.y << "; ";
+			csv_file << robot_trajectory[i].orientation << "; ";
+			csv_file << robot_reference_trajectory[i].x << "; ";
+			csv_file << robot_reference_trajectory[i].y;
+			for (unsigned int j = 0; j != pedestrian_trajectories[i].size(); j++)
+			{
+				csv_file << "; " << pedestrian_trajectories[i][j].x;
+				csv_file << "; " << pedestrian_trajectories[i][j].y;
+				csv_file << "; " << pedestrian_reference_trajectories[i][j].x;
+				csv_file << "; " << pedestrian_reference_trajectories[i][j].y;
+			}
+			csv_file << std::endl;
 		}
 	}
 

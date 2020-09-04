@@ -2,8 +2,6 @@ import math
 import matplotlib.pyplot as plt
 import numpy as np
 
-lime_color = [0.25,1.0,0.4]
-
 class Capsule:
 	def __init__(self, y_front, y_back, r):
 		self.y_front = y_front
@@ -18,7 +16,10 @@ class Capsule:
 		else:
 			return math.fabs(x) - self.r
 
-	def plot_at_pose(self, x, y, phi, ax, orca=False):
+	def plot_at_pose(self, x, y, phi, ax, orca=False, color=None):
+		lime_color = [0.25,1.0,0.4]
+		if color == None:
+			color = lime_color
 		R = np.array([
 			[math.cos(phi), -math.sin(phi)],
 			[math.sin(phi),  math.cos(phi)]])
@@ -30,13 +31,13 @@ class Capsule:
 		right_front = np.matmul(R, np.array([self.r, self.y_front])) + T
 		right_back = np.matmul(R, np.array([self.r, self.y_back])) + T
 
-		circle_front = plt.Circle((c_front[0], c_front[1]), self.r, color=lime_color, fill=False)
-		circle_back = plt.Circle((c_back[0], c_back[1]), self.r, color=lime_color, fill=False)
+		circle_front = plt.Circle((c_front[0], c_front[1]), self.r, color=color, fill=False)
+		circle_back = plt.Circle((c_back[0], c_back[1]), self.r, color=color, fill=False)
 		ax.add_artist(circle_front)
 		ax.add_artist(circle_back)
-		ax.plot([left_front[0], left_back[0]], [left_front[1], left_back[1]], color=lime_color)
-		ax.plot([right_front[0], right_back[0]], [right_front[1], right_back[1]], color=lime_color)
+		ax.plot([left_front[0], left_back[0]], [left_front[1], left_back[1]], color=color)
+		ax.plot([right_front[0], right_back[0]], [right_front[1], right_back[1]], color=color)
 		if orca:
 			r_orca = self.r + (self.y_front - self.y_back)
-			circle_orca = plt.Circle((c_front[0], c_front[1]), r_orca, color=lime_color, fill=False)
+			circle_orca = plt.Circle((c_front[0], c_front[1]), r_orca, color=color, fill=False)
 			ax.add_artist(circle_orca)
