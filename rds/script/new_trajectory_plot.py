@@ -58,8 +58,8 @@ def plot_index_range(ax, index_range_bounds, baseline_method,
 	# plot the future trajectories for the pedestrians and the robot
 	t_normalized = np.linspace(0.0, 1.0, xy_robot.shape[0])
 	ax.scatter(X_crowd.flatten(), Y_crowd.flatten(),
-		c=np.repeat(t_normalized, X_crowd.shape[1]), cmap = cm.hot_r)
-	ax.scatter(xy_robot[:, 0], xy_robot[:, 1], c=t_normalized, cmap = cm.hot_r)
+		c=np.repeat(t_normalized, X_crowd.shape[1]), cmap = cm.hot_r, s=2)
+	ax.scatter(xy_robot[:, 0], xy_robot[:, 1], c=t_normalized, cmap = cm.hot_r, s=2)
 	# plot their footprints at the current state
 	capsule.plot_at_pose(x_robot_zero, y_robot_zero, orientation_robot_zero, ax, orca=baseline_method, color="g")
 	add_circles(np.transpose(X_crowd[0, :]), np.transpose(Y_crowd[0, :]), 0.3, ax)
@@ -68,67 +68,13 @@ def plot_index_range(ax, index_range_bounds, baseline_method,
 	ax.plot(xy_robot_ref[:, 0], xy_robot_ref[:, 1], "g:")
 	ax.plot(xy_robot_ref_new[:, 0], xy_robot_ref_new[:, 1], "g--")
 
-
-
-def plot_center_index_range(xy_robot, orientation_robot, xy_reference, X_crowd, Y_crowd, X_crowd_ref, Y_crowd_ref,
-	index_range_bounds, distance_cutoff, ax, cm_past_future, baseline_method=False):
-	sub_range = np.arange(index_range_bounds[0], index_range_bounds[1], 1)
-	xy_robot = xy_robot[sub_range, :]
-	orientation_robot = orientation_robot[sub_range]
-	xy_reference = xy_reference[sub_range, :]
-	X_crowd = X_crowd[sub_range, :]
-	Y_crowd = Y_crowd[sub_range, :]
-	X_crowd_ref = X_crowd_ref[sub_range, :]
-	Y_crowd_ref = Y_crowd_ref[sub_range, :]
-
-	index_middle = xy_robot.shape[0]/2
-	x_robot_middle = xy_robot[index_middle, 0]
-	y_robot_middle = xy_robot[index_middle, 1]
-	orientation_robot_middle = orientation_robot[index_middle]
-
-	shift = np.array([[x_robot_middle, y_robot_middle]])
-	xy_robot -= shift
-	xy_reference -= shift
-	X_crowd -= shift[0, 0]
-	Y_crowd -= shift[0, 1]
-	X_crowd_ref -= shift[0, 0]
-	Y_crowd_ref -= shift[0, 1]
-	x_robot_middle = 0.0
-	y_robot_middle = 0.0
-
-	t_normalized = np.linspace(0.0, 1.0, xy_robot.shape[0])
-	ax.scatter(X_crowd.flatten(), Y_crowd.flatten(), c=np.repeat(t_normalized, X_crowd.shape[1]),
-		cmap = cm_past_future)
-	lime_color = [0.25,1.0,0.4]
-	ax.scatter(xy_robot[:, 0], xy_robot[:, 1], c=t_normalized, cmap = cm_past_future)
-	
-	sub_sampler_ref = np.arange(0, xy_reference.shape[0], 4)
-	if True: #show robot references
-		ax.scatter(xy_reference[sub_sampler_ref, 0], xy_reference[sub_sampler_ref, 1],
-			c=t_normalized[sub_sampler_ref], cmap=cm_past_future, marker="s")
-				#facecolors="None", edgecolors=cm_past_future(t_normalized[sub_sampler_ref]), marker="x", lw=1)
-		ax.scatter(xy_reference[sub_sampler_ref, 0], xy_reference[sub_sampler_ref, 1],
-			marker='s', edgecolors='k', facecolors="None")
-	if False: #show pedestrian references
-		ax.scatter(X_crowd_ref[sub_sampler_ref, :].flatten(), Y_crowd_ref[sub_sampler_ref, :].flatten(),
-			c=np.repeat(t_normalized[sub_sampler_ref], X_crowd.shape[1]),
-			cmap = cm_past_future, marker="s")
-
-	capsule.plot_at_pose(x_robot_middle, y_robot_middle, orientation_robot_middle, ax, orca=baseline_method, color="g")
-	add_circles(np.transpose(X_crowd[index_middle, :]), np.transpose(Y_crowd[index_middle, :]), 0.3, ax)
-
-
-def plot_robot_trajectory(xy_robot, xy_reference, ax):
-	ax.plot(xy_robot[:, 0], xy_robot[:, 1], color="g", zorder=0)#, "k"), zorder=0)
-	ax.plot(xy_reference[:, 0], xy_reference[:, 1], color="g", linestyle="--")#, "k--"), zorder=0)
-
 trajectories_rds = np.genfromtxt('../trajectories_rds.csv', delimiter=';')
 trajectories_baseline = np.genfromtxt('../trajectories_baseline.csv', delimiter=';')
 
 trajectories_both_cases = [trajectories_rds, trajectories_baseline]
 
-window_width = 5.0*3.0#*2.0/3.0
-window_height = 3.0*3.0
+window_width = 5.0*1.2#*2.0/3.0
+window_height = 3.0*1.25
 m = 2
 n = 3
 fig, axs = plt.subplots(m, n, sharex=True, sharey=True, figsize=(10,10*(window_height*m)/(window_width*n)))
@@ -142,8 +88,8 @@ index_windows = [
 for i in range(m):
 	for j in range(n):
 		ax = axs[i, j]
-		ax.set_xlim([-window_width/2, window_width/2])
-		ax.set_ylim([-window_height/2, window_height/2])
+		ax.set_xlim([-window_width*2/3, window_width/3])
+		ax.set_ylim([-window_height*3/8, window_height*5/8])
 
 		trajectories = trajectories_both_cases[i]
 		sub_sampler = np.arange(0, trajectories.shape[0], 1)
