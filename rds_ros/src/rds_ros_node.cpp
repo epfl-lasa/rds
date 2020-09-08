@@ -1,6 +1,8 @@
 #include "rds_ros_node.hpp"
 
 #include <rds/capsule.hpp>
+#include <rds/config_rds_5.hpp>
+#include <rds/distance_minimizer.hpp>
 
 #include <rds_network_ros/ToGui.h>
 #include <rds_network_ros/HalfPlane2D.h>
@@ -15,7 +17,6 @@
 using Geometry2D::Vec2;
 using Geometry2D::Capsule;
 using AdditionalPrimitives2D::Circle;
-
 
 PersonTracks::PersonTracks(const frame_msgs::TrackedPersons::ConstPtr& tracks_msg)
 	: time(std::chrono::high_resolution_clock::now())
@@ -140,47 +141,66 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 	VWDiamond vw_diamond_limits(request.vel_lim_linear_min, request.vel_lim_linear_max,
 		request.vel_lim_angular_abs_max, request.vel_linear_at_angular_abs_max);
 
-	Geometry2D::RDS5 rds_5(request.rds_tau, request.rds_delta, request.reference_point_y, //0.25
-		vw_box_limits, vw_diamond_limits);
-		//1.5, 0.05 1.2); //tau, delta, v_max
+	const RDS5CapsuleConfiguration rds_5_config = ConfigRDS5::ConfigWrap(request.dt).rds_5_config;
 
-	if (request.vo_tangent_base_command != 0)
-	{
-		rds_5.use_conservative_shift = false;
-		if (request.vo_tangent_base_command != 1)
-			rds_5.use_previous_command_as_basis = false;
-	}
-	if (!request.vo_tangent_orca_style)
-		rds_5.use_orca_style_crvo = false;
+	float tau = rds_5_config.tau; //request.rds_tau
+	float delta = rds_5_config.delta; //request.rds_delta
+	float y_p_ref = rds_5_config.y_p_ref; //request.reference_point_y
 
-	rds_5.n_bounding_circles = request.bounding_circles;
+	Geometry2D::RDS5 rds_5(tau, delta, y_p_ref, vw_box_limits, vw_diamond_limits);
 
-	Capsule robot_shape(request.capsule_radius, Vec2(0.0, request.capsule_center_front_y),
-		Vec2(0.0, request.capsule_center_rear_y)); //0.45, 0.05, -0.5
+	rds_5.use_conservative_shift = false;
+	rds_5.keep_origin_feasible = false;
+	rds_5.no_VO_shift_at_contact = false;
+	rds_5.shift_reduction_range = 0.35f;
+	rds_5.ORCA_implementation = request.ORCA_implementation;
+	rds_5.ORCA_use_p_ref = true;
+	rds_5.ORCA_solver = true;
 
-	Vec2 v_nominal_p_ref(-request.reference_point_y*request.nominal_command.angular,
+	float capsule_radius = rds_5_config.robot_shape.radius();//request.capsule_radius
+	float capsule_center_front_y = rds_5_config.robot_shape.center_a().y; //request.capsule_center_front_y
+	float capsule_center_rear_y = rds_5_config.robot_shape.center_b().y; //request.capsule_center_rear_y
+
+	Capsule robot_shape(capsule_radius, Vec2(0.0, capsule_center_front_y),
+		Vec2(0.0, capsule_center_rear_y)); //0.45, 0.05, -0.5
+
+	Vec2 v_nominal_p_ref(-y_p_ref*request.nominal_command.angular,
 		request.nominal_command.linear);
 
-	Vec2 v_previous_command(-command_correct_previous_angular*request.reference_point_y,
+	Vec2 v_previous_command(-command_correct_previous_angular*y_p_ref,
 		command_correct_previous_linear);
 
 	Vec2 v_corrected_p_ref(0.f, 0.f);
 
+	if (v_nominal_p_ref.norm() > std::abs(vw_diamond_limits.v_max))
+		v_nominal_p_ref = v_nominal_p_ref.normalized()*std::abs(vw_diamond_limits.v_max);
+
 	// compute collision avoidance command
-	if (request.lrf_alternative_rds)
-	{
-		rds_5.computeCorrectedVelocity(robot_shape, v_nominal_p_ref, v_previous_command,
-			lrf_moving_objects, m_tracked_persons, &v_corrected_p_ref);
-	}
-	else
+	try
 	{
 		rds_5.computeCorrectedVelocity(robot_shape, v_nominal_p_ref, v_previous_command,
 			std::vector<MovingCircle>(), all_moving_objects, &v_corrected_p_ref);
 	}
+	catch (Geometry2D::DistanceMinimizer::InfeasibilityException e)
+	{
+		float breaking_step_linear = request.dt*rds_5_config.breaking_deceleration_linear;
+		float breaking_step_angular = request.dt*rds_5_config.breaking_deceleration_angular;
+		float new_v_linear, new_v_angular;
+		if (command_correct_previous_linear > 0.f)
+			new_v_linear = std::max(0.f, command_correct_previous_linear - breaking_step_linear);
+		else
+			new_v_linear = std::min(0.f, command_correct_previous_linear + breaking_step_linear);
+		if (command_correct_previous_angular > 0.f)
+			new_v_angular = std::max(0.f, command_correct_previous_angular - breaking_step_angular);
+		else
+			new_v_angular = std::min(0.f, command_correct_previous_angular + breaking_step_angular);
+		v_corrected_p_ref.y = new_v_linear;
+		v_corrected_p_ref.x = -new_v_angular*rds_5_config.y_p_ref;
+	}
 
 	// communicate the result and the underlying representations 
 	response.corrected_command.linear = v_corrected_p_ref.y;
-	response.corrected_command.angular = -1.0/request.reference_point_y*v_corrected_p_ref.x;
+	response.corrected_command.angular = -1.0/y_p_ref*v_corrected_p_ref.x;
 	
 	command_correct_previous_linear = response.corrected_command.linear;
 	command_correct_previous_angular = response.corrected_command.angular;
@@ -194,7 +214,7 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 	msg_to_gui.corrected_command.linear = response.corrected_command.linear;
 	msg_to_gui.corrected_command.angular = response.corrected_command.angular;
 	msg_to_gui.reference_point.x = 0.f;
-	msg_to_gui.reference_point.y = request.reference_point_y;
+	msg_to_gui.reference_point.y = y_p_ref;
 	msg_to_gui.reference_point_velocity_solution.x = v_corrected_p_ref.x;
 	msg_to_gui.reference_point_velocity_solution.y = v_corrected_p_ref.y;
 	msg_to_gui.reference_point_nominal_velocity.x = v_nominal_p_ref.x;
@@ -213,7 +233,7 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 	{
 		c_msg.center.x = mo.circle.center.x;
 		c_msg.center.y = mo.circle.center.y;
-		c_msg.radius = mo.circle.radius + request.rds_delta;
+		c_msg.radius = mo.circle.radius + delta;
 		msg_to_gui.moving_objects.push_back(c_msg);
 	}
 	rds_network_ros::Point2D head_msg, tail_msg;
@@ -221,8 +241,8 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 	{
 		if ((mo.velocity.x != 0.f) || (mo.velocity.y != 0.f))
 		{
-			head_msg.x = mo.circle.center.x + mo.velocity.x*request.rds_tau;
-			head_msg.y = mo.circle.center.y + mo.velocity.y*request.rds_tau;
+			head_msg.x = mo.circle.center.x + mo.velocity.x*tau;
+			head_msg.y = mo.circle.center.y + mo.velocity.y*tau;
 			tail_msg.x = mo.circle.center.x;
 			tail_msg.y = mo.circle.center.y;
 			msg_to_gui.moving_objects_predictions.push_back(head_msg);
