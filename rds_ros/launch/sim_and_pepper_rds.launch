@@ -4,5 +4,5 @@
   <include file="$(find rds_ros)/launch/pepper_rds.launch">
     <arg name="script_args" value="--hz --no-stop"/>
   </include>
-  <node pkg="rviz" type="rviz" name="rviz" args="-d $(env HOME)/.rviz/rds.rviz" output="log" />
+  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find asl_pepper_motion_planning)/../rviz/rds.rviz" output="log" />
 </launch>
