@@ -4,9 +4,9 @@ from scipy import interpolate
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
-import capsule_distance
+import capsule_distance_new
 
-capsule = capsule_distance.Capsule(0.18, -0.5, 0.45)
+capsule = capsule_distance_new.Capsule(0.18, -0.5, 0.45)
 y_reference_point = 0.18
 tau = 1.5
 
@@ -39,7 +39,8 @@ def rotate_t_multi_vector_stack(stack_mat, angle):
 	stack_mat[:, 1:] = np.matmul(stack_mat[:, 1:], np.transpose(rot_diag))
 	stack_mat[nan_ind] = np.nan
 
-def plot_and_export(name, t_start, t_snapshot_1, t_snapshot_2, show_big_circle, x_lim, y_lim, remove_ground, rotation_angle, horizontal_t_scale):
+def plot_and_export(name, t_start, t_snapshot_1, t_snapshot_2, show_big_circle,
+	x_lim, y_lim, remove_ground, rotation_angle, horizontal_t_scale, shift_meter_scale):
 
 	folder_path = "./" + name + "/"
 	picture_export_prefix = "./pictures/a_" + name + "_"
@@ -114,7 +115,7 @@ def plot_and_export(name, t_start, t_snapshot_1, t_snapshot_2, show_big_circle, 
 			i_start = i
 
 	i_snapshots = [i_d_min_1, i_d_min_2]
-	t_snapshot_colors = [[0.0,1.0, 1.0], [0.0,1.0, 0.0]]
+	t_snapshot_colors = [[0.0,1.0, 1.0], [0.0,0.0, 1.0]]
 	plot_lrf = True
 	#lrf_sampler = np.arange(0, t.shape[0]/5, 20)
 	#lrf_points_sampled = lrf[lrf_sampler, :]
@@ -147,8 +148,8 @@ def plot_and_export(name, t_start, t_snapshot_1, t_snapshot_2, show_big_circle, 
 	plt.plot(xy_p_ref[i_d_min_1, 0], xy_p_ref[i_d_min_1, 1], 'kx')
 	plt.plot(xy_p_ref[i_d_min_2, 0], xy_p_ref[i_d_min_2, 1], 'kx')
 	ax = plt.gca()
-	capsule.plot_at_pose(x_of_t(t_d_min_1), y_of_t(t_d_min_1), phi_of_t(t_d_min_1), ax, orca=show_big_circle)
-	capsule.plot_at_pose(x_of_t(t_d_min_2), y_of_t(t_d_min_2), phi_of_t(t_d_min_2), ax, orca=show_big_circle)
+	capsule.plot_at_pose(x_of_t(t_d_min_1), y_of_t(t_d_min_1), phi_of_t(t_d_min_1), ax, orca=show_big_circle, color="g")
+	capsule.plot_at_pose(x_of_t(t_d_min_2), y_of_t(t_d_min_2), phi_of_t(t_d_min_2), ax, orca=show_big_circle, color="g")
 
 	for j in range(tracks.shape[1]/4):
 		if np.isnan(tracks[i_d_min_1, j*4]):
@@ -163,10 +164,19 @@ def plot_and_export(name, t_start, t_snapshot_1, t_snapshot_2, show_big_circle, 
 #v_sampler = v_sampler = np.arange(0, t.shape[0], 10)#[i_d_min_1, i_d_min_2]
 #plt.quiver(xy_p_ref[v_sampler, 0], xy_p_ref[v_sampler, 1], v_cartesian_nominal_p_ref[v_sampler, 0], v_cartesian_nominal_p_ref[v_sampler, 1], color=(0,0,1,0.5), scale=1.0, angles='xy', scale_units='xy', width=0.005)
 #plt.quiver(xy_p_ref[v_sampler, 0], xy_p_ref[v_sampler, 1], v_cartesian_corrected_p_ref[v_sampler, 0], v_cartesian_corrected_p_ref[v_sampler, 1], color=(0,1,0,0.5), scale=1.0, angles='xy', scale_units='xy', width=0.005)
+	if False: #show scale
+		shift_x = -2.0 + x_of_t(t_d_min_1) + shift_meter_scale[0]
+		shift_y = -2.0 + y_of_t(t_d_min_1) + shift_meter_scale[1]
+		ax.text(2.9+shift_x, 2.6+shift_y, "1 m")
+		ax.plot([2.75+shift_x,3.75+shift_x], [2.5+shift_y, 2.5+shift_y],'k', linewidth=1)
+		ax.plot([2.75+shift_x,2.75+shift_x], [2.45+shift_y, 2.55+shift_y],'k', linewidth=1)
+		ax.plot([3.75+shift_x,3.75+shift_x], [2.45+shift_y, 2.55+shift_y],'k', linewidth=1)
 
 	ax.set_aspect('equal')
-	ax.set_ylabel('y [m]')
-	ax.set_xlabel('x [m]')
+	ax.xaxis.set_ticks([])
+	ax.xaxis.set_ticklabels([])
+	ax.yaxis.set_ticks([])
+	ax.yaxis.set_ticklabels([])
 	#ax.set_title('Trajectories')
 	if not x_lim == None:
 		ax.set_xlim(x_lim)
@@ -220,16 +230,16 @@ def plot_and_export(name, t_start, t_snapshot_1, t_snapshot_2, show_big_circle, 
 
 
 tests_args = [
-	["jul_16_door_rds_3", 0.0, 0.0, 8.5, False, [-1.5, 4.5], [-2, 2], False, 0.0, False]
-	,["jul_16_door_orca_2", 0.0, 0.0, 8.5, True, [-1.5, 2.5], [-2, 2], False, 0.0, False]
-	,["jul_17_row_overtaking_rds_o1", 0.0, 2.0, 12.5, False, [0, 9.5], [-2, 3], True, 0.0, True]
-	,["jul_17_row_overtaking_orca", 0.0, 2.0, 9, True, [5, 11], [-4, 1], True, 0.0, False]
+	["jul_16_door_rds_3", 0.0, 0.0, 8.5, False, [-1.5, 4.5], [-2, 2], False, 0.0, True, np.array([-1.0, -1.5])]
+	,["jul_16_door_orca_2", 0.0, 0.0, 8.5, True, [-1.5, 2.5], [-2, 2], False, 0.0, True, np.array([-1.5, -1.75])]
+	,["jul_17_row_overtaking_rds_o1", 0.0, 2.0, 12.5, False, [0, 9.5], [-2, 3], True, 0.0, True, np.array([-1.0, -1.5])]
+	,["jul_17_row_overtaking_orca", 0.0, 2.0, 9, True, [5, 11], [-4, 1], True, 0.0, False, np.array([-1.0, -2.0])]
 	,
 	["jul_17_crowd_overtaking_rds", 4.0, 6.0, 11, False, [11.8, 18], [5.75,10]# [11.5,19], [-8.2,-1]
-	, True, np.pi/4.0, False]
+	, True, np.pi/4.0, False, np.array([-1.0, -1.5])]
 	,["jul_17_crowd_overtaking_orca", 6.0, 8.0, 17.7, True, [14,20.25], [3.5, 7.6]# [13.7, 19.7], [-8.5, -2.5]
-	, True, np.pi/4.0-0.15, False]
+	, True, np.pi/4.0-0.15, False, np.array([-1.0, -2.0])]
 ]
 
 for args in tests_args:
-	plot_and_export(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9])
+	plot_and_export(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10])
