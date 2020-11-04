@@ -1,0 +1,12 @@
+<launch>
+  	<include file="$(find rds_ros)/launch/front_lrf_new_driver.launch"/>
+	<node name="rds_ros" pkg="rds_ros" type="rds_ros_node" />
+
+
+	<include file="$(find hector_mapping)/launch/mapping_qolo_rear.launch"/>
+
+<!-- 	<node pkg="tf" type="static_transform_publisher" name="tf_front_lidar" 
+      args="0.035 0 0.280 0 0.0174524 0 0.9998477 tf_qolo tf_front_lidar 10" />
+ -->
+ 
+</launch>
