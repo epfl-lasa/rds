@@ -44,13 +44,13 @@ The following command runs three simulations, one where there is no robot and tw
 
 One can replace 7 by any integer i with 0 <= i < 430.
 
-The following command runs the simulations for all configurations (with a gui).
+The following command runs the simulations for all configurations (with a gui) and saves the results of the evaluation as metrics_evaluation.csv.
 
 ```
 ./build/baseline_crowd_rds_5 gui
 ```
 
-The following command runs the simulations for all configurations (without a gui) and saves the result as metrics_evaluation.csv.
+The following command runs the simulations for all configurations (without a gui) and saves the results of the evaluation as metrics_evaluation.csv.
 
 ```
 ./build/baseline_crowd_rds_5

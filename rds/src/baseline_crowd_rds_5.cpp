@@ -359,7 +359,7 @@ int main(int argc, char** argv)
 		robot_index = sample_index;
 
 		double reaching_time_crowd[3], velocity_crowd[3];
-		for (int mode = 0; mode != 2; ++mode)
+		for (int mode = 0; mode != 3; ++mode)
 		{
 			sim = setup_simulation(&crowd_trajectory, robot_index, mode);
 
