@@ -1,4 +1,26 @@
-# RDS
+# Reactive Driving Support
+
+This is the repository of Reactive Driving Support (RDS), a method for robots to avoid imminent collisions with moving obstacles, which has been developed as part of research at LASA, EPFL. This accompanying short [video](https://www.youtube.com/watch?v=RAKAhTWd7jw) explains the method. The corresponding publication is under review. This work was funded by the EU H2020 project [Crowdbot](http://crowdbot.eu/).
+
+The repository hosts code that implements RDS, simulates and evaluates navigation with RDS in a crowd of pedestrians, and provides an interface for executing RDS on a robot using [ROS](https://www.ros.org/). The original code in this repository (everything except the following third parties' contributions) is subject to the MIT [LICENSE](LICENSE).
+
+## Third parties acknowledgement
+
+The folder spline contains the spline library from [this project](https://github.com/ttk592/spline) which is subject to the GPL 2 license. Further, the folder rds/data contains pedestrian trajectory data from [here](https://graphics.cs.ucy.ac.cy/research/downloads/crowd-data). Finally, the folder RVO2 contains a modified version of the [RVO2 library](https://github.com/snape/RVO2) which is subject to the Apache 2 license.
+
+## Simulations
+
+### Setup
+
+### Demo
+
+## ROS Interface
+
+### Setup
+
+### Demo
+
+# OLD STUFF
 
 Redirecting Driver Support (RDS) is a method for robots to reactively avoid imminent collisions with moving objects. This repository contains the RDS method's implementation, a ROS node to integrate it into a control loop via ROS, and another ROS node to monitor the first node. Further, it contains simulations of a capsule-shaped robot navigating in crowds and using the RDS method for local collision avoidance.
 
