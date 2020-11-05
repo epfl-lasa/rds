@@ -8,13 +8,55 @@ The repository hosts code that implements RDS, simulates and evaluates navigatio
 
 The folder spline contains the spline library from [this project](https://github.com/ttk592/spline) which is subject to the GPL 2 license. Further, the folder rds/data contains pedestrian trajectory data from [here](https://graphics.cs.ucy.ac.cy/research/downloads/crowd-data). Finally, the folder RVO2 contains a modified version of the [RVO2 library](https://github.com/snape/RVO2) which is subject to the Apache 2 license.
 
+# Getting started with RDS
+
+Instructions follow to set up and run RDS and some demos in Ubuntu 16.04. Below, the first section is for simulations, and the second section is for the ROS interface. First, the following steps are necessary in both cases.
+
+This installs the graphics library SDL2, which is a prerequisite.
+
+```
+sudo apt install libsdl2-dev
+```
+
+This gets the code and builds the basic components for RDS.
+
+```
+git clone https://github.com/epfl-lasa/rds.git
+cd rds/RVO2
+mkdir build
+cd build
+cmake ..
+make
+sudo make install
+cd ../../rds
+make
+```
+
 ## Simulations
 
-### Setup
+The previous steps built an executable for simulating a robot using RDS in a crowd whose individual pedestrians track reference trajectories from a real-world [dataset](https://graphics.cs.ucy.ac.cy/research/downloads/crowd-data).
 
-### Demo
+The following command runs three simulations, one where there is no robot and two where the robot replaces the 7th pedestrian and tracks its reference trajectory, once using ORCA and once using RDS.
 
-## ROS Interface
+```
+./build/baseline_crowd_rds_5 7
+```
+
+One can replace 7 by any integer i with 0 <= i < 430.
+
+The following command runs the simulations for all configurations (with a gui).
+
+```
+./build/baseline_crowd_rds_5 gui
+```
+
+The following command runs the simulations for all configurations (without a gui) and saves the result as metrics_evaluation.csv.
+
+```
+./build/baseline_crowd_rds_5
+```
+
+## ROS interface
 
 ### Setup
 
