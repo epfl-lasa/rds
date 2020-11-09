@@ -1,21 +1,36 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(rds_ros)
 
+option(RDS_ROS_USE_TRACKER "Use the people tracker with RDS" ON)
+
 ## Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++11)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS
-  rds_network_ros
-  roscpp
-  std_msgs
-  tf2_ros
-  tf2_eigen
-  sensor_msgs
-  frame_msgs
-)
+
+if (RDS_ROS_USE_TRACKER)
+  add_definitions(-DRDS_ROS_USE_TRACKER)
+  find_package(catkin REQUIRED COMPONENTS
+    rds_network_ros
+    roscpp
+    std_msgs
+    tf2_ros
+    tf2_eigen
+    sensor_msgs
+    frame_msgs
+  )
+else()
+  find_package(catkin REQUIRED COMPONENTS
+    rds_network_ros
+    roscpp
+    std_msgs
+    tf2_ros
+    tf2_eigen
+    sensor_msgs
+  )
+endif()
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -150,7 +165,13 @@ add_executable(${PROJECT_NAME}_nominal_command_node src/nominal_command_node.cpp
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-add_dependencies(${PROJECT_NAME}_node rds_network_ros_generate_messages_cpp frame_msgs_generate_messages_cpp)
+
+if (RDS_ROS_USE_TRACKER)
+  add_dependencies(${PROJECT_NAME}_node rds_network_ros_generate_messages_cpp frame_msgs_generate_messages_cpp)
+else()
+  add_dependencies(${PROJECT_NAME}_node rds_network_ros_generate_messages_cpp)
+endif()
+
 add_dependencies(${PROJECT_NAME}_nominal_command_node rds_network_ros_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against

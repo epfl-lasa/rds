@@ -18,92 +18,96 @@ using Geometry2D::Vec2;
 using Geometry2D::Capsule;
 using AdditionalPrimitives2D::Circle;
 
-PersonTracks::PersonTracks(const frame_msgs::TrackedPersons::ConstPtr& tracks_msg)
-	: time(std::chrono::high_resolution_clock::now())
-	, frame_id(tracks_msg->header.frame_id)
-	, delay(0.1f)
-{
-	MovingObject3 pers_global;
-	for (const auto& track : tracks_msg->tracks)
+#ifdef RDS_ROS_USE_TRACKER
+	PersonTracks::PersonTracks(const frame_msgs::TrackedPersons::ConstPtr& tracks_msg)
+		: time(std::chrono::high_resolution_clock::now())
+		, frame_id(tracks_msg->header.frame_id)
+		, delay(0.1f)
 	{
-		pers_global.position.setX(track.pose.pose.position.x);
-		pers_global.position.setY(track.pose.pose.position.y);
-		pers_global.position.setZ(track.pose.pose.position.z);
-		pers_global.velocity.setX(track.twist.twist.linear.x);
-		pers_global.velocity.setY(track.twist.twist.linear.y);
-		pers_global.velocity.setZ(track.twist.twist.linear.z);
-		persons_global.push_back(pers_global);
-	}
-	for (auto& pers : persons_global)
-		pers.position += delay*pers.velocity;
-}
-
-void PersonTracks::updatePositions(const std::chrono::time_point<std::chrono::high_resolution_clock>& time_now)
-{
-	std::chrono::duration<double> t_step_duration(time_now - time);
-	time = time_now;
-	for (auto& pers : persons_global)
-		pers.position += t_step_duration.count()*pers.velocity;
-}
-
-int RDSNode::obtainTf(const std::string& frame_id_1, const std::string& frame_id_2, tf2::Transform* tf)
-{
-	geometry_msgs::TransformStamped transformStamped;
-	try
-	{
-		transformStamped = tf_buffer.lookupTransform(
-			frame_id_1, frame_id_2 //"sick_laser_front"//
-			, ros::Time(0));
-	}
-	catch (tf2::TransformException &ex)
-	{
-		ROS_WARN("%s excpetion, when looking up tf from %s to %s", ex.what(), frame_id_1.c_str(), frame_id_2.c_str());
-		return 1;
+		MovingObject3 pers_global;
+		for (const auto& track : tracks_msg->tracks)
+		{
+			pers_global.position.setX(track.pose.pose.position.x);
+			pers_global.position.setY(track.pose.pose.position.y);
+			pers_global.position.setZ(track.pose.pose.position.z);
+			pers_global.velocity.setX(track.twist.twist.linear.x);
+			pers_global.velocity.setY(track.twist.twist.linear.y);
+			pers_global.velocity.setZ(track.twist.twist.linear.z);
+			persons_global.push_back(pers_global);
+		}
+		for (auto& pers : persons_global)
+			pers.position += delay*pers.velocity;
 	}
 
-	tf2::Quaternion rotation(transformStamped.transform.rotation.x,
-		transformStamped.transform.rotation.y,
-		transformStamped.transform.rotation.z,
-		transformStamped.transform.rotation.w);
-
-	tf2::Vector3 translation(transformStamped.transform.translation.x,
-		transformStamped.transform.translation.y,
-		transformStamped.transform.translation.z);
-
-	*tf = tf2::Transform(rotation, translation);
-	return 0;
-}
-
-void RDSNode::callbackTracker(const frame_msgs::TrackedPersons::ConstPtr& tracks_msg)
-{
-	m_person_tracks = PersonTracks(tracks_msg);
-}
-
-int RDSNode::makeLocalPersons(const std::vector<MovingObject3>& persons_global,
-	const std::string& tracks_frame_id, std::vector<MovingCircle>* persons_local)
-{
-	tf2::Transform tf;
-	int error_tf_lookup = obtainTf("tf_rds", tracks_frame_id, &tf);
-	if (error_tf_lookup)
-		return 1;
-	tf2::Transform tf_only_rotation(tf.getRotation());
-
-	if (persons_global.size() != persons_local->size())
-		persons_local->resize(persons_global.size());
-
-	tf2::Vector3 position_local, velocity_local;
-	for (unsigned int i = 0; i != persons_global.size(); i++)
+	void PersonTracks::updatePositions(const std::chrono::time_point<std::chrono::high_resolution_clock>& time_now)
 	{
-		position_local = tf*persons_global[i].position;
-		velocity_local = tf_only_rotation*persons_global[i].velocity;
-		(*persons_local)[i].circle.center.x = position_local.getX();
-		(*persons_local)[i].circle.center.y = position_local.getY();
-		(*persons_local)[i].circle.radius = 0.3f;
-		(*persons_local)[i].velocity.x = velocity_local.getX();
-		(*persons_local)[i].velocity.y = velocity_local.getY();
+		std::chrono::duration<double> t_step_duration(time_now - time);
+		time = time_now;
+		for (auto& pers : persons_global)
+			pers.position += t_step_duration.count()*pers.velocity;
 	}
-	return 0;
-}
+
+	int RDSNode::obtainTf(const std::string& frame_id_1, const std::string& frame_id_2, tf2::Transform* tf)
+	{
+		geometry_msgs::TransformStamped transformStamped;
+		try
+		{
+			transformStamped = tf_buffer.lookupTransform(
+				frame_id_1, frame_id_2 //"sick_laser_front"//
+				, ros::Time(0));
+		}
+		catch (tf2::TransformException &ex)
+		{
+			ROS_WARN("%s excpetion, when looking up tf from %s to %s", ex.what(), frame_id_1.c_str(), frame_id_2.c_str());
+			return 1;
+		}
+
+		tf2::Quaternion rotation(transformStamped.transform.rotation.x,
+			transformStamped.transform.rotation.y,
+			transformStamped.transform.rotation.z,
+			transformStamped.transform.rotation.w);
+
+		tf2::Vector3 translation(transformStamped.transform.translation.x,
+			transformStamped.transform.translation.y,
+			transformStamped.transform.translation.z);
+
+		*tf = tf2::Transform(rotation, translation);
+		return 0;
+	}
+
+	void RDSNode::callbackTracker(const frame_msgs::TrackedPersons::ConstPtr& tracks_msg)
+	{
+		m_person_tracks = PersonTracks(tracks_msg);
+	}
+
+	int RDSNode::makeLocalPersons(const std::vector<MovingObject3>& persons_global,
+		const std::string& tracks_frame_id, std::vector<MovingCircle>* persons_local)
+	{
+		if (persons_global.size() == 0)
+			return 0;
+		tf2::Transform tf;
+		int error_tf_lookup = obtainTf("tf_rds", tracks_frame_id, &tf);
+		if (error_tf_lookup)
+			return 1;
+		tf2::Transform tf_only_rotation(tf.getRotation());
+
+		if (persons_global.size() != persons_local->size())
+			persons_local->resize(persons_global.size());
+
+		tf2::Vector3 position_local, velocity_local;
+		for (unsigned int i = 0; i != persons_global.size(); i++)
+		{
+			position_local = tf*persons_global[i].position;
+			velocity_local = tf_only_rotation*persons_global[i].velocity;
+			(*persons_local)[i].circle.center.x = position_local.getX();
+			(*persons_local)[i].circle.center.y = position_local.getY();
+			(*persons_local)[i].circle.radius = 0.3f;
+			(*persons_local)[i].velocity.x = velocity_local.getX();
+			(*persons_local)[i].velocity.y = velocity_local.getY();
+		}
+		return 0;
+	}
+#endif
 
 bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectionRDS::Request& request,
 	rds_network_ros::VelocityCommandCorrectionRDS::Response& response)
@@ -123,13 +127,15 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 			all_moving_objects.push_back(moving_object);
 		}
 	}
-
+	
+#ifdef RDS_ROS_USE_TRACKER
 	m_person_tracks.updatePositions(std::chrono::high_resolution_clock::now());
 	if (makeLocalPersons(m_person_tracks.getPersonsGlobal(),
 		m_person_tracks.getFrameId(), &m_person_tracks.persons_local) != 0)
 		ROS_WARN("Using old local person positions (could be none).");
 	for (auto& pedestrian : m_person_tracks.persons_local)
 		all_moving_objects.push_back(pedestrian);
+#endif
 
 	// parse service parameters
 	float a_v_min = command_correct_previous_linear - request.dt*request.acc_limit_linear_abs_max;
@@ -279,8 +285,10 @@ RDSNode::RDSNode(ros::NodeHandle* n, AggregatorTwoLRF& agg)
 		, 1, &AggregatorTwoLRF::callbackLRFFront, &m_aggregator_two_lrf))
 	, subscriber_lrf_rear(n->subscribe<sensor_msgs::LaserScan>("rear_lidar/scan"//"sick_laser_rear/cropped_scan"//
 		, 1, &AggregatorTwoLRF::callbackLRFRear, &m_aggregator_two_lrf))
+#ifdef RDS_ROS_USE_TRACKER
 	, subscriber_tracker(n->subscribe<frame_msgs::TrackedPersons>("rwth_tracker/tracked_persons"
 		, 1, &RDSNode::callbackTracker, this) )
+#endif
 	, publisher_for_gui(n->advertise<rds_network_ros::ToGui>("rds_to_gui", 1)) 
 	, command_correction_server(n->advertiseService("rds_velocity_command_correction",
 		&RDSNode::commandCorrectionService, this))
