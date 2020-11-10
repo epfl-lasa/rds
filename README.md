@@ -111,6 +111,7 @@ roslaunch rds_ros demo_standalone.launch
 
 ### RDS ROS service parameters
 
-When calling the service there is also the need to specify the velocity and acceleration limits.
-The hexagon limits for the velocity are explained by the sketch here:
-https://github.com/epfl-lasa/rds/blob/master/docs/hexagon_limits.pdf
+When calling the service one needs to specify the velocity and acceleration limits.
+The velocity limits are explained by the following sketch.
+
+![Alt text](/docs/velocity_limits.png?raw=true "this text is not shown.")
