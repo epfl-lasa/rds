@@ -34,7 +34,13 @@ make
 
 ## Simulations
 
-The previous steps built an executable for simulating a robot using RDS in a crowd whose individual pedestrians track reference trajectories from a real-world [dataset](https://graphics.cs.ucy.ac.cy/research/downloads/crowd-data.html).
+The previous steps built the executable baseline_crowd_rds_5 under [THIS_REPOSITORY_ROOT_FOLDER]/rds/build/. The executable is for simulating a robot using RDS in a crowd whose individual pedestrians track reference trajectories from a real-world [dataset](https://graphics.cs.ucy.ac.cy/research/downloads/crowd-data.html).
+
+For running the executable, one needs to be in the right folder:
+
+```
+cd [THIS_REPOSITORY_ROOT_FOLDER]/rds
+```
 
 The following command runs three simulations, one where there is no robot and two where the robot replaces the 7th pedestrian and tracks its reference trajectory, once using ORCA and once using RDS.
 
