@@ -18,7 +18,7 @@ int main(int argc, char** argv)
 	request.reference_point_y = 0.25;
 	request.rds_tau = 1.5;
 	request.rds_delta = 0.05;
-	request.vel_lim_linear_min = 0.5;
+	request.vel_lim_linear_min = -0.5;
 	request.vel_lim_linear_max = 1.5;
 	request.vel_lim_angular_abs_max = 1.0;
 	request.vel_linear_at_angular_abs_max = 0.2;

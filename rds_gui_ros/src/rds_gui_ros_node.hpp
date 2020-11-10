@@ -15,7 +15,6 @@ struct RDSGUIROSNode
 	void toGuiMessageCallback(const rds_network_ros::ToGui::ConstPtr& to_gui_msg);
 
 	GUI gui_command_space;
-	GUI gui_solver_space;
 	float m_gui_work_space_size;
 	GUI gui_work_space;
 	ros::Subscriber to_gui_subscriber;

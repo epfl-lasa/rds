@@ -26,14 +26,14 @@ FakeLRF::FakeLRF(ros::NodeHandle* n)
 
 	float t_shaker_1 = 0.0;
 	float t_shaker_2 = 0.0;
-	float period_1 = 1.0;
-	float period_2 = 1.65;
+	float period_1 = 5.0;
+	float period_2 = 3.5;
 
 	std::chrono::high_resolution_clock::time_point t1, t2;
 	t1 = std::chrono::high_resolution_clock::now();
 	while (ros::ok())
 	{
-		msg_front.ranges[112] = 1.25 + 0.1*std::sin(t_shaker_1/period_1*2.0*M_PI);
+		msg_front.ranges[200] = 1.5 + 0.05*std::sin(t_shaker_1/period_1*2.0*M_PI);
 		msg_rear.ranges[788] = 1.75 + 0.05*std::sin(t_shaker_2/period_2*2.0*M_PI);
 		msg_front.header.stamp = msg_rear.header.stamp = ros::Time::now();
 		msg_front.header.seq++;

@@ -73,7 +73,7 @@ As prerequisites, one needs to install [ROS Kinetic](http://wiki.ros.org/kinetic
 ```
 mkdir -p catkin_ws_rds/src
 cd catkin_ws_rds/src
-ln -s path/to/rds rds
+ln -s [THIS_REPOSITORY_ROOT_FOLDER] rds
 cd ..
 catkin init
 catkin build --cmake-args -DRDS_ROS_USE_TRACKER=OFF
