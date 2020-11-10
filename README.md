@@ -58,9 +58,46 @@ The following command runs the simulations for all configurations (without a gui
 
 ## ROS interface
 
+RDS can be integrated with a robot's perception and control system by using [ROS](https://www.ros.org/) and the nodes from this repository. The following sections show how to build and use these nodes in a ROS environment.
+
 ### Setup
 
+As prerequisites, one needs to install [ROS Kinetic](http://wiki.ros.org/kinetic/Installation/Ubuntu) and the [catkin command line tools](https://catkin-tools.readthedocs.io/en/latest/installing.html) as the links describe. The next steps (below) are to create a catkin workspace and to build there this repository's nodes.
+
+```
+mkdir -p catkin_ws_rds/src
+cd catkin_ws_rds/src
+ln -s path/to/rds rds
+cd ..
+catkin init
+catkin build --cmake-args -DRDS_ROS_USE_TRACKER=OFF
+```
+
+For integrating the people tracker of [Crowdbot](http://crowdbot.eu/), the package frame_msgs must be in the catkin workspace. The node for RDS can then listen to frame_msgs::TrackedPersons messages and treat the detections as obstacles. The following command builds the node accordingly (requires frame_msgs package).
+
+```
+catkin build
+```
+
 ### Demo
+
+The above steps have built the executables of the following four nodes. 
+
+The rds_ros_node offers a service which execute RDS, listens to laserscan (and optionally tracker) messages, and publishes its operations as GUI messages.
+
+The rds_gui_ros_node executes a GUI, listens to GUI messages and displays them.
+
+The rds_ros_nominal_command_node calls the service which executes RDS from the rds_ros_node. It calls this service using a constant nominal command and is just for demonstration and debugging purposes.
+
+The rds_ros_fake_lrf_node publishes two fake laserscan messages representing a front and rear sensor. It is just for demonstration and debugging purposes.
+
+The following commands run the nodes together and demonstrate the operation of RDS in ROS. 
+
+```
+cd catkin_ws_rds
+. devel/setup.bash
+roslaunch rds_ros demo_standalone.launch
+```
 
 # OLD STUFF
 
