@@ -83,7 +83,7 @@ catkin init
 catkin build --cmake-args -DRDS_ROS_USE_TRACKER=OFF
 ```
 
-For integrating the people tracker of [Crowdbot](http://crowdbot.eu/), the package frame_msgs must be in the catkin workspace. The node for RDS can then listen to frame_msgs::TrackedPersons messages and treat the detections as obstacles. The following command builds the node accordingly (requires frame_msgs package).
+For integrating the people tracker of [Crowdbot](http://crowdbot.eu/), the package frame_msgs must be in the catkin workspace. The node for RDS can then listen to frame_msgs::TrackedPersons messages and treat the detections as obstacles. The following command builds the node accordingly (requires the external package frame_msgs).
 
 ```
 catkin build
@@ -111,7 +111,28 @@ roslaunch rds_ros demo_standalone.launch
 
 ### RDS ROS service parameters
 
-When calling the service one needs to specify the velocity and acceleration limits.
-The velocity limits are explained by the following sketch.
+Using RDS via the ROS interface means sending a request for the service which the rds_ros_node offers. The file [VelocityCommandCorrectionRDS.srv](rds_network_ros/srv/VelocityCommandCorrectionRDS.srv) defines this service's layout in terms of the parameters which the service's request and its response specify. The request's parameters are passed as arguments to RDS, whereas the response's parameters store the results which RDS computes. The list below explains each parameters' meaning for RDS.
+
+The request's parameter nominal_command specifies the nominal linear and angular velocity command which one issues for the robot but which does not yet take into account obstacles.
+
+The robot's footprint is bounded by a capsule for RDS, whose geometry is specified by the parameters capsule_center_front_y, capsule_center_rear_y and capsule_radius. The reference_point_y denotes the point whose velocity is optimized to minimize the absolute difference from the point's nominal velocity. The definitions are according to the following sketch.
+
+![Alt text](/docs/capsule_footprint.png?raw=true "this text is not shown.")
+
+The parameter rds_tau specifies the time horizon which RDS uses to construct velocity obstacles.
+
+The parameter rds_delta specifies the margin which RDS adds to each obstacle's radius to be more conservative.
+
+The following sketch explains the parameters that specify constant limits for the linear and angular velocity (with their names on the right).
 
 ![Alt text](/docs/velocity_limits.png?raw=true "this text is not shown.")
+
+The parameters acc_limit_linear_abs_max and acc_limit_angular_abs_max specify the linear and angular acceleration limits, respectively. To enforce them, the rds_ros_node relies on the next parameter dt, which should specify the time i.e. period between sequential requests. Then, the rds_ros_node converts the acceleration limits into velocity limits that are centered around the velocity which RDS computed in the previous cycle and enclose the velocities which are reachable within dt while satisfying the specified acceleration limits. 
+
+The boolean parameter lrf_point_obstacles specifies whether to take laserscan points directly into account as obstacles or not (which is the only way for RDS to perceive obstacles without a tracker).
+
+The boolean parameter ORCA_implementation specifies whether to use an implementation of ORCA instead of RDS (for comparison purposes).
+
+The response's parameter corrected_command reports the command which RDS has computed.
+
+The response's parameter call_counter simply counts how often the service of the rds_ros_node has been called since the node was launched.
