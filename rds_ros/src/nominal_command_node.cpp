@@ -12,10 +12,10 @@ int main(int argc, char** argv)
 
 	request.nominal_command.linear = 1.0;
 	request.nominal_command.angular = 0.5;
-	request.capsule_center_front_y = 0.05;
+	request.capsule_center_front_y = 0.18;
 	request.capsule_center_rear_y = -0.5;
 	request.capsule_radius = 0.45;
-	request.reference_point_y = 0.25;
+	request.reference_point_y = 0.18;
 	request.rds_tau = 1.5;
 	request.rds_delta = 0.05;
 	request.vel_lim_linear_min = -0.5;
@@ -24,7 +24,7 @@ int main(int argc, char** argv)
 	request.vel_linear_at_angular_abs_max = 0.2;
 	request.acc_limit_linear_abs_max = 0.5;
 	request.acc_limit_angular_abs_max = 0.5;
-	request.dt = 1.0/15.0;
+	request.dt = 0.01;
 
 	// shall rds consider lrf measurements?
 	request.lrf_point_obstacles = true;

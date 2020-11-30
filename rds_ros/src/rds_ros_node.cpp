@@ -149,9 +149,9 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 
 	const RDS5CapsuleConfiguration rds_5_config = ConfigRDS5::ConfigWrap(request.dt).rds_5_config;
 
-	float tau = rds_5_config.tau; //request.rds_tau
-	float delta = rds_5_config.delta; //request.rds_delta
-	float y_p_ref = rds_5_config.y_p_ref; //request.reference_point_y
+	float tau = request.rds_tau;// rds_5_config.tau;
+	float delta = request.rds_delta;// rds_5_config.delta;
+	float y_p_ref = request.reference_point_y;// rds_5_config.y_p_ref;
 
 	Geometry2D::RDS5 rds_5(tau, delta, y_p_ref, vw_box_limits, vw_diamond_limits);
 
@@ -163,9 +163,9 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 	rds_5.ORCA_use_p_ref = true;
 	rds_5.ORCA_solver = true;
 
-	float capsule_radius = rds_5_config.robot_shape.radius();//request.capsule_radius
-	float capsule_center_front_y = rds_5_config.robot_shape.center_a().y; //request.capsule_center_front_y
-	float capsule_center_rear_y = rds_5_config.robot_shape.center_b().y; //request.capsule_center_rear_y
+	float capsule_radius = request.capsule_radius;//rds_5_config.robot_shape.radius();
+	float capsule_center_front_y = request.capsule_center_front_y;// rds_5_config.robot_shape.center_a().y;
+	float capsule_center_rear_y = request.capsule_center_rear_y;//rds_5_config.robot_shape.center_b().y;
 
 	Capsule robot_shape(capsule_radius, Vec2(0.0, capsule_center_front_y),
 		Vec2(0.0, capsule_center_rear_y)); //0.45, 0.05, -0.5
@@ -201,7 +201,7 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 		else
 			new_v_angular = std::min(0.f, command_correct_previous_angular + breaking_step_angular);
 		v_corrected_p_ref.y = new_v_linear;
-		v_corrected_p_ref.x = -new_v_angular*rds_5_config.y_p_ref;
+		v_corrected_p_ref.x = -new_v_angular*y_p_ref;//rds_5_config.y_p_ref;
 	}
 
 	// communicate the result and the underlying representations 
