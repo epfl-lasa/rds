@@ -111,7 +111,7 @@ roslaunch rds_ros demo_standalone.launch
 
 ### RDS ROS service parameters
 
-Using RDS via the ROS interface means sending a request for the service which the rds_ros_node offers. The file [VelocityCommandCorrectionRDS.srv](rds_network_ros/srv/VelocityCommandCorrectionRDS.srv) defines this service's layout in terms of the parameters which the service's request and its response specify. The request's parameters are passed as arguments to RDS, whereas the response's parameters store the results which RDS computes. The list below explains each parameters' meaning for RDS.
+Using RDS via the ROS interface means sending a request for the service which the rds_ros_node offers (as done by [this node in python](rds_ros/scripts/rds_client_ros_node.py) and [this node in C++](rds_ros/src/nominal_command_node.cpp) from the demo). The file [VelocityCommandCorrectionRDS.srv](rds_network_ros/srv/VelocityCommandCorrectionRDS.srv) defines this service's layout in terms of the parameters which the service's request and its response specify. The request's parameters are passed as arguments to RDS, whereas the response's parameters store the results which RDS computes. The list below explains each parameters' meaning for RDS.
 
 The request's parameter nominal_command specifies the nominal linear and angular velocity command which one issues for the robot but which does not yet take into account obstacles.
 
