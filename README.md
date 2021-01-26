@@ -12,6 +12,10 @@ The repository hosts code that implements RDS, simulates and evaluates navigatio
 
 The folder spline contains the spline library from [this project](https://github.com/ttk592/spline) which is subject to the GPL 2 license. Further, the folder rds/data contains pedestrian trajectory data from [here](https://graphics.cs.ucy.ac.cy/research/downloads/crowd-data.html). Finally, the folder RVO2 contains a modified version of the [RVO2 library](https://github.com/snape/RVO2) which is subject to the Apache 2 license.
 
+# Integrating RDS on a Robot
+
+![Alt text](/docs/integration_steps.png?raw=true "...haha...")
+
 # Getting started with RDS
 
 Instructions follow to set up and run RDS and some demos in Ubuntu 16.04. Below, the first section is for simulations, and the second section is for the ROS interface. First, the following steps are necessary in both cases.
