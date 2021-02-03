@@ -15,6 +15,7 @@ if (RDS_ROS_USE_TRACKER)
   find_package(catkin REQUIRED COMPONENTS
     rds_network_ros
     roscpp
+    roslib
     std_msgs
     tf2_ros
     tf2_eigen
@@ -25,6 +26,7 @@ else()
   find_package(catkin REQUIRED COMPONENTS
     rds_network_ros
     roscpp
+    roslib
     std_msgs
     tf2_ros
     tf2_eigen

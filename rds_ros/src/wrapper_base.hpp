@@ -14,8 +14,8 @@ struct WrapperBase
 
 	virtual int callRDS(float v_n, float w_n, float* v_c, float* w_c);
 protected:
-	static std::string getValueForKeyFromConfigFile(const std::string& key,
-		const std::istringstream& config_file);
+	static std::string getValueForKeyFromConfigFile(std::ifstream& config_file,
+		const std::string& key);
 	static float readFloat(const std::string& value, float default_value);
 	static bool readBool(const std::string& value, bool default_value);
 

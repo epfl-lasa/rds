@@ -1,6 +1,6 @@
 <launch>
   <node name="rds" pkg="rds_ros" type="rds_ros_node" />
   <node name="gui" pkg="rds_gui_ros" type="rds_gui_ros_node" />
-  <node name="command" pkg="rds_ros" type="rds_ros_nominal_command_node" />
+  <node name="command" pkg="rds_ros" type="rds_ros_nominal_command_node" output="screen"/>
   <node name="lrf" pkg="rds_ros" type="rds_ros_fake_lrf_node" />
 </launch>
