@@ -154,7 +154,7 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(${PROJECT_NAME}_node src/rds_ros_node.cpp src/aggregate_two_lrf.cpp)
-add_executable(${PROJECT_NAME}_nominal_command_node src/nominal_command_node.cpp)
+add_executable(${PROJECT_NAME}_nominal_command_node src/nominal_command_node.cpp src/wrapper_base.cpp)
 add_executable(${PROJECT_NAME}_fake_lrf_node src/fake_lrf.cpp)
 
 ## Rename C++ executable without prefix
