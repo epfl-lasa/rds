@@ -24,6 +24,8 @@ WrapperBase::WrapperBase(const std::string& config_filepath,
 
 	std::string package_path = ros::package::getPath("rds_ros");
 
+	if (config_filepath == "")
+		return;
 	std::ifstream file(package_path + "/" + config_filepath);
 	if (file)
 	{

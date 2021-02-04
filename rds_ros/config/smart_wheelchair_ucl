@@ -1,0 +1,15 @@
+capsule_center_front_y=0.18
+capsule_center_rear_y=-0.18
+capsule_radius=0.45
+reference_point_y=0.18
+rds_tau=1.5
+rds_delta=0.05
+vel_lim_linear_min=-0.5
+vel_lim_linear_max=1.5
+vel_lim_angular_abs_max=1.0
+vel_linear_at_angular_abs_max=0.2
+acc_limit_linear_abs_max=0.5
+acc_limit_angular_abs_max=0.5
+dt=0.05
+lrf_point_obstacles=true
+ORCA_implementation=false

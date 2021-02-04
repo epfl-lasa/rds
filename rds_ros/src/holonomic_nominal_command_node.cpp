@@ -1,4 +1,4 @@
-#include "wrapper_base.hpp"
+#include "wrapper_holonomic.hpp"
 
 #include <rds_network_ros/VelocityCommandCorrectionRDS.h>
 
@@ -9,10 +9,10 @@
 
 int main(int argc, char** argv)
 {
-	WrapperBase calling_wrapper("config/smart_wheelchair_ucl");
-	const float nominal_command_linear = 1.0;
-	const float nominal_command_angular = 0.5;
-	float corrected_command_linear, corrected_command_angular;
+	WrapperHolonomic calling_wrapper("config/default_holonomic");
+	const float nominal_command_vx = 1.0;
+	const float nominal_command_vy = 0.5;
+	float corrected_command_vx, corrected_command_vy;
 	/*
 	rds_network_ros::VelocityCommandCorrectionRDS srv;
 	rds_network_ros::VelocityCommandCorrectionRDS::Request& request = srv.request;
@@ -49,12 +49,12 @@ int main(int argc, char** argv)
 	while (ros::ok())
 	{
 		t1 = std::chrono::high_resolution_clock::now();
-		if (calling_wrapper.callRDS(nominal_command_linear, nominal_command_angular,
-			&corrected_command_linear, &corrected_command_angular) == 0)
+		if (calling_wrapper.callRDS(nominal_command_vx, nominal_command_vy,
+			&corrected_command_vx, &corrected_command_vy) == 0)
 		{
 			ROS_INFO("Nominal command [%f,%f], corrected command [%f,%f]",
-				nominal_command_linear, nominal_command_angular,
-				corrected_command_linear, corrected_command_angular);
+				nominal_command_vx, nominal_command_vy,
+				corrected_command_vx, corrected_command_vy);
 		}
 		/*c.call(srv);
 		ROS_INFO("Nominal command [%f,%f], corrected command [%f,%f], call_counter=%i",

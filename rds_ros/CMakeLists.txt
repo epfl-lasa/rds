@@ -158,6 +158,7 @@ include_directories(
 add_executable(${PROJECT_NAME}_node src/rds_ros_node.cpp src/aggregate_two_lrf.cpp)
 add_executable(${PROJECT_NAME}_nominal_command_node src/nominal_command_node.cpp src/wrapper_base.cpp)
 add_executable(${PROJECT_NAME}_fake_lrf_node src/fake_lrf.cpp)
+add_executable(${PROJECT_NAME}_holonomic_nominal_command_node src/holonomic_nominal_command_node.cpp src/wrapper_holonomic.cpp src/wrapper_base.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -177,6 +178,8 @@ endif()
 
 add_dependencies(${PROJECT_NAME}_nominal_command_node rds_network_ros_generate_messages_cpp)
 
+add_dependencies(${PROJECT_NAME}_holonomic_nominal_command_node rds_network_ros_generate_messages_cpp)
+
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_node
   ${CMAKE_CURRENT_SOURCE_DIR}/../rds/build/lib_rds_5.a
@@ -184,6 +187,9 @@ target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
 )
 target_link_libraries(${PROJECT_NAME}_nominal_command_node
+  ${catkin_LIBRARIES}
+)
+target_link_libraries(${PROJECT_NAME}_holonomic_nominal_command_node
   ${catkin_LIBRARIES}
 )
 target_link_libraries(${PROJECT_NAME}_fake_lrf_node
