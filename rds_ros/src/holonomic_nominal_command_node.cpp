@@ -1,4 +1,4 @@
-#include "wrapper_holonomic.hpp"
+#include <rds_ros/wrapper_holonomic.hpp>
 
 #include <rds_network_ros/VelocityCommandCorrectionRDS.h>
 

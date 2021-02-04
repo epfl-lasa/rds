@@ -1,4 +1,4 @@
-#include "wrapper_base.hpp"
+#include <rds_ros/wrapper_base.hpp>
 #include <ros/package.h>
 #include <fstream>
 
