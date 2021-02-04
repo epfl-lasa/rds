@@ -14,6 +14,25 @@ int main(int argc, char** argv)
 	const float nominal_command_vy = 0.5;
 	float corrected_command_vx, corrected_command_vy;
 	/*
+	rds_network_ros::VelocityCommandCorrectionRDS::Request& req = calling_wrapper.service_form.request;
+	ROS_INFO("capsule_center_front_y=%f", req.capsule_center_front_y);
+	ROS_INFO("capsule_center_rear_y=%f", req.capsule_center_rear_y);
+	ROS_INFO("capsule_radius=%f", req.capsule_radius);
+	ROS_INFO("reference_point_y=%f", req.reference_point_y);
+	ROS_INFO("rds_tau=%f", req.rds_tau);
+	ROS_INFO("rds_delta=%f", req.rds_delta);
+	ROS_INFO("vel_lim_linear_min=%f", req.vel_lim_linear_min);
+	ROS_INFO("vel_lim_linear_max=%f", req.vel_lim_linear_max);
+	ROS_INFO("vel_lim_angular_abs_max=%f", req.vel_lim_angular_abs_max);
+	ROS_INFO("vel_linear_at_angular_abs_max=%f", req.vel_linear_at_angular_abs_max);
+	ROS_INFO("acc_limit_linear_abs_max=%f", req.acc_limit_linear_abs_max);
+	ROS_INFO("acc_limit_angular_abs_max=%f", req.acc_limit_angular_abs_max);
+	ROS_INFO("dt=%f", req.dt);
+	ROS_INFO("lrf_point_obstacles=%i", int(req.lrf_point_obstacles));
+	ROS_INFO("ORCA_implementation=%i", int(req.ORCA_implementation));
+	return 0;
+	*/
+	/*
 	rds_network_ros::VelocityCommandCorrectionRDS srv;
 	rds_network_ros::VelocityCommandCorrectionRDS::Request& request = srv.request;
 

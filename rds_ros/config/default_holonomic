@@ -1,4 +1,4 @@
-radius=0.5
+radius=0.4
 rds_tau=1.0
 rds_delta=0.05
 vel_lim_x_abs_max=1.0

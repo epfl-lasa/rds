@@ -37,8 +37,8 @@ WrapperHolonomic::WrapperHolonomic(const std::string& config_filepath,
 			getValueForKeyFromConfigFile(file, "ORCA_implementation"), false);
 		file.close();
 
-		service_form.request.capsule_center_front_y = virtual_center_y;
-		service_form.request.capsule_center_rear_y = virtual_center_y;
+		service_form.request.capsule_center_front_y = virtual_center_y+0.01f;
+		service_form.request.capsule_center_rear_y = virtual_center_y-0.01f;
 		service_form.request.capsule_radius = radius;
 		service_form.request.reference_point_y = virtual_center_y;
 		service_form.request.vel_lim_linear_min = vel_lim_y_min;
