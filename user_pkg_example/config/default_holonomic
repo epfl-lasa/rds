@@ -1,0 +1,11 @@
+radius=0.4
+rds_tau=1.0
+rds_delta=0.05
+vel_lim_x_abs_max=1.0
+vel_lim_y_min=-1.0
+vel_lim_y_max=1.0
+acc_limit_x_abs_max=1.0
+acc_limit_y_abs_max=1.0
+dt=0.1
+lrf_point_obstacles=true
+ORCA_implementation=false
