@@ -3,7 +3,7 @@
 #include <fstream>
 
 WrapperBase::WrapperBase(const std::string& config_filepath,
-	ros::NodeHandle* existing_node_handle)
+	ros::NodeHandle* existing_node_handle, bool local_path_rds_ros_pkg)
 {
 	if (existing_node_handle == 0)
 	{
@@ -22,11 +22,12 @@ WrapperBase::WrapperBase(const std::string& config_filepath,
 			"rds_velocity_command_correction"));
 	call_counter = 0;
 
-	std::string package_path = ros::package::getPath("rds_ros");
-
+	std::string package_path = ros::package::getPath("rds_ros") + "/";
+	if (!local_path_rds_ros_pkg)
+		package_path = "";
 	if (config_filepath == "")
 		return;
-	std::ifstream file(package_path + "/" + config_filepath);
+	std::ifstream file(package_path + config_filepath);
 	if (file)
 	{
 		service_form.request.capsule_center_front_y = readFloat(

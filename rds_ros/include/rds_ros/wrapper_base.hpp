@@ -9,7 +9,7 @@
 struct WrapperBase
 {
 	WrapperBase(const std::string& config_filepath = "config/default",
-		ros::NodeHandle* existing_node_handle = 0);
+		ros::NodeHandle* existing_node_handle = 0, bool local_path_rds_ros_pkg = true);
 	virtual ~WrapperBase();
 
 	virtual int callRDS(float v_n, float w_n, float* v_c, float* w_c);

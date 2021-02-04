@@ -4,13 +4,15 @@
 #include <iostream>
 
 WrapperHolonomic::WrapperHolonomic(const std::string& config_filepath,
-	ros::NodeHandle* existing_node_handle)
+	ros::NodeHandle* existing_node_handle, bool local_path_rds_ros_pkg)
   : WrapperBase("", existing_node_handle)
   , virtual_center_y(0.1f)
 {
-	std::string package_path = ros::package::getPath("rds_ros");
+	std::string package_path = ros::package::getPath("rds_ros") + "/";
+	if (!local_path_rds_ros_pkg)
+		package_path = "";
 
-	std::ifstream file(package_path + "/" + config_filepath);
+	std::ifstream file(package_path + config_filepath);
 	if (file)
 	{
 		float radius = readFloat(

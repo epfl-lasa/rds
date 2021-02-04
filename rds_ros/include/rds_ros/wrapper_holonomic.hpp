@@ -9,7 +9,7 @@
 struct WrapperHolonomic : public WrapperBase
 {
 	WrapperHolonomic(const std::string& config_filepath = "config/default_holonomic",
-		ros::NodeHandle* existing_node_handle = 0);
+		ros::NodeHandle* existing_node_handle = 0, bool local_path_rds_ros_pkg = true);
 
 	virtual int callRDS(float vx_n, float vy_n, float* vx_c, float* vy_c);
 
