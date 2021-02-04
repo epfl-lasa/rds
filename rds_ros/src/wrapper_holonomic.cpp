@@ -1,4 +1,7 @@
 #include "wrapper_holonomic.hpp"
+#include <ros/package.h>
+#include <fstream>
+#include <iostream>
 
 WrapperHolonomic::WrapperHolonomic(const std::string& config_filepath,
 	ros::NodeHandle* existing_node_handle)
@@ -36,14 +39,14 @@ WrapperHolonomic::WrapperHolonomic(const std::string& config_filepath,
 
 		service_form.request.capsule_center_front_y = virtual_center_y;
 		service_form.request.capsule_center_rear_y = virtual_center_y;
-		service_form.capsule_radius = radius;
-		service_form.reference_point_y = virtual_center_y;
-		service_form.vel_lim_linear_min = vel_lim_y_min;
-		service_form.vel_lim_linear_max = vel_lim_y_max;
-		service_form.vel_linear_at_angular_abs_max = 0.f;
-		service_form.vel_lim_angular_abs_max = vel_lim_x_abs_max/virtual_center_y;
-		service_form.acc_limit_linear_abs_max = acc_limit_y_abs_max;
-		service_form.acc_limit_angular_abs_max = acc_limit_x_abs_max/virtual_center_y;
+		service_form.request.capsule_radius = radius;
+		service_form.request.reference_point_y = virtual_center_y;
+		service_form.request.vel_lim_linear_min = vel_lim_y_min;
+		service_form.request.vel_lim_linear_max = vel_lim_y_max;
+		service_form.request.vel_linear_at_angular_abs_max = 0.f;
+		service_form.request.vel_lim_angular_abs_max = vel_lim_x_abs_max/virtual_center_y;
+		service_form.request.acc_limit_linear_abs_max = acc_limit_y_abs_max;
+		service_form.request.acc_limit_angular_abs_max = acc_limit_x_abs_max/virtual_center_y;
 	}
 	else
 		std::cout << "\033[1;31mCould not open config file:\033[0m" << config_filepath << "\n"; 

@@ -1,4 +1,4 @@
-#define WRAPPER_HOLONOMIC_HPP
+#ifndef WRAPPER_HOLONOMIC_HPP
 #define WRAPPER_HOLONOMIC_HPP
 
 #include "wrapper_base.hpp"
