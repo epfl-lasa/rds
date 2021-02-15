@@ -20,6 +20,12 @@ Holonomic wrapper:
 
 ![Alt text](/docs/holonomic_wrapper.png?raw=true "...haha...")
 
+The holonomic wrapper for RDS requires to define on the robot the frame "main_body_frame", whose origin defines the center for the bounding circle, which RDS uses to approximate the robot's shape. Further, the velocity commands which are sent to and received from RDS describe the origin center's velocity by the cartesian components with respect to the frame's axes.
+
+The holonomic wrapper is configured by a file which it loads upon creation and which specifies the radius of the bounding circle, the robot's limits of velocity and acceleration (with respect to the frame "main_body_frame"), and other parameters. A program can use the holonomic wrapper by including the respective header. Building requires adding the package rds_ros to its CMakeLists.txt. For launching such a program, its launch file must simply include the file rds_holonomic.launch from the package rds_ros, which will launch the nodes that execute RDS behind the wrapper.
+
+RDS obtains information about obstacles by listening to up to two laserscanners under the topics "front_lidar/scan" and "rear_lidar/scan" and a people tracker under the topic "rwth_tracker/tracked_persons" (unless this build option is disabled). The transformation between the frames which these messages use and the frame "main_body_frame" must be provided to RDS by broadcasting them via static transform publishers (for example).
+
 # Getting started with RDS
 
 Instructions follow to set up and run RDS and some demos in Ubuntu 16.04. Below, the first section is for simulations, and the second section is for the ROS interface. First, the following steps are necessary in both cases.
