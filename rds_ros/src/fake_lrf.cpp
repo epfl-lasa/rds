@@ -11,7 +11,7 @@ FakeLRF::FakeLRF(ros::NodeHandle* n)
 {
 	sensor_msgs::LaserScan msg_front, msg_rear;
 	msg_front.header.seq = 0;
-	msg_front.header.frame_id = "tf_rds";
+	msg_front.header.frame_id = "main_body_frame";
 	msg_front.angle_min = 0.0;
 	unsigned int n_ranges = 900;
 	msg_front.angle_increment = 2.0*M_PI/n_ranges;
