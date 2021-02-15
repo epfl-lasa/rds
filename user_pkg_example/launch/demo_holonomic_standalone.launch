@@ -1,9 +1,10 @@
 <launch>
-  <node pkg="tf2_ros" type="static_transform_publisher"
-		name="tf_rear_lidar_broadcaster"
-		args="-0.1 0 0 0 0 0 1 main_body_frame tf_rds" />
-  <node name="rds" pkg="rds_ros" type="rds_ros_node"/>
-  <node name="gui" pkg="rds_gui_ros" type="rds_gui_ros_node" />
-  <node name="command" pkg="user_pkg_example" type="holonomic_nominal_command_node" output="screen"/>
+  <!-- Launch holonomic RDS and its GUI -->
+  <include file="$(find rds_ros)/launch/rds_holonomic.launch" />
+
+  <!-- Simulate sensing from 2 LRF -->
   <node name="lrf" pkg="rds_ros" type="rds_ros_fake_lrf_node" />
+
+  <!-- Launch the example node calling RDS -->
+  <node name="command" pkg="user_pkg_example" type="holonomic_nominal_command_node" output="screen"/>
 </launch>
