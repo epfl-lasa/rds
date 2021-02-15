@@ -16,6 +16,10 @@ The folder spline contains the spline library from [this project](https://github
 
 ![Alt text](/docs/integration_steps.png?raw=true "...haha...")
 
+Holonomic wrapper:
+
+![Alt text](/docs/holonomic_wrapper.png?raw=true "...haha...")
+
 # Getting started with RDS
 
 Instructions follow to set up and run RDS and some demos in Ubuntu 16.04. Below, the first section is for simulations, and the second section is for the ROS interface. First, the following steps are necessary in both cases.

@@ -35,8 +35,9 @@ WrapperHolonomic::WrapperHolonomic(const std::string& config_filepath,
 			getValueForKeyFromConfigFile(file, "dt"), 0.1f);
 		service_form.request.lrf_point_obstacles = readBool(
 			getValueForKeyFromConfigFile(file, "lrf_point_obstacles"), true);	
-		service_form.request.ORCA_implementation = readBool(
-			getValueForKeyFromConfigFile(file, "ORCA_implementation"), false);
+		service_form.request.ORCA_implementation = false;
+		// readBool(
+		//	getValueForKeyFromConfigFile(file, "ORCA_implementation"), false);
 		file.close();
 
 		service_form.request.capsule_center_front_y = virtual_center_y+0.01f;
