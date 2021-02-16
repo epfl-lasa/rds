@@ -1,8 +1,20 @@
 #!/bin/bash
 
+#----- Colored Terminal -----
+NORMAL="\e[0m"
+IMP_INFO="\e[34;1m"
+IMP_RED="\e[31;1m"
+IMP_GREEN="\e[32;1m"
+
 #----- Ctrl-C stop -----
+_kill() {
+    echo -e "${IMP_RED}Killing all subprocesses${NORMAL}"
+    for PID in ${PID_LIST[@]};do
+        kill -INT $PID
+    done
+}
 trap "exit" INT TERM ERR
-trap "kill -INT 0" EXIT
+trap _kill EXIT
 
 #----- Get Test Number -----
 TEST_NO=0
