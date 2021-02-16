@@ -2,9 +2,7 @@
 
 This is the repository of Reactive Driving Support (RDS), a method for robots to avoid imminent collisions with moving obstacles, which has been developed as part of research at LASA, EPFL. This accompanying short [video](https://www.youtube.com/watch?v=RAKAhTWd7jw) explains the method. The corresponding publication is under review. This work was funded by the EU H2020 project [Crowdbot](http://crowdbot.eu/).
 
-## Software Structure
-
-![Alt text](/docs/software_2.png?raw=true "Each box corresponds to one source folder.")
+## Contents
 
 The repository hosts code that implements RDS, simulates and evaluates navigation with RDS in a crowd of pedestrians, and provides an interface for executing RDS on a robot using [ROS](https://www.ros.org/). The original code in this repository (everything except the following third parties' contributions) is subject to the MIT [LICENSE](LICENSE).
 
@@ -13,6 +11,8 @@ The repository hosts code that implements RDS, simulates and evaluates navigatio
 The folder spline contains the spline library from [this project](https://github.com/ttk592/spline) which is subject to the GPL 2 license. Further, the folder rds/data contains pedestrian trajectory data from [here](https://graphics.cs.ucy.ac.cy/research/downloads/crowd-data.html). Finally, the folder RVO2 contains a modified version of the [RVO2 library](https://github.com/snape/RVO2) which is subject to the Apache 2 license.
 
 # Integrating RDS on a Robot
+
+![Alt text](/docs/signals_rds.png?raw=true "...haha...")
 
 ![Alt text](/docs/integration_steps.png?raw=true "...haha...")
 
@@ -27,6 +27,10 @@ The holonomic wrapper is configured by a file which it loads upon creation and w
 RDS obtains information about obstacles by listening to up to two laserscanners under the topics "front_lidar/scan" and "rear_lidar/scan" and a people tracker under the topic "rwth_tracker/tracked_persons" (unless this build option is disabled). The transformation between the frames which these messages use and the frame "main_body_frame" must be provided to RDS by broadcasting them via static transform publishers (for example).
 
 # Getting started with RDS
+
+The software's structure is as in the following picture.
+
+![Alt text](/docs/software_2.png?raw=true "Each box corresponds to one source folder.")
 
 Instructions follow to set up and run RDS and some demos in Ubuntu 16.04. Below, the first section is for simulations, and the second section is for the ROS interface. First, the following steps are necessary in both cases.
 
