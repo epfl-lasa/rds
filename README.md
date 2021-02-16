@@ -18,23 +18,22 @@ RDS has been developed for non-holonomic robots whose shape is bounded by a caps
 
 RDS obtains information about obstacles by listening to up to two laserscanners under the topics "front_lidar/scan" and "rear_lidar/scan" and a people tracker under the topic "rwth_tracker/tracked_persons" (unless this build option is disabled). The messages by perception components must refer to a frame which RDS can relate to its own frame, which is termed "main_body_frame". For non-holonomic robots, this frame's origin is the midpoint of the wheel axle and its y-axis points forward and the x-axis is aligned with the wheel axle. For holonomic robots, this frame's origin is the robot's center (as in the picture below). If the messages from perception components refer to different frames, the transformation between their frames and the "main_body_frame" must be provided e.g. by a static transform publisher.
 
-The procedure for building all the shown components is given in [this](https://github.com/epfl-lasa/rds#getting-started-with-rds) and [this](https://github.com/epfl-lasa/rds#setup) section below. A demo and explanations are given in this [this section](https://github.com/epfl-lasa/rds#demo) for using RDS through ROS in its standard way with non-holonomic capsule-shaped robots
-[This section](https://github.com/epfl-lasa/rds#demo).
+The procedure for building all the shown components is given in [this](https://github.com/epfl-lasa/rds#getting-started-with-rds) and [this](https://github.com/epfl-lasa/rds#setup) section below. A demo and explanations are given in this [this section](https://github.com/epfl-lasa/rds#demo) for using RDS through ROS in its standard way with non-holonomic capsule-shaped robots.
 
 ## Holonomic wrapper
 
 The package rds_ros contains the wrapper wrapper_holonomic.hpp, which handles calling RDS for holonomic robots. The package user_pkg_example uses the holonomic wrapper of RDS and is included [here](https://github.com/epfl-lasa/rds/tree/crowdbot/user_pkg_example) in the repository. 
-It is a minimal example for a package that calls the rds_ros package and is intended to demonstrate how to call RDS for holonomic robots from within any external package in a similar way.
+It is a minimal example for a package that calls the rds_ros package for holonomic robots and is intended to demonstrate how to call RDS from within any external package in a similar way.
 The package user_pkg_example is built when following the general instructions for building this repository. It can be tested afterwards via
 ```
 roslaunch user_pkg_example demo_holonomic_standalone.launch
 ```
 In general, the following applies. A program can use the holonomic wrapper by including the respective header. Building requires adding the package rds_ros to its CMakeLists.txt. For launching such a program, its launch file must simply include the file rds_holonomic.launch from the package rds_ros, which will launch the nodes that execute RDS behind the wrapper.
 
-The holonomic wrapper is configured by a file which it loads upon creation and which specifies the radius of the bounding circle, the robot's limits of velocity and acceleration (with respect to the frame "main_body_frame"), and other parameters.
-The following picture explains the configuration of the holonomic wrapper and the associated definitions.
+The holonomic wrapper is configured by a file ([here](https://github.com/epfl-lasa/rds/tree/crowdbot/user_pkg_example/config/default_holonomic) in user_pkg_example) which it loads upon creation and which specifies the radius of the bounding circle, the robot's limits of velocity and acceleration (with respect to the frame "main_body_frame"), and other parameters.
+The following picture explains the configuration file of the holonomic wrapper and the associated definitions.
 
-![Alt text](/docs/holonomic_wrapper.png?raw=true "...haha...")
+![Alt text](/docs/holonomic_wrapper.png?raw=true "Wrapper configuration")
 
 RDS assumes that the frame "main_body_frame" defines the center for the bounding circle, which RDS uses to approximate the robot's shape. Further, the velocity commands which are sent to and received from RDS describe the origin center's velocity by the cartesian components with respect to the frame's axes.
 
