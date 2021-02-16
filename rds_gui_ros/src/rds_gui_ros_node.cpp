@@ -69,8 +69,7 @@ void RDSGUIROSNode::toGuiMessageCallback(const rds_network_ros::ToGui::ConstPtr&
 }
 
 RDSGUIROSNode::RDSGUIROSNode(ros::NodeHandle* n)
-	: gui_command_space("Velocity Space", 2.f)
-	, gui_solver_space("Solver Space", 1.f)
+	: gui_command_space("Velocity Space", 3.f)
 	, gui_work_space("Work Space", 
 		n->getParam("gui_size", m_gui_work_space_size) ? m_gui_work_space_size : 4.f)
 	, to_gui_subscriber(n->subscribe<rds_network_ros::ToGui>("rds_to_gui", 1,
@@ -81,9 +80,6 @@ RDSGUIROSNode::RDSGUIROSNode(ros::NodeHandle* n)
 	//gui_solver_space.activateHalfplaneAreaRendering();
 	gui_command_space.arrows = &command_space_arrows;
 	gui_command_space.halfplanes = &command_space_halfplanes;
-
-	gui_solver_space.points = &solver_space_points;
-	gui_solver_space.halfplanes = &solver_space_halfplanes;
 
 	gui_work_space.circles = &work_space_circles;
 	gui_work_space.arrows = &work_space_arrows;
@@ -123,14 +119,13 @@ RDSGUIROSNode::RDSGUIROSNode(ros::NodeHandle* n)
 	std::chrono::high_resolution_clock::time_point t1, t2;
 	t1 = std::chrono::high_resolution_clock::now();
 	while (ros::ok() && (
-		(gui_solver_space.update() == 0) |
 		(gui_command_space.update() == 0) |
 		(gui_work_space.update() == 0)))
 	{
 		ros::spinOnce();
 		t2 = std::chrono::high_resolution_clock::now();
 		std::this_thread::sleep_for(gui_cycle_time - std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1));
-		ROS_INFO("Gui updated in %d milliseconds.", std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1));
+		//ROS_INFO("Gui updated in %d milliseconds.", std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1));
 		t1 = t2;
 	}
 }

@@ -19,10 +19,10 @@ using AdditionalPrimitives2D::Circle;
 using Geometry2D::BoundingCircles;
 using AdditionalPrimitives2D::Polygon;
 
-const bool with_gui = true;
-const bool save_result = false;
+bool with_gui = false;
+bool save_result = true;
 const bool robot_avoids = true;
-const bool save_trajectories = true;
+const bool save_trajectories = false;
 
 const float dt = 0.05f;
 
@@ -316,8 +316,20 @@ double compute_crowd_tracking_error(const std::vector<AgentLog>& crowd_log,
 		return -1.0;
 }
 
-int main()
+int main(int argc, char** argv)
 {
+	int single_configuration_index = -1;
+	if (argc > 1)
+	{
+		with_gui = true;
+		try
+		{
+			single_configuration_index = std::stoi(argv[1]);
+			save_result = false;
+		}
+		catch (...) { }
+	}
+
 	char file_name[] = "./data_university_students/students003_no_obstacles.vsp";
 	float frame_rate = 25.333;
 	float scaling = 0.025;//0.027;
@@ -334,13 +346,20 @@ int main()
 
 	int robot_index;
 	CrowdRdsOrcaSimulator* sim;
-	const unsigned int n_samples = 8;//430;//90;
-	for (unsigned int sample_index = 7; sample_index != n_samples; ++sample_index)
+
+	unsigned int n_samples = 430;
+	unsigned int start_sample_index = 0;
+	if ((single_configuration_index >= 0) && (single_configuration_index < 430))
+	{
+		n_samples = single_configuration_index + 1;
+		start_sample_index = single_configuration_index;
+	}
+	for (unsigned int sample_index = start_sample_index; sample_index != n_samples; ++sample_index)
 	{
 		robot_index = sample_index;
 
 		double reaching_time_crowd[3], velocity_crowd[3];
-		for (int mode = 1; mode != 2; ++mode)
+		for (int mode = 0; mode != 3; ++mode)
 		{
 			sim = setup_simulation(&crowd_trajectory, robot_index, mode);
 
