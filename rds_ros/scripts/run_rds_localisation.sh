@@ -36,20 +36,21 @@ eval "rosrun openzen_sensor openzen_sensor_node &"
 sleep 2
 eval "roslaunch ~/localization_ws/laser_scan_matcher.launch &"
 PID_LIST+="$! "
-=======
+
+
 #----- Ctrl-C stop -----
 trap "exit" INT TERM ERR
 trap "kill -INT 0" EXIT
 
 #----- Get Test Number -----
-TEST_NO=0
+# TEST_NO=0
 #while [ -d "csv_logs/test${TEST_NO}" ]; do
 #    TEST_NO=$(( $TEST_NO + 1 ))
 #done
 #LOG_FOLDER="$(pwd)/csv_logs/test${TEST_NO}"
 #eval "mkdir -p ${LOG_FOLDER}"
 # echo "Current Test Number : ${TEST_NO}"
-eval ". devel/setup.bash"
+# eval ". devel/setup.bash"
 
 #----- Launch and record force sensors -----
 #eval "./src/rokubimini_interface/run_rokubimini_ros.sh -f ${LOG_FOLDER}&"
@@ -67,9 +68,9 @@ eval ". devel/setup.bash"
 #    -O ${LOG_FOLDER}/camera \
 #    -e '/camera_front/(.*)' \
 #    &> /dev/null &"
-PID_LIST+="$! "
+# PID_LIST+="$! "
 
-sleep 5
+# sleep 5
 
 #----- Launch Rear Lidar  -----
 #echo "Launching Velodyne Frontal LIDAR..."
