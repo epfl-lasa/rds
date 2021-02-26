@@ -39,6 +39,55 @@ def rotate_t_multi_vector_stack(stack_mat, angle):
 	stack_mat[:, 1:] = np.matmul(stack_mat[:, 1:], np.transpose(rot_diag))
 	stack_mat[nan_ind] = np.nan
 
+def extract_samples_centers(t_seq, f_seq):
+	threshold = (np.max(f_seq.shape[0]) - np.min(f_seq.shape[0]))/10000.0
+	centers = [[f_seq[0], t_seq[0]]]
+	for i in range(1, f_seq.shape[0]):
+		if np.abs(centers[-1][0] - f_seq[i]) > threshold:
+			centers[-1][1] = (t_seq[i-1] + centers[-1][1])/2.0
+			centers.append([f_seq[i], t_seq[i]])
+	centers[-1][1] = (t_seq[-1] + centers[-1][1])/2.0
+	tf_c = np.zeros([len(centers), 2])
+	for i in range(len(centers)):
+		tf_c[i, :] = np.array([centers[i][1], centers[i][0]])
+	return tf_c
+
+def compute_metrics(x_spline, y_spline, t_seq):
+	path_length = 0.0
+	v_seq = np.zeros([t_seq.shape[0]-1])
+	for i in range(1, t_seq.shape[0]):
+		dx = x_spline(t_seq[i]) - x_spline(t_seq[i-1])
+		dy = y_spline(t_seq[i]) - y_spline(t_seq[i-1])
+		ds = np.sqrt(dx**2 + dy**2)
+		path_length += ds
+		dt = t_seq[i] - t_seq[i-1]
+		v_seq[i-1] = ds/dt
+	v_mean = np.mean(v_seq)
+	v_var = np.var(v_seq)
+	return (path_length, v_mean, v_var, v_seq)
+
+def evaluate_metrics(t_pose, x_pose, y_pose, name):
+	tx_c = extract_samples_centers(t_pose, x_pose)
+	ty_c = extract_samples_centers(t_pose, y_pose)
+	x_cubic_spline = interpolate.interp1d(tx_c[:, 0], tx_c[:, 1], kind="cubic", bounds_error=False)
+	y_cubic_spline = interpolate.interp1d(ty_c[:, 0], ty_c[:, 1], kind="cubic", bounds_error=False)
+	#plt.plot(t_pose, x_cubic_spline(t_pose), "k")
+	#plt.plot(t_pose, x_pose, "ko")
+	#plt.plot(t_pose, y_cubic_spline(t_pose), "r")
+	#plt.plot(t_pose, y_pose, "ro")
+	#plt.show()
+
+	t_regular = np.linspace(np.max([tx_c[0,0], ty_c[0,0]]), np.min([tx_c[-1,0], ty_c[-1,0]]), 100)
+	path_length, v_mean, v_var, v_seq = compute_metrics(x_cubic_spline, y_cubic_spline, t_regular)
+	print name
+	print "path_length=%f, v_mean=%f, v_std=%f" % (path_length, v_mean, np.sqrt(v_var))
+	
+	fig, axs = plt.subplots(3, 1)
+	axs[0].plot(t_pose, x_pose, t_regular, x_cubic_spline(t_regular))
+	axs[1].plot(t_pose, y_pose, t_regular, y_cubic_spline(t_regular))
+	axs[2].plot(t_regular[:-1], v_seq)
+	plt.show()
+
 def plot_and_export(name, t_start, t_snapshot_1, t_snapshot_2, show_big_circle,
 	x_lim, y_lim, remove_ground, rotation_angle, horizontal_t_scale, shift_meter_scale):
 
@@ -78,6 +127,24 @@ def plot_and_export(name, t_start, t_snapshot_1, t_snapshot_2, show_big_circle,
 	x_pose = pose_without_nan_rows[:, 1]
 	y_pose = pose_without_nan_rows[:, 2]
 	phi_pose = pose_without_nan_rows[:, 3]
+
+	only_path_length_and_average_velocity = True
+	if only_path_length_and_average_velocity:
+		#fig, axs = plt.subplots(3,1)
+		#axs[0].plot(t_pose)
+		#axs[1].plot(x_pose)
+		#axs[2].plot(y_pose)
+		#plt.show()
+
+		#plt.plot(x_pose, y_pose,'ko')
+		#plt.plot(x_pose[0], y_pose[0],'ro')
+		#plt.gca().set_aspect("equal")
+		#plt.show()
+		t_new = t_pose[1:]
+		x_new = x_pose[1:]
+		y_new = y_pose[1:]
+		evaluate_metrics(t_new, x_new, y_new, name)
+		return
 
 	x_of_t = interpolate.interp1d(t_pose, x_pose, bounds_error=False)
 	y_of_t = interpolate.interp1d(t_pose, y_pose, bounds_error=False)

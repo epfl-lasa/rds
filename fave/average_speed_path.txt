@@ -1,0 +1,18 @@
+Exp. 1)
+RDS:
+path_length=4.591743, v_mean=0.533553, v_std=0.254338
+Baseline:
+path_length=1.080665, v_mean=0.082546, v_std=0.142700
+
+Exp. 2)
+RDS:
+path_length=8.985811, v_mean=0.693947, v_std=0.233827
+Baseline:
+path_length=7.391609, v_mean=0.563338, v_std=0.301146
+
+Exp. 3)
+RDS:
+path_length=9.717966, v_mean=0.678582, v_std=0.226814
+Baseline:
+path_length=8.553880, v_mean=0.483615, v_std=0.300147
+
