@@ -1,18 +1,18 @@
 Exp. 1)
 RDS:
-path_length=4.591743, v_mean=0.533553, v_std=0.254338
+path_length=4.550156, v_mean=0.594811, v_std=0.179788
 Baseline:
-path_length=1.080665, v_mean=0.082546, v_std=0.142700
+path_length=0.996948, v_mean=0.121596, v_std=0.161462
 
 Exp. 2)
 RDS:
-path_length=8.985811, v_mean=0.693947, v_std=0.233827
+path_length=8.898303, v_mean=0.716123, v_std=0.167555
 Baseline:
-path_length=7.391609, v_mean=0.563338, v_std=0.301146
+path_length=7.053721, v_mean=0.554386, v_std=0.269004
 
 Exp. 3)
 RDS:
-path_length=9.717966, v_mean=0.678582, v_std=0.226814
+path_length=9.664605, v_mean=0.703271, v_std=0.168071
 Baseline:
-path_length=8.553880, v_mean=0.483615, v_std=0.300147
+path_length=7.122194, v_mean=0.553673, v_std=0.255072
 

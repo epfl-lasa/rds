@@ -69,8 +69,14 @@ def compute_metrics(x_spline, y_spline, t_seq):
 def evaluate_metrics(t_pose, x_pose, y_pose, name):
 	tx_c = extract_samples_centers(t_pose, x_pose)
 	ty_c = extract_samples_centers(t_pose, y_pose)
-	x_cubic_spline = interpolate.interp1d(tx_c[:, 0], tx_c[:, 1], kind="cubic", bounds_error=False)
-	y_cubic_spline = interpolate.interp1d(ty_c[:, 0], ty_c[:, 1], kind="cubic", bounds_error=False)
+	#tvx_c = [None]
+	#for i in range(1, tx_c.shape[0]-1):
+	#	dt = tx_c[i+1,0] - tx_c[i-1,0]
+	#	dx = tx_c[i+1,1] - tx_c[i-1,1]
+	#	tvx_c.append([tx_c[i,0], dx/dt])
+
+	x_cubic_spline = interpolate.interp1d(tx_c[:, 0], tx_c[:, 1], kind="linear", bounds_error=False)
+	y_cubic_spline = interpolate.interp1d(ty_c[:, 0], ty_c[:, 1], kind="linear", bounds_error=False)
 	#plt.plot(t_pose, x_cubic_spline(t_pose), "k")
 	#plt.plot(t_pose, x_pose, "ko")
 	#plt.plot(t_pose, y_cubic_spline(t_pose), "r")
@@ -78,13 +84,31 @@ def evaluate_metrics(t_pose, x_pose, y_pose, name):
 	#plt.show()
 
 	t_regular = np.linspace(np.max([tx_c[0,0], ty_c[0,0]]), np.min([tx_c[-1,0], ty_c[-1,0]]), 100)
+	if name == "jul_16_door_rds_3":
+		t_regular = np.delete(t_regular, np.where(t_regular < 5.5))
+	elif name == "jul_16_door_orca_2":
+		t_regular = np.delete(t_regular, np.where(np.logical_or(t_regular < 0.75, t_regular > 9)))
+	elif name == "jul_17_row_overtaking_rds_o1":
+		t_regular = np.delete(t_regular, np.where(t_regular < 5.15))
+	elif name == "jul_17_row_overtaking_orca":
+		t_regular = np.delete(t_regular, np.where(t_regular < 4.95))
+	elif name == "jul_17_crowd_overtaking_rds":
+		t_regular = np.delete(t_regular, np.where(t_regular < 5.2))
+	elif name == "jul_17_crowd_overtaking_orca":
+		t_regular = np.delete(t_regular, np.where(np.logical_or(t_regular < 4.9, t_regular > 18.0)))
+
 	path_length, v_mean, v_var, v_seq = compute_metrics(x_cubic_spline, y_cubic_spline, t_regular)
 	print name
 	print "path_length=%f, v_mean=%f, v_std=%f" % (path_length, v_mean, np.sqrt(v_var))
 	
-	fig, axs = plt.subplots(3, 1)
-	axs[0].plot(t_pose, x_pose, t_regular, x_cubic_spline(t_regular))
-	axs[1].plot(t_pose, y_pose, t_regular, y_cubic_spline(t_regular))
+	fig, axs = plt.subplots(3, 1, sharex=True)
+	axs[0].plot(t_pose, x_pose, "k", tx_c[:, 0], tx_c[:, 1], "go", t_regular, x_cubic_spline(t_regular), "r")
+	y_lim = axs[0].get_ylim()
+	axs[0].plot([t_regular[0], t_regular[0]], y_lim, "r--", [t_regular[-1], t_regular[-1]], y_lim, "r--")
+	axs[1].plot(t_pose, y_pose, "k", ty_c[:, 0], ty_c[:, 1], "go", t_regular, y_cubic_spline(t_regular), "r")
+	y_lim = axs[1].get_ylim()
+	axs[1].plot([t_regular[0], t_regular[0]], y_lim, "r--", [t_regular[-1], t_regular[-1]], y_lim, "r--")
+	#axs[1].plot(t_pose, y_pose, t_regular, y_cubic_spline(t_regular))
 	axs[2].plot(t_regular[:-1], v_seq)
 	plt.show()
 
