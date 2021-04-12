@@ -101,7 +101,7 @@ using AdditionalPrimitives2D::Circle;
 			velocity_local = tf_only_rotation*persons_global[i].velocity;
 			(*persons_local)[i].circle.center.x = position_local.getX();
 			(*persons_local)[i].circle.center.y = position_local.getY();
-			(*persons_local)[i].circle.radius = 0.3f;
+			(*persons_local)[i].circle.radius = 0.25f;
 			(*persons_local)[i].velocity.x = velocity_local.getX();
 			(*persons_local)[i].velocity.y = velocity_local.getY();
 		}
