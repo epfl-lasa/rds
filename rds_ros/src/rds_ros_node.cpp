@@ -322,7 +322,7 @@ RDSNode::RDSNode(ros::NodeHandle* n, AggregatorTwoLRF& agg)
 	, use_detections_instead_of_tracks(false)
 	, subscriber_tracker(n->subscribe<frame_msgs::TrackedPersons>("rwth_tracker/tracked_persons"
 		, 1, &RDSNode::callbackTracker, this) )
-	, subscriber_detections(n->subscribe<frame_msgs::DetectedPersons>("rwth_tracker/detected_persons_synchronized"
+	, subscriber_detections(n->subscribe<frame_msgs::DetectedPersons>("detected_persons_synchronized"
 		, 1, &RDSNode::callbackDetections, this) )
 #endif
 	, publisher_for_gui(n->advertise<rds_network_ros::ToGui>("rds_to_gui", 1)) 
