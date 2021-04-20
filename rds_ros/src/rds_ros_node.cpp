@@ -47,6 +47,22 @@ using AdditionalPrimitives2D::Circle;
 			pers.position += t_step_duration.count()*pers.velocity;
 	}
 
+	PersonDetections::PersonDetections(const frame_msgs::DetectedPersons::ConstPtr& detection_message)
+		: frame_id(detection_message->header.frame_id)
+	{
+		MovingObject3 pers_global;
+		for (const auto& detcn : detection_message->detections)
+		{
+			pers_global.position.setX(detcn.pose.pose.position.x);
+			pers_global.position.setY(detcn.pose.pose.position.y);
+			pers_global.position.setZ(detcn.pose.pose.position.z);
+			pers_global.velocity.setX(0.0);
+			pers_global.velocity.setY(0.0);
+			pers_global.velocity.setZ(0.0);
+			persons_global.push_back(pers_global);
+		}
+	}
+
 	int RDSNode::obtainTf(const std::string& frame_id_1, const std::string& frame_id_2, tf2::Transform* tf)
 	{
 		geometry_msgs::TransformStamped transformStamped;
@@ -107,6 +123,12 @@ using AdditionalPrimitives2D::Circle;
 		}
 		return 0;
 	}
+
+	void RDSNode::callbackDetections(const frame_msgs::DetectedPersons::ConstPtr& detections_msg)
+	{
+		m_person_detections = PersonDetections(detections_msg);
+	}
+
 #endif
 
 bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectionRDS::Request& request,
@@ -129,12 +151,23 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 	}
 	
 #ifdef RDS_ROS_USE_TRACKER
-	m_person_tracks.updatePositions(std::chrono::high_resolution_clock::now());
-	if (makeLocalPersons(m_person_tracks.getPersonsGlobal(),
-		m_person_tracks.getFrameId(), &m_person_tracks.persons_local) != 0)
-		ROS_WARN("Using old local person positions (could be none).");
-	for (auto& pedestrian : m_person_tracks.persons_local)
-		all_moving_objects.push_back(pedestrian);
+	if (!use_detections_instead_of_tracks)
+	{
+		m_person_tracks.updatePositions(std::chrono::high_resolution_clock::now());
+		if (makeLocalPersons(m_person_tracks.getPersonsGlobal(),
+			m_person_tracks.getFrameId(), &m_person_tracks.persons_local) != 0)
+			ROS_WARN("Using old local person positions (could be none).");
+		for (auto& pedestrian : m_person_tracks.persons_local)
+			all_moving_objects.push_back(pedestrian);
+	}
+	else
+	{
+		if (makeLocalPersons(m_person_detections.getPersonsGlobal(),
+			m_person_detections.getFrameId(), &m_person_detections.persons_local) != 0)
+			ROS_WARN("Using old local person positions (could be none).");
+		for (auto& pedestrian : m_person_detections.persons_local)
+			all_moving_objects.push_back(pedestrian);
+	}
 #endif
 
 	// parse service parameters
@@ -286,8 +319,11 @@ RDSNode::RDSNode(ros::NodeHandle* n, AggregatorTwoLRF& agg)
 	, subscriber_lrf_rear(n->subscribe<sensor_msgs::LaserScan>("rear_lidar/scan"//"sick_laser_rear/cropped_scan"//
 		, 1, &AggregatorTwoLRF::callbackLRFRear, &m_aggregator_two_lrf))
 #ifdef RDS_ROS_USE_TRACKER
+	, use_detections_instead_of_tracks(false)
 	, subscriber_tracker(n->subscribe<frame_msgs::TrackedPersons>("rwth_tracker/tracked_persons"
 		, 1, &RDSNode::callbackTracker, this) )
+	, subscriber_detections(n->subscribe<frame_msgs::DetectedPersons>("rwth_tracker/detected_persons_synchronized"
+		, 1, &RDSNode::callbackDetections, this) )
 #endif
 	, publisher_for_gui(n->advertise<rds_network_ros::ToGui>("rds_to_gui", 1)) 
 	, command_correction_server(n->advertiseService("rds_velocity_command_correction",
@@ -297,6 +333,7 @@ RDSNode::RDSNode(ros::NodeHandle* n, AggregatorTwoLRF& agg)
 	, command_correct_previous_angular(0.f)
 	, call_counter(0)
 {
+	n->getParam("rds_use_detections", use_detections_instead_of_tracks);
 	ros::spin();
 }
 

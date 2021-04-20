@@ -1,4 +1,6 @@
 <launch>
+  <arg name="det" default="false"/>
+  <param name="rds_use_detections" type="bool" value="$(arg det)" />
   <include file="$(find rds_ros)/launch/front_lrf_new_driver.launch"/>
   <node name="rds_ros" pkg="rds_ros" type="rds_ros_node"/>
 

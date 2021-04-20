@@ -9,6 +9,7 @@
 
 #ifdef RDS_ROS_USE_TRACKER
 	#include <frame_msgs/TrackedPersons.h>
+	#include <frame_msgs/DetectedPersons.h>
 #endif
 
 #include <ros/ros.h>
@@ -43,6 +44,19 @@
 		std::string frame_id;
 		float delay;
 	};
+
+	struct PersonDetections
+	{
+		PersonDetections() { }
+		PersonDetections(const frame_msgs::DetectedPersons::ConstPtr& detection_message);
+		const std::vector<MovingObject3>& getPersonsGlobal() const { return persons_global; }
+		const std::string& getFrameId() const { return frame_id; }
+
+		std::vector<MovingCircle> persons_local;
+	private:
+		std::vector<MovingObject3> persons_global;
+		std::string frame_id;
+	};
 #endif
 
 struct RDSNode
@@ -59,6 +73,8 @@ struct RDSNode
 
 	int makeLocalPersons(const std::vector<MovingObject3>& persons_global,
 		const std::string& tracks_frame_id, std::vector<MovingCircle>* persons_local);
+
+	void callbackDetections(const frame_msgs::DetectedPersons::ConstPtr& detections_msg);
 #endif
 
 	AggregatorTwoLRF& m_aggregator_two_lrf;
@@ -67,14 +83,17 @@ struct RDSNode
 
 #ifdef RDS_ROS_USE_TRACKER
 	ros::Subscriber subscriber_tracker;
+	ros::Subscriber subscriber_detections;
 #endif
 
 	ros::Publisher publisher_for_gui;
 	ros::ServiceServer command_correction_server;
 
 #ifdef RDS_ROS_USE_TRACKER
+	bool use_detections_instead_of_tracks;
 	std::vector<MovingCircle> m_tracked_persons;
 	PersonTracks m_person_tracks;
+	PersonDetections m_person_detections;
 #endif
 	
 	tf2_ros::Buffer tf_buffer;
