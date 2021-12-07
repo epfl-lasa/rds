@@ -314,9 +314,9 @@ bool RDSNode::commandCorrectionService(rds_network_ros::VelocityCommandCorrectio
 
 RDSNode::RDSNode(ros::NodeHandle* n, AggregatorTwoLRF& agg)
 	: m_aggregator_two_lrf(agg)
-	, subscriber_lrf_front(n->subscribe<sensor_msgs::LaserScan>("front_lidar/scan"//"sick_laser_front/cropped_scan"//
+	, subscriber_lrf_front(n->subscribe<sensor_msgs::LaserScan>("front_lidar/scan_all"//"sick_laser_front/cropped_scan"//
 		, 1, &AggregatorTwoLRF::callbackLRFFront, &m_aggregator_two_lrf))
-	, subscriber_lrf_rear(n->subscribe<sensor_msgs::LaserScan>("rear_lidar/scan"//"sick_laser_rear/cropped_scan"//
+	, subscriber_lrf_rear(n->subscribe<sensor_msgs::LaserScan>("rear_lidar/scan_all"//"sick_laser_rear/cropped_scan"//
 		, 1, &AggregatorTwoLRF::callbackLRFRear, &m_aggregator_two_lrf))
 #ifdef RDS_ROS_USE_TRACKER
 	, use_detections_instead_of_tracks(false)

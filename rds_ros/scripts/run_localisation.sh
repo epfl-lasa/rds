@@ -27,12 +27,15 @@ PID_LIST+="$! "
 # eval "roslaunch hector_mapping mapping_qolo.launch"
 sleep 5
 
-#----- Launch laser_scan_matcher -----
+#----- Launch laser_scan_matcher + IMU -----
 echo -e "${IMP_INFO}Launching Laser Scan Matcher...${NORMAL}"
 eval ". ~/localization_ws/devel/setup.bash"
+eval "rosrun openzen_sensor openzen_sensor_node &"
+sleep 2
 eval "roslaunch ~/localization_ws/laser_scan_matcher.launch &"
 PID_LIST+="$! "
 sleep 5
+
 
 # Wait till all pids to be finished or killed
 echo "All PIDs : ${PID_LIST}"

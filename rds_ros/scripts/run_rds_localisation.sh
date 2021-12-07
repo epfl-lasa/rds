@@ -29,7 +29,7 @@ sleep 5
 
 eval "roslaunch rds_ros static_tf_publishers.launch &"
 
-#----- Launch laser_scan_matcher -----
+#----- Launch laser_scan_matcher with IMU -----
 echo -e "${IMP_INFO}Launching Laser Scan Matcher...${NORMAL}"
 eval ". ~/localization_ws/devel/setup.bash"
 eval "rosrun openzen_sensor openzen_sensor_node &"

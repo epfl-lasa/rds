@@ -8,8 +8,10 @@
   <arg name="device_ip" default="" />
   <arg name="frame_id" default="tf_front_lidar" />
   <arg name="manager" default="$(arg frame_id)_nodelet_manager" />
-  <arg name="max_range" default="5  0.0" />
+  <arg name="max_range" default="25.0" />
   <arg name="min_range" default="0.4" />
+  <!-- <arg name="view_direction" default="1.75*pi" /> -->
+  <!-- <arg name="view_width" default="pi" /> -->
   <arg name="pcap" default="" />
   <arg name="port" default="2368" />
   <arg name="read_fast" default="false" />
@@ -17,7 +19,7 @@
   <arg name="repeat_delay" default="0.0" />
   <arg name="rpm" default="1200.0" />
   <arg name="cut_angle" default="-0.01" />
-  <arg name="laserscan_ring" default="7" />
+  <arg name="laserscan_ring" default="8" />
   <arg name="laserscan_resolution" default="0.007" />
   <arg name="organize_cloud" default="false" />
 
@@ -58,6 +60,7 @@
     </include>
 
   <!-- <node name="lidar_channels_to_lrf_node" pkg="rds_ros" type="lidar_channels_to_lrf_node" />  -->
+  
 
   </group>
 
