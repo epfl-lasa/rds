@@ -45,6 +45,8 @@ The software's structure is as in the following picture.
 
 Instructions follow to set up and run RDS and some demos in Ubuntu 16.04. Below, the first section is for simulations, and the second section is for the ROS interface. First, the following steps are necessary in both cases.
 
+You can use docker to build and execute RDS following [this guide](docs/docker.md).
+
 This installs the graphics library SDL2, which is a prerequisite.
 
 ```
